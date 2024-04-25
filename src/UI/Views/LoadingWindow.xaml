@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
+        xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{x:Null}"
         AllowsTransparency="True"
@@ -12,9 +12,9 @@
         WindowStartupLocation="CenterScreen"
         mc:Ignorable="d"
         Title="Загрузка" Height="450" Width="800">
-    
+
     <Window.DataContext>
-        <local:LoadingViewModel/>
+        <vm:LoadingViewModel/>
     </Window.DataContext>
 
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="25" materialDesign:ElevationAssist.Elevation="Dp4">

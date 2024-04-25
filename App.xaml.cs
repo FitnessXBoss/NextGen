@@ -9,6 +9,7 @@ namespace NextGen
     /// </summary>
     public partial class App : Application
     {
+
     }
 
 }

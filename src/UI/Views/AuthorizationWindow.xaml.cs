@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NextGen.src.Services.Security;
+using NextGen.src.UI.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,13 +24,20 @@ namespace NextGen.src.UI.Views
         public AuthorizationWindow()
         {
             InitializeComponent();
+            var viewModel = new AuthorizationViewModel();
+            viewModel.CloseAction = new Action(this.Close);
+            this.DataContext = viewModel;
         }
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadingWindow loadingWindow = new LoadingWindow();
-            Close();
-            loadingWindow.Show();
+            
+        }
+
+        private void ResetAuthText_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Функция восстановления пароля находится в разработке.");
+            
         }
 
     }

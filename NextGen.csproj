@@ -31,6 +31,7 @@
 	  <Folder Include="src\Assets\Styles\" />
 	  <Folder Include="src\Components\Common\Controls\" />
 	  <Folder Include="src\Components\Common\Utils\" />
+	  <Folder Include="src\Configuration\" />
 	  <Folder Include="src\Data\Database\Models\" />
 	  <Folder Include="src\Data\Database\Queries\" />
 	  <Folder Include="src\Data\Repositories\" />
@@ -43,12 +44,6 @@
     <Resource Include="src\Assets\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="src\Configuration\appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
