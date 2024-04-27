@@ -28,7 +28,7 @@
 
                 <WrapPanel>
                     <Image Source="/src/Assets/Images/logo.png" HorizontalAlignment="Left"  Height="50" Width="50"></Image>
-                    <TextBlock Margin="15 0 0 0" HorizontalAlignment="left" VerticalAlignment="Center" FontSize="28" FontWeight="Bold" Text="NextGen Auto" />
+                    <TextBlock Margin="15 0 0 0" HorizontalAlignment="left" VerticalAlignment="Center" FontSize="28" FontWeight="Bold" Text="Next Gen Auto" />
                 </WrapPanel>
 
                 <TextBlock Margin="0 30 0 15" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Left" Text="{Binding StatusMessage}"></TextBlock>

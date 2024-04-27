@@ -1,0 +1,99 @@
+﻿<Window x:Class="NextGen.src.UI.Views.DashboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+        xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Главная страница" Height="720" Width="1150"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{x:Null}"  
+        AllowsTransparency="True"
+        WindowStyle="None"
+        WindowStartupLocation="CenterScreen">
+    
+    
+
+    <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
+        <Grid Cursor="">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <materialDesign:ColorZone Height="65" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}">
+                <DockPanel>
+
+
+
+
+                    <WrapPanel DockPanel.Dock="Right">
+                        <Button x:Name="MinimizeButton" Content="{materialDesign:PackIcon Kind=Minimize}" Style="{StaticResource MaterialDesignFlatButton}" Click="MinimizeButton_Click"/>
+                        <Button x:Name="MaximizeButton" Content="{materialDesign:PackIcon Kind=ArrowExpand}" Style="{StaticResource MaterialDesignFlatButton}" Click="MaximizeButton_Click"/>
+                        <Button x:Name="CloseButton" Content="{materialDesign:PackIcon Kind=Close}" Style="{StaticResource MaterialDesignFlatButton}" Click="CloseButton_Click"/>
+                    </WrapPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0" Source="/src/Assets/Images/logo.png" Height="32" Width="30" MouseDown="Image_MouseDown"/>
+                        <TextBlock Margin="15,0,15,0" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Text="Next Gen Auto" />
+                    </StackPanel>
+
+                </DockPanel>
+
+                
+            </materialDesign:ColorZone>
+
+            <materialDesign:DrawerHost x:Name="MainDrawerHost" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:ElevationAssist.Elevation="Dp24">
+                
+                    <materialDesign:DrawerHost.LeftDrawerContent>
+                    <DockPanel MinWidth="220">
+
+                        <TextBox x:Name="ItemsSearchBox"
+               Width="200"
+               Margin="0,15,0,0"
+               materialDesign:HintAssist.Hint="Поиск"
+               materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+               materialDesign:TextFieldAssist.HasClearButton="True"
+               DockPanel.Dock="Top"
+               Style="{StaticResource MaterialDesignOutlinedTextBox}"
+               Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <ListBox x:Name="ItemsListBox"
+               Margin="0,16,0,16"
+               AutomationProperties.Name="PagesListBox"
+               ItemsSource="{Binding Items}"
+               
+               SelectedIndex="{Binding SelectedIndex}"
+               SelectedItem="{Binding SelectedItem, UpdateSourceTrigger=PropertyChanged}"
+               Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                                <ListBox.Resources>
+                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource MaterialDesignScrollBarMinimal}" />
+                                </ListBox.Resources>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="domain:Item">
+                                        <TextBlock Margin="24,4,0,4"
+                       AutomationProperties.AutomationId="DemoItemPage"
+                       Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </DockPanel>
+                    </materialDesign:DrawerHost.LeftDrawerContent>
+                </materialDesign:DrawerHost>
+
+
+            <!-- Другие элементы для второй строки и колонок можно добавить здесь -->
+        </Grid>
+    </materialDesign:Card>
+
+
+
+
+</Window>

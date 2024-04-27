@@ -1,12 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows;
 using NextGen.src.Services;
+using NextGen.src.UI.Views;
 
 namespace NextGen.src.UI.ViewModels
 {
     public class LoadingViewModel : INotifyPropertyChanged
     {
+        private Window? _currentWindow;
         private string _statusMessage = "Инициализация...";
         private DatabaseService? _databaseService;
 
@@ -30,13 +33,15 @@ namespace NextGen.src.UI.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Конструктор без параметров для использования в XAML
-        public LoadingViewModel()
+        public LoadingViewModel(Window currentWindow)
         {
-
+            _currentWindow = currentWindow;
         }
 
-        // Конструктор с параметром для программного создания с зависимостью
+        public LoadingViewModel()
+        {
+        }
+
         public LoadingViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
@@ -46,7 +51,7 @@ namespace NextGen.src.UI.ViewModels
         {
             if (_databaseService == null)
             {
-                _databaseService = new DatabaseService(); // Ленивая инициализация
+                _databaseService = new DatabaseService();
             }
 
             StatusMessage = "Подключение к базе данных...";
@@ -54,7 +59,7 @@ namespace NextGen.src.UI.ViewModels
             {
                 using (var connection = _databaseService.GetConnection())
                 {
-                    await Task.Delay(1000); // Имитация длительной операции
+                    await Task.Delay(1000);
                 }
             }
             catch (Exception ex)
@@ -64,12 +69,23 @@ namespace NextGen.src.UI.ViewModels
             }
 
             StatusMessage = "Загрузка интерфейса...";
-            await Task.Delay(1000); // Имитация загрузки интерфейса
+            await Task.Delay(1000);
 
             StatusMessage = "Завершение настройки...";
-            await Task.Delay(1000); // Завершающие шаги
+            await Task.Delay(1000);
 
             StatusMessage = "Готово!";
+
+            OpenDashboardWindow(); // Открытие Dashboard окна
+        }
+
+        private void OpenDashboardWindow()
+        {
+            Application.Current.Dispatcher.Invoke(() => {
+                var dashboardWindow = new DashboardWindow();
+                dashboardWindow.Show();
+                _currentWindow?.Close(); // Закрытие текущего окна
+            });
         }
 
     }

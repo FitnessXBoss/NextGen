@@ -4,7 +4,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
         xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
-        Title="Авторизация" Height="720" Width="450"
+        Title="Авторизация" Height="750" Width="450"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{x:Null}"  
         AllowsTransparency="True"
@@ -22,13 +22,11 @@
             <materialDesign:PopupBox HorizontalAlignment="Right" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
                     <StackPanel>
 
-                        <StackPanel Margin="16 10 0 6" Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock  VerticalAlignment="Center" Text="Темная тема     " />
-                        <ToggleButton Cursor="Hand" ToolTip="Включить темную тему" Margin="12 0 8 0"
-                            x:Name="themeToggle"
-                            IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
+                        <WrapPanel Margin="16 10 0 6" Orientation="Horizontal">
+                            <TextBlock  VerticalAlignment="Center" Text="Темная тема" />
+                            <ToggleButton Cursor="Hand" ToolTip="Включить темную тему" Margin="16 0 0 0" x:Name="themeToggle" IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
 
-                    </StackPanel>
+                        </WrapPanel>
 
                         <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
                         <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" />
@@ -37,14 +35,14 @@
                 </materialDesign:PopupBox>
 
 
-                <Image Margin="0,60,0,25" Source="/src/Assets/Images/logo.png" Height="100"></Image>
+                <Image Margin="0,60,0,25" Source="/src/Assets/Images/logo.png" Height="100"/>
 
                 <TextBlock FontSize="30"  HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesignBody}" Text="Авторизируйтесь" FontFamily="Segoe UI Semibold"></TextBlock>
 
-                <TextBox Margin="0,50,0,0" x:Name="txtUsername" Width="300" FontSize="18" materialDesign:HintAssist.Hint="Логин" Foreground="{DynamicResource MaterialDesignBody}"  Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBox Margin="0,50,0,0" x:Name="txtUsername" Width="300" FontSize="18" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:HintAssist.Hint="Логин" Foreground="{DynamicResource MaterialDesignBody}"  Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <PasswordBox Margin="0,20,0,0" x:Name="txtPassword" Width="300" FontSize="18" materialDesign:HintAssist.Hint="Пароль"
-                    materialDesign:TextFieldAssist.HasClearButton="True"
+                    materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
                     IsEnabled="{Binding ElementName=RevealPasswordOutlinedEnabled, Path=IsChecked}"
                    
                     Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"

@@ -42,7 +42,7 @@
   <ItemGroup>
     <Resource Include="src\Assets\Images\illustration.png" />
     <Resource Include="src\Assets\Images\logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 

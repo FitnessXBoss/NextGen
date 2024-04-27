@@ -23,8 +23,11 @@ namespace NextGen.src.UI.Views
         public LoadingWindow()
         {
             InitializeComponent();
-            Loaded += async (s, e) => await ((LoadingViewModel)DataContext).InitializeApplicationAsync();
+            var viewModel = new LoadingViewModel(this); // Ссылка на текущие окно
+            DataContext = viewModel;
+            Loaded += async (s, e) => await viewModel.InitializeApplicationAsync();
         }
     }
+
 
 }
