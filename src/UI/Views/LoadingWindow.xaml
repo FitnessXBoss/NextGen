@@ -6,6 +6,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontFamily="Noto"
         Background="{x:Null}"
         AllowsTransparency="True"
         WindowStyle="None"
@@ -28,10 +29,10 @@
 
                 <WrapPanel>
                     <Image Source="/src/Assets/Images/logo.png" HorizontalAlignment="Left"  Height="50" Width="50"></Image>
-                    <TextBlock Margin="15 0 0 0" HorizontalAlignment="left" VerticalAlignment="Center" FontSize="28" FontWeight="Bold" Text="NextGen Auto" />
+                    <TextBlock Margin="15 0 0 0" HorizontalAlignment="left" VerticalAlignment="Center" FontSize="28" FontWeight="Bold" Text="Next Gen Auto" />
                 </WrapPanel>
 
-                <TextBlock Margin="0 30 0 15" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Left" Text="{Binding StatusMessage}"></TextBlock>
+                <TextBlock Margin="0 30 0 15" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Left" Text="{Binding StatusMessage}"/>
 
                 <ProgressBar Margin="0 0 0 10" Name="progressBar" IsIndeterminate="True" Value="0" Height="5" Width="280"/>
 

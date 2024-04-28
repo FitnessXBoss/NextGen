@@ -6,11 +6,11 @@ namespace NextGen.src.UI.Helpers
     public class RelayCommand : ICommand
     {
         private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
+        private readonly Func<bool>? _canExecute;  // Объявлено как nullable
 
-        public RelayCommand(Action execute, Func<bool> canExecute = null)
+        public RelayCommand(Action execute, Func<bool>? canExecute = null)
         {
-            _execute = execute;
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
@@ -22,12 +22,12 @@ namespace NextGen.src.UI.Helpers
 
         public bool CanExecute(object? parameter)
         {
-            return _canExecute == null || _canExecute();
+            return _canExecute == null || _canExecute(); // Безопасный вызов, учитывающий возможность null
         }
 
         public void Execute(object? parameter)
         {
-            _execute();
+            _execute(); // Выполнение действия, предполагается, что _execute не может быть null из-за проверки в конструкторе
         }
     }
 }
