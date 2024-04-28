@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
         Title="Авторизация" Height="750" Width="450"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontFamily="Noto"
         Background="{x:Null}"  
         AllowsTransparency="True"
         WindowStyle="None"
@@ -14,12 +15,14 @@
     <Window.DataContext>
         <local:AuthorizationViewModel/>
     </Window.DataContext>
+    
+    
 
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="25" materialDesign:ElevationAssist.Elevation="Dp4">
         <materialDesign:DialogHost CloseOnClickAway="True" x:Name="DialogHost" Identifier="RootDialog">
             <StackPanel>
 
-            <materialDesign:PopupBox HorizontalAlignment="Right" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
+            <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
                     <StackPanel>
 
                         <WrapPanel Margin="16 10 0 6" Orientation="Horizontal">
@@ -32,19 +35,19 @@
                         <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" />
 
                     </StackPanel>
-                </materialDesign:PopupBox>
+            </materialDesign:PopupBox>
 
 
                 <Image Margin="0,60,0,25" Source="/src/Assets/Images/logo.png" Height="100"/>
 
-                <TextBlock FontSize="30"  HorizontalAlignment="Center" Foreground="{DynamicResource MaterialDesignBody}" Text="Авторизируйтесь" FontFamily="Segoe UI Semibold"></TextBlock>
+                <TextBlock FontSize="30"  HorizontalAlignment="Center"  Text="Авторизируйтесь" Foreground="{DynamicResource MaterialDesignBody}"  FontFamily="Modern No. 20"/>
 
                 <TextBox Margin="0,50,0,0" x:Name="txtUsername" Width="300" FontSize="18" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:HintAssist.Hint="Логин" Foreground="{DynamicResource MaterialDesignBody}"  Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
 
                 <PasswordBox Margin="0,20,0,0" x:Name="txtPassword" Width="300" FontSize="18" materialDesign:HintAssist.Hint="Пароль"
                     materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
                     IsEnabled="{Binding ElementName=RevealPasswordOutlinedEnabled, Path=IsChecked}"
-                   
+                    Foreground="{DynamicResource MaterialDesignBody}"
                     Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
                     VerticalContentAlignment="Bottom"
                              helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
@@ -63,7 +66,7 @@
                 </TextBlock>
 
 
-                <Button  Margin="0,20,0,0" x:Name="LoginButton" Command="{Binding LoginCommand}" Style="{StaticResource MaterialDesignFlatMidBgButton}" materialDesign:ElevationAssist.Elevation="Dp0" Height="53" Width="300" materialDesign:ButtonAssist.CornerRadius="10" FontSize="18" Content="Войти" Click="LoginButton_Click" ></Button>
+                <Button  Margin="0,20,0,0" x:Name="LoginButton" Command="{Binding LoginCommand}" Style="{StaticResource MaterialDesignFlatMidBgButton}" materialDesign:ElevationAssist.Elevation="Dp0" Height="53" Width="300" materialDesign:ButtonAssist.CornerRadius="10" FontSize="18" Content="Войти" Click="LoginButton_Click"/>
 
 
 

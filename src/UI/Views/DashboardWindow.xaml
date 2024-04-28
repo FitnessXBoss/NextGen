@@ -9,17 +9,21 @@
         mc:Ignorable="d"
         Title="Главная страница" Height="720" Width="1150"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontFamily="Noto"
         Background="{x:Null}"  
         AllowsTransparency="True"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen">
-    
-    
+
+    <Window.DataContext>
+        <vm:DashboardViewModel/>
+    </Window.DataContext>
+
 
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
         <Grid Cursor="">
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="75"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -28,26 +32,65 @@
                 <ColumnDefinition Width="300"/>
             </Grid.ColumnDefinitions>
 
-            <materialDesign:ColorZone Height="65" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}">
+            <materialDesign:ColorZone Height="80" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}">
                 <DockPanel>
-
-
-
-
                     <WrapPanel DockPanel.Dock="Right">
                         <Button x:Name="MinimizeButton" Content="{materialDesign:PackIcon Kind=Minimize}" Style="{StaticResource MaterialDesignFlatButton}" Click="MinimizeButton_Click"/>
                         <Button x:Name="MaximizeButton" Content="{materialDesign:PackIcon Kind=ArrowExpand}" Style="{StaticResource MaterialDesignFlatButton}" Click="MaximizeButton_Click"/>
                         <Button x:Name="CloseButton" Content="{materialDesign:PackIcon Kind=Close}" Style="{StaticResource MaterialDesignFlatButton}" Click="CloseButton_Click"/>
                     </WrapPanel>
 
-                    <StackPanel Orientation="Horizontal">
-                        <Image Margin="0" Source="/src/Assets/Images/logo.png" Height="32" Width="30" MouseDown="Image_MouseDown"/>
-                        <TextBlock Margin="15,0,15,0" VerticalAlignment="Center" FontSize="16" FontWeight="Bold" Text="Next Gen Auto" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
+                        <StackPanel Orientation="Horizontal" Grid.Column="0">
+                            <Image Margin="0" Source="/src/Assets/Images/logo.png" Height="32" Width="30" MouseDown="Image_MouseDown"/>
+                            <TextBlock Margin="10,0,15,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Text="Next Gen Auto" />
+                        </StackPanel>
+
+                        <StackPanel  Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Top">
+                            <materialDesign:PopupBox PopupUniformCornerRadius="10" TextBlock.FontSize="14" TextBlock.FontWeight="Medium" Grid.Column="1"  VerticalContentAlignment="Center" materialDesign:RippleAssist.IsCentered="False" ClipToBounds="True" PopupVerticalOffset="13">
+                            <materialDesign:PopupBox.ToggleContent>
+                                    <materialDesign:ColorZone CornerRadius="10" Height="50" Background="{DynamicResource MaterialDesign.Brush.Button.FlatClick}">
+                                    <materialDesign:Ripple Padding="20,0" HorizontalContentAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}" VerticalContentAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}" Focusable="False">
+                                        <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="40" Height="40">
+                                                    <Ellipse.Fill>
+                                                        <ImageBrush ImageSource="http://chriscavanagh.files.wordpress.com/2006/12/chriss-blog-banner.jpg" />
+                                                    </Ellipse.Fill>
+                                                </Ellipse>
+                                                <WrapPanel Orientation="Vertical">
+                                                    <TextBlock  Margin="10,0,0,0" FontSize="16"  Text="Пицко Игорь Михайлович" />
+                                                    <TextBlock Text="Администратор" Margin="10,2,0,0" VerticalAlignment="Center" FontSize="12" />
+                                                </WrapPanel>
+                                                <materialDesign:PackIcon HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ChevronDown" Margin="10,0,0,0" Width="18" Height="18"/>
+                                            </StackPanel>
+                                    </materialDesign:Ripple>
+                                </materialDesign:ColorZone>
+                            </materialDesign:PopupBox.ToggleContent>
+                            <StackPanel Margin="0,-8,0,-8" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
+                                    
+
+                                        <WrapPanel Margin="16 10 0 6" Orientation="Horizontal">
+                                            <TextBlock  VerticalAlignment="Center" Text="Темная тема" />
+                                            <ToggleButton Cursor="Hand" ToolTip="Сменить тему" Margin="16 0 0 0" x:Name="themeToggle" IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
+
+                                        </WrapPanel>
+
+                                        <Button ToolTip="Возникли проблемы c приложениям?" Margin="0 8 0 0" Content="Помощь мне"  />
+                                        <Button x:Name="Btn_ChangeUser" Content="Сменить пользователя" ToolTip="Сменить учетную запись?" Command="{Binding ChangeUserCommand}" />
+
+
+                                </StackPanel>
+                        </materialDesign:PopupBox>
+                        </StackPanel>
+                    </Grid>
                 </DockPanel>
 
-                
+
             </materialDesign:ColorZone>
 
             <materialDesign:DrawerHost x:Name="MainDrawerHost" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:ElevationAssist.Elevation="Dp24">
@@ -56,7 +99,8 @@
                     <DockPanel MinWidth="220">
 
                         <TextBox x:Name="ItemsSearchBox"
-               Width="200"
+                                 FontSize="12"
+               Width="180"
                Margin="0,15,0,0"
                materialDesign:HintAssist.Hint="Поиск"
                materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
