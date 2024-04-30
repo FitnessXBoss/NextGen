@@ -47,14 +47,14 @@ namespace NextGen.src.UI.ViewModels
             return viewModel;
         }
 
-        private void ToggleTheme()
-        {
-            // Логика для изменения темы
-        }
-
         private void ToggleDrawer()
         {
             IsDrawerOpen = !IsDrawerOpen;
+        }
+
+        private void ToggleTheme()
+        {
+            // Логика для изменения темы
         }
 
         private void ChangeUser()
