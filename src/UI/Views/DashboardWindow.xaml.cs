@@ -25,7 +25,7 @@ namespace NextGen.src.UI.Views
             InitializeComponent();
             var viewModel = new DashboardViewModel();
             DataContext = viewModel;
-            Loaded += async (s, e) => await viewModel.InitializeUserDataAsync();
+            
         }
     }
 

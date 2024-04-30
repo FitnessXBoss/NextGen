@@ -171,7 +171,7 @@ namespace NextGen.src.UI.ViewModels
         // Метод для инициализации данных пользователя
         public async Task InitializeUserDataAsync()
         {
-            await UserSessionService.Instance.LoadAdditionalUserDataAsync();
+            // Используйте уже загруженные данные
             var currentUser = UserSessionService.Instance.CurrentUser;
             if (currentUser != null)
             {
