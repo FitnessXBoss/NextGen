@@ -68,6 +68,9 @@ namespace NextGen.src.UI.ViewModels
                 return;
             }
 
+            StatusMessage = "Загрузка данных пользователя...";
+            await LoadUserDataAsync(); // Загрузка данных пользователя
+
             StatusMessage = "Загрузка интерфейса...";
             await Task.Delay(1000);
 
@@ -79,6 +82,21 @@ namespace NextGen.src.UI.ViewModels
             OpenDashboardWindow(); // Открытие Dashboard окна
         }
 
+        private async Task LoadUserDataAsync()
+        {
+            // Предполагаем, что у вас есть метод в UserSessionService для загрузки данных
+            await UserSessionService.Instance.LoadAdditionalUserDataAsync();
+            var currentUser = UserSessionService.Instance.CurrentUser;
+            if (currentUser != null)
+            {
+                // Загрузка данных пользователя в UserSessionService
+            }
+            else
+            {
+                Console.WriteLine("CurrentUser is null after LoadAdditionalUserData");
+            }
+        }
+
         private void OpenDashboardWindow()
         {
             Application.Current.Dispatcher.Invoke(() => {
@@ -87,6 +105,8 @@ namespace NextGen.src.UI.ViewModels
                 _currentWindow?.Close(); // Закрытие текущего окна
             });
         }
+
+
 
     }
 }

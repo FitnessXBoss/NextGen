@@ -23,11 +23,17 @@ namespace NextGen.src.UI.Views
         public DashboardWindow()
         {
             InitializeComponent();
-            var viewModel = new DashboardViewModel();
+            Loaded += DashboardWindow_Loaded;
+        }
+
+        private async void DashboardWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Убедитесь, что конструктор ViewModel теперь приватный и он загружает данные асинхронно через CreateAsync
+            var viewModel = await DashboardViewModel.CreateAsync();
             DataContext = viewModel;
-            Loaded += async (s, e) => await viewModel.InitializeUserDataAsync();
         }
     }
+
 
 
 

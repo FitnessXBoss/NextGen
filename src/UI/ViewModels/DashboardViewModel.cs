@@ -7,7 +7,6 @@ using NextGen.src.UI.Helpers;
 using NextGen.src.UI.Views;
 using NextGen.src.Services.Security;
 
-
 namespace NextGen.src.UI.ViewModels
 {
     class DashboardViewModel : INotifyPropertyChanged
@@ -20,7 +19,7 @@ namespace NextGen.src.UI.ViewModels
         public ICommand ToggleDrawerCommand { get; private set; }
 
         private bool _isDrawerOpen;
-       public bool IsDrawerOpen
+        public bool IsDrawerOpen
         {
             get => _isDrawerOpen;
             set
@@ -30,7 +29,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public DashboardViewModel()
+        private DashboardViewModel()
         {
             ChangeUserCommand = new RelayCommand(ChangeUser);
             MinimizeCommand = new RelayCommand(MinimizeWindow);
@@ -38,8 +37,19 @@ namespace NextGen.src.UI.ViewModels
             CloseCommand = new RelayCommand(CloseWindow);
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
             ToggleDrawerCommand = new RelayCommand(ToggleDrawer);
+        }
 
-            InitializeUserDataAsync(); 
+
+        public static async Task<DashboardViewModel> CreateAsync()
+        {
+            var viewModel = new DashboardViewModel();
+            await viewModel.InitializeUserDataAsync();
+            return viewModel;
+        }
+
+        private void ToggleTheme()
+        {
+            // Логика для изменения темы
         }
 
         private void ToggleDrawer()
@@ -56,62 +66,34 @@ namespace NextGen.src.UI.ViewModels
 
         private void MinimizeWindow()
         {
-            try
+            var dashboardWindow = GetDashboardWindow();
+            if (dashboardWindow != null)
             {
-                var dashboardWindow = GetDashboardWindow();
                 dashboardWindow.WindowState = WindowState.Minimized;
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Обрабатываем ошибку (например, записываем в лог)
-                Console.WriteLine(ex.Message);
             }
         }
 
         private void MaximizeRestoreWindow()
         {
-            try
+            var dashboardWindow = GetDashboardWindow();
+            if (dashboardWindow != null)
             {
-                var dashboardWindow = GetDashboardWindow();
                 dashboardWindow.WindowState = dashboardWindow.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Обрабатываем ошибку
-                Console.WriteLine(ex.Message);
             }
         }
 
         private void CloseWindow()
         {
-            try
+            var dashboardWindow = GetDashboardWindow();
+            if (dashboardWindow != null)
             {
-                var dashboardWindow = GetDashboardWindow();
                 dashboardWindow.Close();
             }
-            catch (InvalidOperationException ex)
-            {
-                // Обрабатываем ошибку
-                Console.WriteLine(ex.Message);
-            }
         }
 
-        private DashboardWindow GetDashboardWindow()
+        private DashboardWindow? GetDashboardWindow()
         {
-            var dashboardWindow = Application.Current.Windows
-                .OfType<DashboardWindow>()
-                .FirstOrDefault();
-
-            if (dashboardWindow == null)
-                throw new InvalidOperationException("DashboardWindow не найдено.");
-
-            return dashboardWindow;
-        }
-
-
-        private void ToggleTheme()
-        {
-            // Логика для изменения темы
+            return Application.Current.Windows.OfType<DashboardWindow>().FirstOrDefault();
         }
 
         private void CloseCurrentWindow()
@@ -134,11 +116,10 @@ namespace NextGen.src.UI.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-
-        private string _userPhotoUrl;
+        private string? _userPhotoUrl;
         public string UserPhotoUrl
         {
-            get { return _userPhotoUrl; }
+            get { return _userPhotoUrl ?? "Не указано"; } // Если _userPhotoUrl равно null, возвращает "Не указано"
             set
             {
                 _userPhotoUrl = value;
@@ -146,10 +127,10 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private string _userName;
+        private string? _userName;
         public string UserName
         {
-            get { return _userName; }
+            get { return _userName ?? "Не указано"; } // Если _userName равно null, возвращает "Не указано"
             set
             {
                 _userName = value;
@@ -157,10 +138,10 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private string _userRole;
+        private string? _userRole;
         public string UserRole
         {
-            get { return _userRole; }
+            get { return _userRole ?? "Не указано"; } // Если _userRole равно null, возвращает "Не указано"
             set
             {
                 _userRole = value;
@@ -168,8 +149,8 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        // Метод для инициализации данных пользователя
-        public async Task InitializeUserDataAsync()
+
+        private async Task InitializeUserDataAsync()
         {
             await UserSessionService.Instance.LoadAdditionalUserDataAsync();
             var currentUser = UserSessionService.Instance.CurrentUser;
@@ -184,6 +165,5 @@ namespace NextGen.src.UI.ViewModels
                 Console.WriteLine("CurrentUser is null after LoadAdditionalUserData");
             }
         }
-
     }
 }
