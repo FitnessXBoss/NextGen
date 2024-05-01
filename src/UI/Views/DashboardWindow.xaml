@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
         xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
+        xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="Главная страница" Height="720" Width="1150"
@@ -15,9 +16,7 @@
         WindowStyle="None"
         WindowStartupLocation="CenterScreen">
 
-    <Window.DataContext>
-        <vm:DashboardViewModel/>
-    </Window.DataContext>
+
 
 
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
@@ -79,7 +78,7 @@
                             </materialDesign:PopupBox.ToggleContent>
                                 <StackPanel Margin="0,-8,0,-8" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
 
-                                    <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" />
+                                    <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
                                     <Button ToolTip="Настройки" Margin="0,0,0,0" Content="Настройки"/>
                                     <Button ToolTip="Возникли проблемы c приложениям?" Margin="0 0 0 0" Content="Помощь мне"  />
                                     <Button x:Name="Btn_ChangeUser" Content="Сменить пользователя"  ToolTip="Сменить учетную запись?"  Margin="0,0,0,0" Command="{Binding ChangeUserCommand}" />
@@ -99,38 +98,32 @@
                     <DockPanel MinWidth="220">
 
                         <TextBox x:Name="ItemsSearchBox"
-                                 FontSize="12"
-               Width="180"
-               Margin="0,15,0,0"
-               materialDesign:HintAssist.Hint="Поиск"
-               materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
-               materialDesign:TextFieldAssist.HasClearButton="True"
-               DockPanel.Dock="Top"
-               Style="{StaticResource MaterialDesignOutlinedTextBox}"
-               Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
+         FontSize="12"
+         Width="200"
+         Margin="0,15,0,0"
+         materialDesign:HintAssist.Hint="Поиск"
+         materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+         materialDesign:TextFieldAssist.HasClearButton="True"
+         DockPanel.Dock="Top"
+         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+         Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <ListBox x:Name="ItemsListBox"
-               Margin="0,16,0,16"
-               AutomationProperties.Name="PagesListBox"
-               ItemsSource="{Binding Items}"
-               
-               SelectedIndex="{Binding SelectedIndex}"
-               SelectedItem="{Binding SelectedItem, UpdateSourceTrigger=PropertyChanged}"
-               Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
-                                <ListBox.Resources>
-                                    <Style TargetType="ScrollBar" BasedOn="{StaticResource MaterialDesignScrollBarMinimal}" />
-                                </ListBox.Resources>
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate DataType="domain:Item">
-                                        <TextBlock Margin="24,4,0,4"
-                       AutomationProperties.AutomationId="DemoItemPage"
-                       Text="{Binding Name}" />
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </DockPanel>
+                        <ListBox x:Name="ItemsListBox"
+         Margin="0,20,0,0"
+         ItemsSource="{Binding VisibleItems}"
+         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+         Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Margin="20,2,0,4" Width="200" FontSize="12"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                    </DockPanel>
                     </materialDesign:DrawerHost.LeftDrawerContent>
-                </materialDesign:DrawerHost>
+                <ContentControl Content="{Binding CurrentContent}"/>
+            </materialDesign:DrawerHost>
 
 
             <!-- Другие элементы для второй строки и колонок можно добавить здесь -->

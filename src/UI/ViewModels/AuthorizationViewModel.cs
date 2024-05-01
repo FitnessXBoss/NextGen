@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using NextGen.src.Services;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
 using NextGen.src.UI.Views;
@@ -26,12 +27,21 @@ namespace NextGen.src.UI.ViewModels
         }
 
         public ICommand LoginCommand { get; private set; }
+        public ICommand ToggleThemeCommand { get; private set; }
+
 
         public static UserAuthData? CurrentUser { get; private set; }
 
         public AuthorizationViewModel()
         {
             LoginCommand = new RelayCommand(Login);
+            ToggleThemeCommand = new RelayCommand(ToggleTheme);
+        }
+
+        private void ToggleTheme()
+        {
+            var themeService = new ThemeService();
+            themeService.ToggleTheme();
         }
 
         private void Login()

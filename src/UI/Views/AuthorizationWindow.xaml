@@ -25,7 +25,7 @@
             <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
                     <StackPanel Margin="0,0,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
 
-                        <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" />
+                        <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
                         <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
                         <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" />
 
