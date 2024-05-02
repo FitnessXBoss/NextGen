@@ -98,24 +98,24 @@
                     <DockPanel MinWidth="220">
 
                         <TextBox x:Name="ItemsSearchBox"
-         FontSize="12"
-         Width="200"
-         Margin="0,15,0,0"
-         materialDesign:HintAssist.Hint="Поиск"
-         materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
-         materialDesign:TextFieldAssist.HasClearButton="True"
-         DockPanel.Dock="Top"
-         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-         Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
+                        FontSize="12"
+                        Width="200"
+                        Margin="0,15,0,0"
+                        materialDesign:HintAssist.Hint="Поиск"
+                        materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+                        materialDesign:TextFieldAssist.HasClearButton="True"
+                        DockPanel.Dock="Top"
+                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                        Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <ListBox x:Name="ItemsListBox"
-         Margin="0,20,0,0"
-         ItemsSource="{Binding VisibleItems}"
-         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-         Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                        <ListBox x:Name="ItemsListBox" Width="200"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding VisibleItems}"
+                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                        Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" Margin="20,2,0,4" Width="200" FontSize="12"/>
+                                    <TextBlock Text="{Binding Name}" Margin="20,2,0,4" FontSize="12"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>

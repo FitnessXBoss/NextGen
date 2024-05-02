@@ -34,9 +34,11 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private DashboardItem? _selectedItem;  // Явно указываем, что переменная может быть null
+        private DashboardItem? _selectedItem;
+        private UserControl? _currentContent; // Явно указываем, что переменная может быть null
 
         public ObservableCollection<DashboardItem> Items { get; } = new ObservableCollection<DashboardItem>();
+        public ObservableCollection<DashboardItem> VisibleItems { get; } = new ObservableCollection<DashboardItem>();
 
         public DashboardItem? SelectedItem
         {
@@ -46,14 +48,51 @@ namespace NextGen.src.UI.ViewModels
                 if (_selectedItem != value)
                 {
                     _selectedItem = value;
-                    OnPropertyChanged(nameof(SelectedItem));
-                    OnPropertyChanged(nameof(CurrentContent));
+                    UpdateCurrentContent();
                 }
             }
         }
 
+        public UserControl? CurrentContent
+        {
+            get => _currentContent;
+            private set
+            {
+                _currentContent = value;
+                OnPropertyChanged(nameof(CurrentContent));
+            }
+        }
 
-        public UserControl? CurrentContent => SelectedItem?.Content;
+        private void UpdateCurrentContent()
+        {
+            if (_selectedItem != null)
+            {
+                CurrentContent = _selectedItem.Content;
+            }
+        }
+
+        private void FilterItems()
+        {
+            var filtered = string.IsNullOrEmpty(SearchKeyword) ?
+                Items.ToList() :
+                Items.Where(item => item.Name?.Contains(SearchKeyword, StringComparison.OrdinalIgnoreCase) ?? false).ToList();
+
+            VisibleItems.Clear();
+            foreach (var item in filtered)
+            {
+                VisibleItems.Add(item);
+            }
+
+            // Если текущий выбранный элемент не виден, но должен быть сохранен
+            if (_selectedItem != null && !VisibleItems.Contains(_selectedItem))
+            {
+                VisibleItems.Add(_selectedItem);
+            }
+        }
+
+
+
+        
 
         private void InitializeItems()
         {
@@ -78,8 +117,7 @@ namespace NextGen.src.UI.ViewModels
         }
 
 
-        public ObservableCollection<DashboardItem> VisibleItems { get; } = new ObservableCollection<DashboardItem>();
-
+       
         private string _searchKeyword = string.Empty;
 
         public string SearchKeyword
@@ -96,19 +134,9 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private void FilterItems()
-        {
-            // Показать все элементы, если строка поиска пуста
-            var filtered = string.IsNullOrEmpty(SearchKeyword) ?
-                Items.ToList() :
-                Items.Where(item => item.Name?.Contains(SearchKeyword, StringComparison.OrdinalIgnoreCase) ?? false).ToList();
+        
 
-            VisibleItems.Clear();
-            foreach (var item in filtered)
-            {
-                VisibleItems.Add(item);
-            }
-        }
+
 
         public static async Task<DashboardViewModel> CreateAsync()
         {
