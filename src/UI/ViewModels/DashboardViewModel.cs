@@ -103,8 +103,8 @@ namespace NextGen.src.UI.ViewModels
 
         private DashboardViewModel()
         {
-            InitializeItems();
-            FilterItems();  // Обязательно вызовите FilterItems после инициализации элементов
+            InitializeItems(); // Инициализация элементов
+            FilterItems();     // Фильтрация элементов по необходимости
 
             ChangeUserCommand = new RelayCommand(ChangeUser);
             MinimizeCommand = new RelayCommand(MinimizeWindow);
@@ -113,11 +113,14 @@ namespace NextGen.src.UI.ViewModels
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
             ToggleDrawerCommand = new RelayCommand(ToggleDrawer);
 
-            _selectedItem = null; // Явное установление начального значения как null
+            // Установите начальный выбор элемента и контента
+            _selectedItem = Items.FirstOrDefault(); // Устанавливаем первый элемент коллекции Items как выбранный
+            if (_selectedItem != null)
+            {
+                CurrentContent = _selectedItem.Content; // Устанавливаем содержимое выбранного элемента
+            }
         }
 
-
-       
         private string _searchKeyword = string.Empty;
 
         public string SearchKeyword
