@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NextGen.src.UI.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,35 +23,19 @@ namespace NextGen.src.UI.Views
         public DashboardWindow()
         {
             InitializeComponent();
+            Loaded += DashboardWindow_Loaded;
         }
 
-        private void Image_MouseDown(object sender, MouseButtonEventArgs e)
+        private async void DashboardWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            MainDrawerHost.IsLeftDrawerOpen = !MainDrawerHost.IsLeftDrawerOpen;
+            // Убедитесь, что конструктор ViewModel теперь приватный и он загружает данные асинхронно через CreateAsync
+            var viewModel = await DashboardViewModel.CreateAsync();
+            DataContext = viewModel;
         }
-
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
-        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (this.WindowState == WindowState.Maximized)
-            {
-                this.WindowState = WindowState.Normal;
-            }
-            else
-            {
-                this.WindowState = WindowState.Maximized;
-            }
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-
     }
+
+
+
+
+
 }

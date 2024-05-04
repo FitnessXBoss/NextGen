@@ -1,29 +1,22 @@
 ﻿using Npgsql;
-using System;
+using System.Configuration;  // Убедитесь, что этот namespace добавлен
 
 namespace NextGen.src.Services
 {
     public class DatabaseService
     {
-        protected readonly string connectionString;
+        private readonly string connectionString;
 
         public DatabaseService()
         {
-            connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["SecurityData"].ConnectionString;
+            connectionString = ConfigurationManager.ConnectionStrings["SecurityData"].ConnectionString;
         }
 
         public NpgsqlConnection GetConnection()
         {
-            try
-            {
-                var connection = new NpgsqlConnection(connectionString);
-                connection.Open();
-                return connection;
-            }
-            catch (NpgsqlException ex)
-            {
-                throw new Exception("Ошибка подключения к базе данных: " + ex.Message);
-            }
+            var connection = new NpgsqlConnection(connectionString);
+            connection.Open();
+            return connection;
         }
     }
 }

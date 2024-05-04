@@ -1,8 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using NextGen.src.Services;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
 using NextGen.src.UI.Views;
+using static NextGen.src.Services.Security.AuthService;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -14,33 +16,47 @@ namespace NextGen.src.UI.ViewModels
 
         public string Username
         {
-            get { return _username!; } // использование ! для утверждения, что значение не null
+            get { return _username!; }
             set { _username = value; }
         }
 
         public string Password
         {
-            get { return _password!; } // аналогично
+            get { return _password!; }
             set { _password = value; }
         }
 
         public ICommand LoginCommand { get; private set; }
+        public ICommand ToggleThemeCommand { get; private set; }
+
+
+        public static UserAuthData? CurrentUser { get; private set; }
 
         public AuthorizationViewModel()
         {
             LoginCommand = new RelayCommand(Login);
+            ToggleThemeCommand = new RelayCommand(ToggleTheme);
+        }
+
+        private void ToggleTheme()
+        {
+            var themeService = new ThemeService();
+            themeService.ToggleTheme();
         }
 
         private void Login()
         {
             AuthService authService = new AuthService();
-            if (authService.AuthenticateUser(Username, Password))
+            var user = authService.AuthenticateUser(Username, Password);
+            if (user != null)
             {
+                CurrentUser = user;
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     LoadingWindow loadingWindow = new LoadingWindow();
                     loadingWindow.Show();
-                    CloseAction?.Invoke(); // проверка на null перед вызовом
+                    CloseAction?.Invoke();
                 });
             }
             else

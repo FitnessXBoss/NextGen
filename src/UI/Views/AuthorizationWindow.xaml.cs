@@ -27,6 +27,8 @@ namespace NextGen.src.UI.Views
             var viewModel = new AuthorizationViewModel();
             viewModel.CloseAction = new Action(this.Close);
             this.DataContext = viewModel;
+
+
         }
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)

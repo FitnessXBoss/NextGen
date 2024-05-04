@@ -9,58 +9,77 @@ namespace NextGen.src.Services.Security
     {
         public AuthService() : base() { }
 
-        public bool AuthenticateUser(string username, string password)
+        public UserAuthData? AuthenticateUser(string username, string password)
         {
-            using (var conn = GetConnection())
+            try
             {
-                using (var cmd = new NpgsqlCommand("SELECT password_hash, salt FROM users WHERE username = @username", conn))
+                using (var conn = GetConnection())
                 {
-                    cmd.Parameters.AddWithValue("@username", username);
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new NpgsqlCommand("SELECT user_id, username, password_hash, salt, employee_id FROM users WHERE username = @username\r\n", conn))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("@username", username);
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            var storedHash = reader.GetString(0);
-                            var storedSalt = reader.GetString(1);
-
-                            try
+                            if (reader.Read())
                             {
+                                var storedHash = reader.GetString(2);
+                                var storedSalt = reader.GetString(3);
                                 var saltBytes = Convert.FromBase64String(storedSalt);
                                 var hashOfEnteredPassword = HashPassword(password, saltBytes);
-                                return storedHash == hashOfEnteredPassword;
-                            }
-                            catch (FormatException fe)
-                            {
-                                // Логирование ошибки
-                                Console.WriteLine("Ошибка декодирования Base-64: " + fe.Message);
-                                return false;
+
+                                if (storedHash == hashOfEnteredPassword)
+                                {
+                                    var user = new UserAuthData
+                                    {
+                                        UserId = reader.GetInt32(0),
+                                        Username = reader.GetString(1),
+                                        EmployeeId = reader.GetInt32(4)
+                                    };
+                                    UserSessionService.Instance.SetCurrentUser(user); // Устанавливаем текущего пользователя
+                                    return user;
+                                }
                             }
                         }
                     }
                 }
             }
-            return false;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Authentication error: {ex.Message}");
+            }
+            return null;
         }
+
 
 
 
         public bool RegisterUser(string username, string password)
         {
-            using (var conn = GetConnection())
+            try
             {
-                using (var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt) VALUES (@username, @hash, @salt)", conn))
+                using (var conn = GetConnection())
                 {
-                    var salt = GenerateSalt();
-                    var hash = HashPassword(password, salt);
-                    var saltBase64 = Convert.ToBase64String(salt);
+                    conn.Open();
+                    using (var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt) VALUES (@username, @hash, @salt)", conn))
+                    {
+                        var salt = GenerateSalt();
+                        var hash = HashPassword(password, salt);
+                        var saltBase64 = Convert.ToBase64String(salt);
 
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@hash", hash);
-                    cmd.Parameters.AddWithValue("@salt", saltBase64);
+                        cmd.Parameters.AddWithValue("@username", username);
+                        cmd.Parameters.AddWithValue("@hash", hash);
+                        cmd.Parameters.AddWithValue("@salt", saltBase64);
 
-                    int result = cmd.ExecuteNonQuery();
-                    return result > 0;
+                        int result = cmd.ExecuteNonQuery();
+                        return result > 0;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибок базы данных или других исключений
+                Console.WriteLine($"Registration error: {ex.Message}");
+                return false;
             }
         }
 

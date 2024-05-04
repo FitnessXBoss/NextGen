@@ -24,8 +24,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+    <PackageReference Include="NLog" Version="5.3.2" />
     <PackageReference Include="Npgsql" Version="8.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.32" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,7 +38,6 @@
 	  <Folder Include="src\Data\Database\Models\" />
 	  <Folder Include="src\Data\Database\Queries\" />
 	  <Folder Include="src\Data\Repositories\" />
-	  <Folder Include="src\Services\Security\" />
 	  <Folder Include="src\Services\Validation\" />
   </ItemGroup>
 
