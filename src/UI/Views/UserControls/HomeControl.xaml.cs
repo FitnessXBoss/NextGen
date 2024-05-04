@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NextGen.src.Services;
+using NextGen.src.UI.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,14 +17,13 @@ using System.Windows.Shapes;
 
 namespace NextGen.src.UI.Views.UserControls
 {
-    /// <summary>
-    /// Логика взаимодействия для HomeControl.xaml
-    /// </summary>
     public partial class HomeControl : UserControl
     {
         public HomeControl()
         {
             InitializeComponent();
+            var databaseService = new DatabaseService(); // Создание сервиса для работы с базой данных
+            DataContext = new HomeViewModel(databaseService); // Передача сервиса в ViewModel
         }
     }
 }

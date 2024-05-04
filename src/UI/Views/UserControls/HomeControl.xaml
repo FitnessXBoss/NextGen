@@ -5,7 +5,14 @@
              xmlns:scottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d">
+             xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels" 
+             mc:Ignorable="d"
+             FontFamily="Nont">
+
+    
+
+   
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,7 +28,7 @@
 
         <Grid Grid.Row="1" Margin="10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
@@ -30,10 +37,54 @@
             <!-- Карточка для мониторинга количества пользователей в сети -->
             <materialDesign:Card Padding="10" Margin="5" Grid.Column="0">
                 <StackPanel>
-                    <TextBlock Text="Пользователи в сети" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding UsersOnline}" FontSize="24" FontWeight="Bold"/>
+                    <!-- Отображение количества пользователей онлайн -->
+                    <TextBlock Text="{Binding OnlineCount, StringFormat='Онлайн: {0}'}" FontSize="16" Margin="10"/>
+
+                    <!-- ListBox с автоматической вертикальной прокруткой -->
+                    <ListBox ItemsSource="{Binding Users}" ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="300">
+                        
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Использование Grid для размещения элементов в строке -->
+                                <Grid Height="Auto" Margin="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50"/>
+                                        <!-- Пространство для изображения пользователя -->
+                                        <ColumnDefinition Width="*"/>
+                                        <!-- Пространство для текста -->
+                                        <ColumnDefinition Width="40"/>
+                                        <!-- Пространство для индикатора онлайн -->
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Эллипс для отображения изображения пользователя -->
+                                    <Ellipse Width="40" Height="40" Grid.Column="0" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="{Binding UserPhotoUrl}" />
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+
+                                    <!-- StackPanel для текстовых блоков -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <TextBlock FontSize="16" Text="{Binding UserName}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding UserRole}" FontSize="12" TextWrapping="Wrap"/>
+                                    </StackPanel>
+
+                                    <!-- Эллипс для индикатора онлайн-статуса -->
+                                    <Ellipse Width="20" Height="20" Grid.Column="3" VerticalAlignment="Center" Margin="10,0,10,0">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="{Binding StatusColor.Color}"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </StackPanel>
             </materialDesign:Card>
+
+
+
+
 
             <!-- График продаж за день -->
             <materialDesign:Card Padding="10" Margin="5" Grid.Column="1">
