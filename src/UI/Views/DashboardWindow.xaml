@@ -34,9 +34,12 @@
             <materialDesign:ColorZone Height="80" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}">
                 <DockPanel>
                     <WrapPanel DockPanel.Dock="Right">
+                        <Button x:Name="OpenTabsDrawerButton" Content="{materialDesign:PackIcon Kind=Menu}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding ToggleRightDrawerCommand}" ToolTip="Открыть вкладки"/>
+
                         <Button x:Name="MinimizeButton" Content="{materialDesign:PackIcon Kind=Minimize}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding MinimizeCommand}" ToolTip="Минимизировать"/>
                         <Button x:Name="MaximizeButton" Content="{materialDesign:PackIcon Kind=ArrowExpand}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding MaximizeRestoreCommand}" ToolTip="Максимизировать/Восстановить"/>
                         <Button x:Name="CloseButton" Content="{materialDesign:PackIcon Kind=Close}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding CloseCommand}" ToolTip="Закрыть"/>
+                    
                     </WrapPanel>
 
                     <Grid>
@@ -126,7 +129,35 @@
             </materialDesign:DrawerHost>
 
 
-            <!-- Другие элементы для второй строки и колонок можно добавить здесь -->
+            <materialDesign:DrawerHost x:Name="RightDrawerHost" IsRightDrawerOpen="{Binding IsRightDrawerOpen}" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="1" materialDesign:ElevationAssist.Elevation="Dp24">
+                <materialDesign:DrawerHost.RightDrawerContent>
+                    <materialDesign:Card>
+                        <TabControl ItemsSource="{Binding OpenTabs}" SelectedItem="{Binding SelectedTab}">
+                            <TabControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Header}" />
+                                        <Button Command="{Binding CloseCommand}">
+                                            <Button.Template>
+                                                <ControlTemplate>
+                                                    <materialDesign:PackIcon Kind="Close" />
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </TabControl.ItemTemplate>
+                            <TabControl.ContentTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding Content}"/>
+                                </DataTemplate>
+                            </TabControl.ContentTemplate>
+                        </TabControl>
+                    </materialDesign:Card>
+                </materialDesign:DrawerHost.RightDrawerContent>
+            </materialDesign:DrawerHost>
+
+
         </Grid>
     </materialDesign:Card>
 
