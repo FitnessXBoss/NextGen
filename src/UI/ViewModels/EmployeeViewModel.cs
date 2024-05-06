@@ -44,6 +44,7 @@ namespace NextGen.src.UI.ViewModels
                     {
                         var employee = new Employee
                         {
+                            EmployeeId = (int)reader["employee_id"],
                             PensionInsuranceNumber = reader["pension_insurance_number"] as string ?? string.Empty,
                             PhoneNumber = reader["phone_number"] as string ?? string.Empty,
                             MilitaryIssuedBy = reader["military_issued_by"] as string ?? string.Empty,
@@ -52,13 +53,14 @@ namespace NextGen.src.UI.ViewModels
                             PassportIssuedBy = reader["passport_issued_by"] as string ?? string.Empty,
                             Position = reader["position"] as string ?? string.Empty,
                             FirstName = reader["first_name"] as string ?? string.Empty,
+                            LastName = reader["last_name"] as string ?? string.Empty,
                             PassportSeriesNumber = reader["passport_series_number"] as string ?? string.Empty,
                             ConsentToProcessPersonalData = (bool)reader["consent_to_process_personal_data"],
                             CriminalRecord = (bool)reader["criminal_record"],
                             Profession = reader["profession"] as string ?? string.Empty,
-                            PassportIssueDate = (DateTime)reader["passport_issue_date"],
+                            PassportIssueDate = reader["passport_issue_date"] as string ?? string.Empty,
                             Email = reader["email"] as string ?? string.Empty,
-                            MilitaryIssueDate = (DateTime)reader["military_issue_date"],
+                            MilitaryIssueDate = reader["military_issue_date"] as string ?? string.Empty,
                             RegistrationPlace = reader["registration_place"] as string ?? string.Empty,
                             HealthInsuranceNumber = reader["health_insurance_number"] as string ?? string.Empty,
                             OtherData = reader["other_data"] as string ?? string.Empty,
@@ -68,12 +70,16 @@ namespace NextGen.src.UI.ViewModels
                             ResidenceAddress = reader["residence_address"] as string ?? string.Empty,
                             Phone = reader["phone"] as string ?? string.Empty,
                             DraftCardNumber = reader["draft_card_number"] as string ?? string.Empty,
-                            DraftRegistrationDate = (DateTime)reader["draft_registration_date"],
+                            DraftRegistrationDate = reader["draft_registration_date"] as string ?? string.Empty,
                             RoleName = reader["role_name"] as string ?? string.Empty,
                             EducationLevel = reader["education_level"] as string ?? string.Empty,
                             TaxNumber = reader["tax_number"] as string ?? string.Empty,
                             TaxType = reader["tax_type"] as string ?? string.Empty,
+                            Inn = reader["inn"] as string ?? string.Empty, // Добавлено
+                            Snils = reader["snils"] as string ?? string.Empty, // Добавлено
+                            Oms = reader["oms"] as string ?? string.Empty // Добавлено
                         };
+
                         tempList.Add(employee);
                     }
                 }

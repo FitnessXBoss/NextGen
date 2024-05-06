@@ -13,6 +13,7 @@
     <None Remove="src\Assets\Icons\Icon.ico" />
     <None Remove="src\Assets\Images\illustration.png" />
     <None Remove="src\Assets\Images\logo.png" />
+    <None Remove="src\UI\ViewModels\s354h3ac.5b2~" />
   </ItemGroup>
 
   <ItemGroup>
