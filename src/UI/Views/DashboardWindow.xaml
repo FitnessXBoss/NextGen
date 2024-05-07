@@ -130,8 +130,12 @@
 
 
             <materialDesign:DrawerHost x:Name="RightDrawerHost" IsRightDrawerOpen="{Binding IsRightDrawerOpen}" OverlayBackground="{x:Null}" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:ElevationAssist.Elevation="Dp24">
-                <materialDesign:DrawerHost.RightDrawerContent>
-                    <materialDesign:Card>
+                <materialDesign:DrawerHost.RightDrawerContent >
+
+                    <DockPanel MinWidth="220">
+
+                        <TextBlock Text="Открытые вкладки" FontSize="16" DockPanel.Dock="Top" Width="200" FontWeight="Bold" Margin="50,25,0,0"/>
+
                         <ListBox x:Name="OpenedUserControlsListBox" Width="300" Margin="0,10,0,0"
          ItemsSource="{Binding OpenUserControls}"
          SelectedItem="{Binding SelectedUserControl}"
@@ -147,7 +151,7 @@
 
                                         <!-- Кнопка для закрытия UserControl -->
                                         <Button Command="{Binding DataContext.CloseUserControlCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-        CommandParameter="{Binding}"
+       CommandParameter="{Binding}"
         Style="{StaticResource MaterialDesignIconButton}"
         HorizontalAlignment="Center"
         VerticalAlignment="Center"
@@ -165,11 +169,12 @@
 
 
 
-                    </materialDesign:Card>
+                    </DockPanel>
                 </materialDesign:DrawerHost.RightDrawerContent>
                 
 
             </materialDesign:DrawerHost>
+
 
 
 
