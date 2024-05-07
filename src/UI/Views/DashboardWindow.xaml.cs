@@ -1,4 +1,5 @@
-﻿using NextGen.src.UI.ViewModels;
+﻿using NextGen.src.UI.Models;
+using NextGen.src.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,9 @@ namespace NextGen.src.UI.Views
             var viewModel = await DashboardViewModel.CreateAsync();
             DataContext = viewModel;
         }
+
+        
+
     }
 
 
