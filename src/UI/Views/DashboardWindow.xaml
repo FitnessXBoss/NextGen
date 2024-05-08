@@ -163,9 +163,6 @@
                     </DockPanel>
                 </materialDesign:DrawerHost.RightDrawerContent>
             </materialDesign:DrawerHost>
-=========
-
->>>>>>>>> Temporary merge branch 2
         </Grid>
     </materialDesign:Card>
 
