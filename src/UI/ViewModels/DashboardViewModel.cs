@@ -275,6 +275,7 @@ namespace NextGen.src.UI.ViewModels
         private void ToggleDrawer()
         {
             IsDrawerOpen = !IsDrawerOpen;
+            OnPropertyChanged(nameof(IsDrawerOpen));
         }
 
         private void ToggleTheme()

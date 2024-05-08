@@ -22,21 +22,27 @@
                 <!-- DataGrid with Material Design Style and Auto-Resizing Columns -->
             <DataGrid x:Name="dataGrid" ItemsSource="{Binding Employees}" AutoGenerateColumns="False" Margin="10"
           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+
           IsReadOnly="True" MouseDoubleClick="DataGrid_MouseDoubleClick" materialDesign:DataGridAssist.CellPadding="13,4,13,4" materialDesign:DataGridAssist.ColumnHeaderPadding="13,6,13,6">
+
+       
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Имя" Binding="{Binding FirstName}" Width="AUTO"/>
                     <DataGridTextColumn Header="Фамилия" Binding="{Binding LastName}" Width="AUTO"/>
+                    <DataGridTextColumn Header="Пол" Binding="{Binding Gender}" Width="AUTO"/>
                     <DataGridTextColumn Header="Роль" Binding="{Binding RoleName}" Width="AUTO"/>
                     <DataGridTextColumn Header="Должность" Binding="{Binding Position}" Width="AUTO"/>
                     <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Пол" Binding="{Binding Gender}" Width="AUTO"/>
+                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="AUTO"/>
+                    
+                    
+                    
                     <DataGridTextColumn Header="Страховой номер" Binding="{Binding PensionInsuranceNumber}" Width="AUTO"/>
                     <DataGridTextColumn Header="Серия и номер паспорта" Binding="{Binding PassportSeriesNumber}" Width="AUTO"/>
                     <DataGridCheckBoxColumn Header="Согласие на обработку данных" Binding="{Binding ConsentToProcessPersonalData}" Width="AUTO"/>
                     <DataGridCheckBoxColumn Header="Судимость" Binding="{Binding CriminalRecord}" Width="AUTO"/>
                     <DataGridTextColumn Header="Профессия" Binding="{Binding Profession}" Width="AUTO"/>
                     <DataGridTextColumn Header="Дата выдачи паспорта" Binding="{Binding PassportIssueDate}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="AUTO"/>
                     <DataGridTextColumn Header="Место регистрации" Binding="{Binding RegistrationPlace}" Width="AUTO"/>
                     <DataGridTextColumn Header="Страховой номер здоровья" Binding="{Binding HealthInsuranceNumber}" Width="AUTO"/>
                     <DataGridTextColumn Header="Семейное положение" Binding="{Binding MaritalStatus}" Width="AUTO"/>
