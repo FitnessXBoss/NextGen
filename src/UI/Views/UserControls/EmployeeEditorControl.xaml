@@ -5,8 +5,11 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
+            
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
+    
     
     <Grid>
         <materialDesign:Card Margin="16">
@@ -42,6 +45,15 @@
                         <TextBox Text="{Binding ResidenceAddress, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Адрес проживания" Style="{StaticResource MaterialDesignFloatingHintTextBox}" />
                     </StackPanel>
                 </TabItem>
+
+                <TabItem Header="Учетная запись">
+                    
+
+                </TabItem>
+
+
+
+
             </TabControl>
         </materialDesign:Card>
         <Button Content="Сохранить" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Command="{Binding SaveCommand}" />

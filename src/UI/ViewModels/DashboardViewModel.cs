@@ -1,34 +1,107 @@
-﻿using System;
+﻿using NextGen.src.Services;
+using NextGen.src.UI.Helpers;
+using NextGen.src.UI.Models;
+using NextGen.src.UI.Views;
+using NextGen.src.UI.Views.UserControls;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Input;
-using NextGen.src.Services;
-using NextGen.src.UI.Helpers;
-using NextGen.src.UI.Views;
-using NextGen.src.Services.Security;
 using System.Windows.Controls;
-using static MaterialDesignThemes.Wpf.Theme.ToolBar;
-using NextGen.src.UI.Views.UserControls;
-using NextGen.src.UI.Models; 
-using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace NextGen.src.UI.ViewModels
 {
     class DashboardViewModel : INotifyPropertyChanged
     {
-        public ICommand ChangeUserCommand { get; private set; }
-        public ICommand MinimizeCommand { get; private set; }
-        public ICommand MaximizeRestoreCommand { get; private set; }
-        public ICommand CloseCommand { get; private set; }
-        public ICommand ToggleThemeCommand { get; private set; }
-        public ICommand ToggleDrawerCommand { get; private set; }
-        public ICommand ToggleRightDrawerCommand { get; private set; }
-        public ICommand CloseUserControlCommand { get; private set; }
 
+        // Свойства для команд управления интерфейсом
+        public ICommand? ChangeUserCommand { get; private set; }
+        public ICommand? MinimizeCommand { get; private set; }
+        public ICommand? MaximizeRestoreCommand { get; private set; }
+        public ICommand? CloseCommand { get; private set; }
+        public ICommand? ToggleThemeCommand { get; private set; }
+        public ICommand? ToggleDrawerCommand { get; private set; }
+        public ICommand? ToggleRightDrawerCommand { get; private set; }
+        public ICommand? CloseUserControlCommand { get; private set; }
 
-
-
+        // Коллекции для элементов интерфейса
         public ObservableCollection<DashboardItem> OpenUserControls { get; set; } = new ObservableCollection<DashboardItem>();
+        public ObservableCollection<DashboardItem> Items { get; } = new ObservableCollection<DashboardItem>();
+        public ObservableCollection<DashboardItem> VisibleItems { get; } = new ObservableCollection<DashboardItem>();
+
+        // Свойства для состояния интерфейса
+        private bool _isDrawerOpen;
+        private bool _isRightDrawerOpen;
+        private UserControl? _currentContent;
+        private DashboardItem? _selectedItem;
+        private DashboardItem? _selectedUserControl;
+        private string _searchKeyword = string.Empty;
+
+        public bool IsDrawerOpen
+        {
+            get => IsDrawerOpen1;
+            set { IsDrawerOpen1 = value; OnPropertyChanged(nameof(IsDrawerOpen)); }
+        }
+
+        public bool IsRightDrawerOpen
+        {
+            get => IsRightDrawerOpen1;
+            set { IsRightDrawerOpen1 = value; OnPropertyChanged(nameof(IsRightDrawerOpen)); }
+        }
+
+        public UserControl? CurrentContent
+        {
+            get => CurrentContent1;
+            set
+            {
+                CurrentContent1 = value;
+                OnPropertyChanged(nameof(CurrentContent));
+            }
+        }
+
+        public DashboardItem? SelectedItem
+        {
+            get => SelectedItem1;
+            set
+            {
+                if (SelectedItem1 != value)
+                {
+                    ResetSelectionExcept("Main");
+                    SelectedItem1 = value;
+                    OnPropertyChanged(nameof(SelectedItem));
+                    UpdateCurrentContent();
+                }
+            }
+        }
+
+        public DashboardItem? SelectedUserControl
+        {
+            get => SelectedUserControl1;
+            set
+            {
+                if (SelectedUserControl1 != value)
+                {
+                    ResetSelectionExcept("Right");
+                    SelectedUserControl1 = value;
+                    OnPropertyChanged(nameof(SelectedUserControl));
+                    UpdateCurrentContent();
+                }
+            }
+        }
+
+        public string SearchKeyword
+        {
+            get => SearchKeyword1;
+            set
+            {
+                if (SearchKeyword1 != value)
+                {
+                    SearchKeyword1 = value;
+                    OnPropertyChanged(nameof(SearchKeyword));
+                    FilterItems();
+                }
+            }
+        }
 
 
         public void OpenUserControl(UserControl content, string? firstName, string? lastName, string employeeId)
@@ -41,87 +114,10 @@ namespace NextGen.src.UI.ViewModels
             ResetSelectionExcept("Right");
         }
 
-
-
-
-
-
-
         private void ToggleRightDrawer()
         {
             IsRightDrawerOpen = !IsRightDrawerOpen;
         }
-
-
-        private bool _isDrawerOpen;
-        public bool IsDrawerOpen
-        {
-            get => _isDrawerOpen;
-            set
-            {
-                _isDrawerOpen = value;
-                OnPropertyChanged(nameof(IsDrawerOpen));
-            }
-        }
-
-
-
-
-        
-
-        private bool _isRightDrawerOpen;
-        public bool IsRightDrawerOpen
-        {
-            get => _isRightDrawerOpen;
-            set
-            {
-                _isRightDrawerOpen = value;
-                OnPropertyChanged(nameof(IsRightDrawerOpen));
-            }
-        }
-
-
-       
-        private UserControl? _currentContent; // Явно указываем, что переменная может быть null
-
-        public ObservableCollection<DashboardItem> Items { get; } = new ObservableCollection<DashboardItem>();
-        public ObservableCollection<DashboardItem> VisibleItems { get; } = new ObservableCollection<DashboardItem>();
-
-
-
-        private DashboardItem? _selectedItem;
-        public DashboardItem? SelectedItem
-        {
-            get => _selectedItem;
-            set
-            {
-                if (_selectedItem != value)
-                {
-                    ResetSelectionExcept("Main");  // Передаем имя текущего списка
-                    _selectedItem = value;
-                    OnPropertyChanged(nameof(SelectedItem));
-                    UpdateCurrentContent();
-                }
-            }
-        }
-
-        private DashboardItem? _selectedUserControl;
-        public DashboardItem? SelectedUserControl
-        {
-            get => _selectedUserControl;
-            set
-            {
-                if (_selectedUserControl != value)
-                {
-                    ResetSelectionExcept("Right");  // Сбросить выбор в другом списке
-                    _selectedUserControl = value;
-                    OnPropertyChanged(nameof(SelectedUserControl));
-                    UpdateCurrentContent(); // Обновить текущий контент при изменении выбранного UserControl
-                }
-            }
-        }
-
-
 
         public void ResetSelectionExcept(string listName)
         {
@@ -136,36 +132,53 @@ namespace NextGen.src.UI.ViewModels
         }
 
 
-
-
-        public UserControl? CurrentContent
+        private void InitializeItems()
         {
-            get => _currentContent;
-            set
+            Items.Add(new DashboardItem { Name = "Домашняя страница", Content = new HomeControl() });
+            Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
+            Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
+            // Добавьте другие элементы по мере необходимости
+        }
+
+        private DashboardViewModel()
+        {
+            InitializeCommands(); // Сначала инициализируйте команды
+            InitializeItems();
+            FilterItems();
+
+            // Проверьте, инициализированы ли элементы до их использования
+            _selectedItem = Items.FirstOrDefault();
+            if (_selectedItem != null)
             {
-                if (_currentContent != value)
-                {
-                    _currentContent = value;
-                    OnPropertyChanged(nameof(CurrentContent));
-                }
+                CurrentContent = _selectedItem.Content;
             }
         }
 
+        private void InitializeCommands()
+        {
+            ChangeUserCommand = new RelayCommand(ChangeUser);
+            MinimizeCommand = new RelayCommand(MinimizeWindow);
+            MaximizeRestoreCommand = new RelayCommand(MaximizeRestoreWindow);
+            CloseCommand = new RelayCommand(CloseWindow);
+            ToggleThemeCommand = new RelayCommand(ToggleTheme);
+            ToggleDrawerCommand = new RelayCommand(ToggleDrawer);
+            ToggleRightDrawerCommand = new RelayCommand(ToggleRightDrawer);
+            CloseUserControlCommand = new RelayCommand<DashboardItem>(ExecuteCloseUserControl, CanExecuteCloseUserControl);
+        }
 
         private void UpdateCurrentContent()
         {
-            // Установка CurrentContent в зависимости от того, какой элемент сейчас выбран
             if (_selectedItem != null)
             {
-                CurrentContent = _selectedItem.Content; // Контент из основного списка
+                CurrentContent = _selectedItem.Content;
             }
             else if (_selectedUserControl != null)
             {
-                CurrentContent = _selectedUserControl.Content; // Контент из списка открытых UserControl'ов
+                CurrentContent = _selectedUserControl.Content;
             }
             else
             {
-                CurrentContent = null; // Сброс, если ничего не выбрано
+                CurrentContent = null;
             }
         }
 
@@ -181,45 +194,9 @@ namespace NextGen.src.UI.ViewModels
                 VisibleItems.Add(item);
             }
 
-            // Если текущий выбранный элемент не виден, но должен быть сохранен
             if (_selectedItem != null && !VisibleItems.Contains(_selectedItem))
             {
                 VisibleItems.Add(_selectedItem);
-            }
-        }
-
-
-
-        
-
-        private void InitializeItems()
-        {
-            Items.Add(new DashboardItem { Name = "Домашняя страница", Content = new HomeControl() });
-            Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
-            Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
-            // Добавьте другие элементы по мере необходимости
-        }
-
-        private DashboardViewModel()
-        {
-            InitializeItems(); // Инициализация элементов
-            FilterItems();     // Фильтрация элементов по необходимости
-
-            ChangeUserCommand = new RelayCommand(ChangeUser);
-            MinimizeCommand = new RelayCommand(MinimizeWindow);
-            MaximizeRestoreCommand = new RelayCommand(MaximizeRestoreWindow);
-            CloseCommand = new RelayCommand(CloseWindow);
-            ToggleThemeCommand = new RelayCommand(ToggleTheme);
-            ToggleDrawerCommand = new RelayCommand(ToggleDrawer);
-            ToggleRightDrawerCommand = new RelayCommand(ToggleRightDrawer);
-            CloseUserControlCommand = new RelayCommand<DashboardItem>(ExecuteCloseUserControl, CanExecuteCloseUserControl);
-
-
-            // Установите начальный выбор элемента и контента
-            _selectedItem = Items.FirstOrDefault(); // Устанавливаем первый элемент коллекции Items как выбранный
-            if (_selectedItem != null)
-            {
-                CurrentContent = _selectedItem.Content; // Устанавливаем содержимое выбранного элемента
             }
         }
 
@@ -241,29 +218,6 @@ namespace NextGen.src.UI.ViewModels
                 }
             }
         }
-
-
-
-
-        private string _searchKeyword = string.Empty;
-
-        public string SearchKeyword
-        {
-            get => _searchKeyword;
-            set
-            {
-                if (_searchKeyword != value)
-                {
-                    _searchKeyword = value;
-                    OnPropertyChanged(nameof(SearchKeyword));
-                    FilterItems();
-                }
-            }
-        }
-
-        
-
-
 
         public static async Task<DashboardViewModel> CreateAsync()
         {
@@ -337,6 +291,7 @@ namespace NextGen.src.UI.ViewModels
             });
         }
 
+        // Реализация INotifyPropertyChanged интерфейса
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
@@ -346,10 +301,10 @@ namespace NextGen.src.UI.ViewModels
         private string? _userPhotoUrl;
         public string UserPhotoUrl
         {
-            get { return _userPhotoUrl ?? "Не указано"; } // Если _userPhotoUrl равно null, возвращает "Не указано"
+            get { return UserPhotoUrl1 ?? "Не указано"; } // Если _userPhotoUrl равно null, возвращает "Не указано"
             set
             {
-                _userPhotoUrl = value;
+                UserPhotoUrl1 = value;
                 OnPropertyChanged(nameof(UserPhotoUrl));
             }
         }
@@ -357,10 +312,10 @@ namespace NextGen.src.UI.ViewModels
         private string? _userName;
         public string UserName
         {
-            get { return _userName ?? "Не указано"; } // Если _userName равно null, возвращает "Не указано"
+            get { return UserName1 ?? "Не указано"; } // Если _userName равно null, возвращает "Не указано"
             set
             {
-                _userName = value;
+                UserName1 = value;
                 OnPropertyChanged(nameof(UserName));
             }
         }
@@ -368,14 +323,23 @@ namespace NextGen.src.UI.ViewModels
         private string? _userRole;
         public string UserRole
         {
-            get { return _userRole ?? "Не указано"; } // Если _userRole равно null, возвращает "Не указано"
+            get { return UserRole1 ?? "Не указано"; } // Если _userRole равно null, возвращает "Не указано"
             set
             {
-                _userRole = value;
+                UserRole1 = value;
                 OnPropertyChanged(nameof(UserRole));
             }
         }
 
+        public bool IsDrawerOpen1 { get => _isDrawerOpen; set => _isDrawerOpen = value; }
+        public bool IsRightDrawerOpen1 { get => _isRightDrawerOpen; set => _isRightDrawerOpen = value; }
+        public UserControl? CurrentContent1 { get => _currentContent; set => _currentContent = value; }
+        public DashboardItem? SelectedItem1 { get => _selectedItem; set => _selectedItem = value; }
+        public DashboardItem? SelectedUserControl1 { get => _selectedUserControl; set => _selectedUserControl = value; }
+        public string SearchKeyword1 { get => _searchKeyword; set => _searchKeyword = value; }
+        public string? UserPhotoUrl1 { get => _userPhotoUrl; set => _userPhotoUrl = value; }
+        public string? UserName1 { get => _userName; set => _userName = value; }
+        public string? UserRole1 { get => _userRole; set => _userRole = value; }
 
         private async Task InitializeUserDataAsync()
         {
