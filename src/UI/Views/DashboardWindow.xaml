@@ -150,12 +150,7 @@
                                         <TextBlock Text="{Binding Name}" Margin="0,5,6,0" FontSize="12" VerticalAlignment="Center"/>
 
                                         <!-- Кнопка для закрытия UserControl -->
-                                        <Button Command="{Binding DataContext.CloseUserControlCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-       CommandParameter="{Binding}"
-        Style="{StaticResource MaterialDesignIconButton}"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Margin="-5">
+                                        <Button Command="{Binding DataContext.CloseUserControlCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignIconButton}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-5">
                                             <materialDesign:PackIcon Kind="Close" Margin="0,5,0,0" Width="20" Height="20" VerticalAlignment="Center" />
                                         </Button>
 
@@ -165,19 +160,9 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
 
-
-
-
-
                     </DockPanel>
                 </materialDesign:DrawerHost.RightDrawerContent>
-                
-
             </materialDesign:DrawerHost>
-
-
-
-
         </Grid>
     </materialDesign:Card>
 
