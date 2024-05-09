@@ -14,25 +14,26 @@ namespace NextGen.src.UI.ViewModels
 {
     public class EmployeeViewModel : INotifyPropertyChanged
     {
+        private DatabaseService _databaseService; // Поле для хранения сервиса базы данных
         private ObservableCollection<Employee> _employees = new ObservableCollection<Employee>();
+
         public ObservableCollection<Employee> Employees
         {
             get => _employees;
-            private set
+            set
             {
                 _employees = value;
                 OnPropertyChanged();
             }
         }
 
-        private DatabaseService _databaseService;
-
         public EmployeeViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
-
             LoadData();
         }
+
+       
 
         private Employee MaskSensitiveData(Employee employee, bool canViewPersonal)
         {
