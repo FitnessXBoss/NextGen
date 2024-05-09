@@ -1,5 +1,6 @@
 ﻿using Npgsql;
 using System;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -82,6 +83,37 @@ namespace NextGen.src.Services.Security
                 return false;
             }
         }
+
+        public bool UpdateUserCredentials(int employeeId, string newPassword)
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    byte[] newSalt = GenerateSalt();
+                    string newPasswordHash = HashPassword(newPassword, newSalt);
+                    string saltBase64 = Convert.ToBase64String(newSalt);
+
+                    using (var cmd = new NpgsqlCommand("UPDATE users SET password_hash = @password, salt = @salt WHERE employee_id = @id", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@password", newPasswordHash);
+                        cmd.Parameters.AddWithValue("@salt", saltBase64);
+                        cmd.Parameters.AddWithValue("@id", employeeId);
+
+                        int result = cmd.ExecuteNonQuery();
+                        return result > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating user credentials: {ex.Message}");
+                return false;
+            }
+        }
+
+
 
         private byte[] GenerateSalt()
         {

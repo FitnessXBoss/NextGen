@@ -1,12 +1,101 @@
 ﻿<UserControl x:Class="NextGen.src.UI.Views.UserControls.CarsControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:NextGen.src.UI.Views.UserControls"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
+             xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800"
+             FontFamily="Noto">
+
+    <UserControl.Resources>
+        <helpers:ImageUrlConverter x:Key="ImageUrlConverter"/>
+    </UserControl.Resources>
+
+    <UserControl.DataContext>
+        <vm:CarsViewModel/>
+    </UserControl.DataContext>
+    <DockPanel>
+        <!-- Панель инструментов с кнопками и поиском -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <Button Content="Добавить новый автомобиль" Margin="10" Command="{Binding AddNewCarCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
+            <TextBox x:Name="SearchBox" Width="300" Margin="10,0,10,0" materialDesign:HintAssist.Hint="Поиск" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:TextFieldAssist.HasClearButton="True" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+        </StackPanel>
+
+        <!-- Контент с автомобилями -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Viewbox Stretch="Uniform">
+
+                <ItemsControl ItemsSource="{Binding FilteredCars}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <materialDesign:Card Margin="12" Padding="0" Width="300" materialDesign:ElevationAssist.Elevation="Dp4">
+                                <Border CornerRadius="10" Background="{DynamicResource MaterialDesignCardBackground}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="200"/>
+                                            <!-- Увеличиваем высоту для полного отображения изображения -->
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- Детали -->
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Изображение автомобиля с закругленными углами -->
+                                        <Border Grid.Row="0" Margin="8" CornerRadius="10" ClipToBounds="True">
+                                            <Image Stretch="Fill">
+                                                <Image.Source>
+                                                    <Binding Path="ImageUrl" Converter="{StaticResource ImageUrlConverter}"/>
+                                                </Image.Source>
+                                                <Image.Clip>
+                                                    <!-- Убедитесь, что размеры соответствуют полному размеру Border для корректного отображения закруглений -->
+                                                    <RectangleGeometry RadiusX="6" RadiusY="6" Rect="0,0,284,192"/>
+                                                    <!-- Это уже охватывает всю высоту, если высота изображения 192 пикселей -->
+                                                </Image.Clip>
+                                            </Image>
+                                        </Border>
+
+
+                                        <!-- Детали -->
+                                        <StackPanel Grid.Row="1" Margin="10,-5,0,10">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
+                                                <Image Width="60" Height="40" Source="{Binding BrandIconUrl}" Margin="0,0,10,0"/>
+                                                <StackPanel Orientation="Vertical">
+                                                    <!-- Изменено на вертикальную ориентацию -->
+                                                    <TextBlock Text="{Binding Brand}" FontWeight="Bold" FontSize="16"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <!-- Дополнительный StackPanel для модели и года -->
+                                                        <TextBlock Text="{Binding Model}" FontSize="14"/>
+                                                        <TextBlock Text=" - " FontSize="14"/>
+                                                        <TextBlock Text="{Binding Year}" FontSize="14"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Price, StringFormat='{}{0:C} руб'}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Left"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding IsSold}" FontSize="14" FontWeight="Bold" Margin="0,0,10,0" HorizontalAlignment="Right"/>
+                                            </Grid>
+
+                                        </StackPanel>
+
+                                    </Grid>
+                                </Border>
+                            </materialDesign:Card>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="5"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
+            </Viewbox>
+
+        </ScrollViewer>
+    </DockPanel>
 </UserControl>
