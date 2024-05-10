@@ -72,18 +72,18 @@ namespace NextGen.src.UI.ViewModels
         },
 
         new Car {
-            Model = "Emperor ETR1",
-            ImageUrl = "https://i.postimg.cc/1RMQcN95/A7-18.jpg",
+            Model = "Caldina",
+            ImageUrl = "https://a.d-cd.net/xZw78mrJ-pAVd4i2f6BRpJYYgh0-960.jpg",
             Price = 1995000,
             Year = 2021,
             IsSold = false,
-            Brand = "Emperor",
-            BrandIconUrl = "https://i.pinimg.com/originals/6a/75/66/6a7566b6e66d3bd5400892c2983cf1ef.png"
+            Brand = "Toyota",
+            BrandIconUrl = "https://content.presspage.com/clients/o_1523.png"
         },
 
         new Car {
             Model = "Emperor ETR1",
-            ImageUrl = "https://i.postimg.cc/1RMQcN95/A7-18.jpg",
+            ImageUrl = "https://tradeins.space/uploads/photo/6817659/2af30c07b58aa0fe1ac38944065709c8.png",
             Price = 1995000,
             Year = 2021,
             IsSold = false,
