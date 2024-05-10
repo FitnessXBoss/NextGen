@@ -43,7 +43,7 @@
 
                                         <!-- Изображение автомобиля с закругленными углами -->
                                         <Border Grid.Row="0" Margin="8" CornerRadius="10" ClipToBounds="True">
-                                            <Image Stretch="Fill">
+                                            <Image Stretch="Uniform">
                                                 <Image.Source>
                                                     <Binding Path="ImageUrl" Converter="{StaticResource ImageUrlConverter}"/>
                                                 </Image.Source>
@@ -89,7 +89,7 @@
                     </ItemsControl.ItemTemplate>
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <UniformGrid Columns="5"/>
+                            <UniformGrid Columns="4"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                 </ItemsControl>
