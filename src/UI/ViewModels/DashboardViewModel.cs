@@ -136,6 +136,7 @@ namespace NextGen.src.UI.ViewModels
         {
             Items.Add(new DashboardItem { Name = "Домашняя страница", Content = new HomeControl() });
             Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
+            Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarsControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
             // Добавьте другие элементы по мере необходимости
         }

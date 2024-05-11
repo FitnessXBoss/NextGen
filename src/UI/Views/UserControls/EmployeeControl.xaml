@@ -23,11 +23,6 @@
             <DataGrid x:Name="dataGrid" ItemsSource="{Binding Employees}" AutoGenerateColumns="False" Margin="10"
           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
           IsReadOnly="True" MouseDoubleClick="DataGrid_MouseDoubleClick" materialDesign:DataGridAssist.CellPadding="13,4,13,4" materialDesign:DataGridAssist.ColumnHeaderPadding="13,6,13,6">
-
-          IsReadOnly="True" MouseDoubleClick="DataGrid_MouseDoubleClick" materialDesign:DataGridAssist.CellPadding="13,4,13,4" materialDesign:DataGridAssist.ColumnHeaderPadding="13,6,13,6">
-
-       
->>>>>>>>> Temporary merge branch 2
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Имя" Binding="{Binding FirstName}" Width="AUTO"/>
                     <DataGridTextColumn Header="Фамилия" Binding="{Binding LastName}" Width="AUTO"/>
