@@ -12,16 +12,48 @@
 
     <UserControl.Resources>
         <helpers:ImageUrlConverter x:Key="ImageUrlConverter"/>
+        <helpers:ObjectToBooleanConverter x:Key="ObjectToBooleanConverter"/>
     </UserControl.Resources>
 
     <UserControl.DataContext>
         <vm:CarsViewModel/>
     </UserControl.DataContext>
-    <DockPanel>
+    <DockPanel Margin="10">
         <!-- Панель инструментов с кнопками и поиском -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            
+
+                <ComboBox
+                    Width="170"
+                    Margin="10"
+                    ItemsSource="{Binding Brands}"
+                    DisplayMemberPath="BrandName"
+                    SelectedItem="{Binding SelectedBrand}"
+                    materialDesign:HintAssist.Hint="Выберите бренд"
+                    materialDesign:TextFieldAssist.HasClearButton="True"
+                    Style="{StaticResource MaterialDesignFilledComboBox}">
+                </ComboBox>
+
+            <ComboBox
+    Width="190"
+    Margin="10"
+    ItemsSource="{Binding Models}"
+    DisplayMemberPath="ModelName"
+    SelectedItem="{Binding SelectedModel}"
+    IsEnabled="{Binding SelectedBrand, Converter={StaticResource ObjectToBooleanConverter}}"
+    materialDesign:HintAssist.Hint="Выберите модель"
+    materialDesign:TextFieldAssist.HasClearButton="True"
+    Style="{StaticResource MaterialDesignFilledComboBox}">
+            </ComboBox>
+
+
+
             <Button Content="Добавить новый автомобиль" Margin="10" Command="{Binding AddNewCarCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
-            <TextBox x:Name="SearchBox" Width="300" Margin="10,0,10,0" materialDesign:HintAssist.Hint="Поиск" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:TextFieldAssist.HasClearButton="True" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+            
+            <Button Margin="10" Command="{Binding RefreshDataCommand}" Style="{StaticResource MaterialDesignFlatButton}">
+                <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+            </Button>
+           
         </StackPanel>
 
         <!-- Контент с автомобилями -->
@@ -31,54 +63,102 @@
                 <ItemsControl ItemsSource="{Binding FilteredCars}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <materialDesign:Card Margin="12" Padding="0" Width="300" materialDesign:ElevationAssist.Elevation="Dp4">
+                            <materialDesign:Card Margin="12" Padding="0" Width="350" materialDesign:ElevationAssist.Elevation="Dp4">
+                                <materialDesign:Card.Style>
+                                    <Style TargetType="materialDesign:Card">
+                                        <Setter Property="RenderTransform">
+                                            <Setter.Value>
+                                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.05" Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.05" Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.2"/>
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </materialDesign:Card.Style>
                                 <Border CornerRadius="10" Background="{DynamicResource MaterialDesignCardBackground}">
+                                    <Border.LayoutTransform>
+                                        <ScaleTransform ScaleX="0.952" ScaleY="0.952"/>
+                                    </Border.LayoutTransform>
+
                                     <Grid>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="100"/>
                                             <RowDefinition Height="200"/>
                                             <!-- Увеличиваем высоту для полного отображения изображения -->
                                             <RowDefinition Height="Auto"/>
                                             <!-- Детали -->
                                         </Grid.RowDefinitions>
 
-                                        <!-- Изображение автомобиля с закругленными углами -->
-                                        <Border Grid.Row="0" Margin="8" CornerRadius="10" ClipToBounds="True">
+                                        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="10,20,10,0">
+                                            <!-- Изменил Margin здесь -->
+                                            <DockPanel LastChildFill="True">
+                                                <!-- Текст будет слева и займет все доступное место, кроме того, которое выделено для изображения -->
+                                                <TextBlock Text="{Binding BrandName}" FontSize="20" FontWeight="Bold" DockPanel.Dock="Left"/>
+                                                <TextBlock Text=" " FontSize="18" FontWeight="Bold" DockPanel.Dock="Left"/>
+                                                <TextBlock Text="{Binding Model}" FontSize="20" FontWeight="Bold" DockPanel.Dock="Left"/>
+                                                <!-- Изображение добавлено последним, так что оно будет справа -->
+                                                <Image Width="50" Height="50" Source="{Binding BrandIconUrl}" Margin="10,-15,0,0" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                                            </DockPanel>
+                                            <TextBlock FontSize="14" HorizontalAlignment="Left" Foreground="Gray">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} автомобиля  ·  {1} цвета">
+                                                        <Binding Path="CarCount" />
+                                                        <Binding Path="ColorCount" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+
+                                        </StackPanel>
+                                    
+
+
+
+
+                                    <!-- Изображение автомобиля с закругленными углами -->
+                                        <Border Grid.Row="1" Margin="0,0,0,0" CornerRadius="10" Width="350" ClipToBounds="True">
                                             <Image Stretch="Uniform">
                                                 <Image.Source>
                                                     <Binding Path="ImageUrl" Converter="{StaticResource ImageUrlConverter}"/>
                                                 </Image.Source>
-                                                <Image.Clip>
-                                                    <!-- Убедитесь, что размеры соответствуют полному размеру Border для корректного отображения закруглений -->
-                                                    <RectangleGeometry RadiusX="6" RadiusY="6" Rect="0,0,284,192"/>
-                                                    <!-- Это уже охватывает всю высоту, если высота изображения 192 пикселей -->
-                                                </Image.Clip>
                                             </Image>
                                         </Border>
 
 
                                         <!-- Детали -->
-                                        <StackPanel Grid.Row="1" Margin="10,-5,0,10">
+                                        <StackPanel Grid.Row="2" Margin="10,-5,0,10">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8">
-                                                <Image Width="60" Height="40" Source="{Binding BrandIconUrl}" Margin="0,0,10,0"/>
-                                                <StackPanel Orientation="Vertical">
-                                                    <!-- Изменено на вертикальную ориентацию -->
-                                                    <TextBlock Text="{Binding Brand}" FontWeight="Bold" FontSize="16"/>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <!-- Дополнительный StackPanel для модели и года -->
-                                                        <TextBlock Text="{Binding Model}" FontSize="14"/>
-                                                        <TextBlock Text=" - " FontSize="14"/>
-                                                        <TextBlock Text="{Binding Year}" FontSize="14"/>
-                                                    </StackPanel>
-                                                </StackPanel>
+                                                
                                             </StackPanel>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding Price, StringFormat='{}{0:C} руб'}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Left"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding IsSold}" FontSize="14" FontWeight="Bold" Margin="0,0,10,0" HorizontalAlignment="Right"/>
-                                            </Grid>
+                                                <StackPanel>
+                                                    <TextBlock Text="Цена начальной комплектации" FontSize="14" Foreground="Gray" Margin="0,0,0,5"/>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Price, StringFormat='{}{0:C} ', ConverterCulture='ru-RU'}" FontWeight="Normal" FontSize="25" HorizontalAlignment="Left"/>
+
+                                                </StackPanel>
+                                                   </Grid>
 
                                         </StackPanel>
 

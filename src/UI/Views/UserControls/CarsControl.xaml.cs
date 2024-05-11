@@ -24,5 +24,7 @@ namespace NextGen.src.UI.Views.UserControls
         {
             InitializeComponent();
         }
+
+        
     }
 }
