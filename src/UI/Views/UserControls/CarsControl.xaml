@@ -35,15 +35,15 @@
                 </ComboBox>
 
             <ComboBox
-    Width="190"
-    Margin="10"
-    ItemsSource="{Binding Models}"
-    DisplayMemberPath="ModelName"
-    SelectedItem="{Binding SelectedModel}"
-    IsEnabled="{Binding SelectedBrand, Converter={StaticResource ObjectToBooleanConverter}}"
-    materialDesign:HintAssist.Hint="Выберите модель"
-    materialDesign:TextFieldAssist.HasClearButton="True"
-    Style="{StaticResource MaterialDesignFilledComboBox}">
+                Width="190"
+                Margin="10"
+                ItemsSource="{Binding Models}"
+                DisplayMemberPath="ModelName"
+                SelectedItem="{Binding SelectedModel}"
+                IsEnabled="{Binding SelectedBrand, Converter={StaticResource ObjectToBooleanConverter}}"
+                materialDesign:HintAssist.Hint="Выберите модель"
+                materialDesign:TextFieldAssist.HasClearButton="True"
+                Style="{StaticResource MaterialDesignFilledComboBox}">
             </ComboBox>
 
 

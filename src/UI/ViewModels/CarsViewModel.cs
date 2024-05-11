@@ -20,7 +20,7 @@ namespace NextGen.src.UI.ViewModels
         public ObservableCollection<Model> Models { get; set; } = new ObservableCollection<Model>();
 
         private Brand _selectedBrand = null!;
-        public Brand SelectedBrand
+        public Brand? SelectedBrand
         {
             get => _selectedBrand;
             set
@@ -29,23 +29,15 @@ namespace NextGen.src.UI.ViewModels
                 {
                     _selectedBrand = value;
                     OnPropertyChanged();
-                    if (value != null)
-                    {
-                        LoadModelsForBrand(value.BrandId);
-                        FilterCars(); // Фильтрация при изменении выбранного бренда
-                    }
-                    else
-                    {
-                        Models.Clear(); // Очистка моделей, если бренд не выбран
-                        FilterCars(); // Перефильтрация автомобилей без учета бренда
-                    }
+                    LoadModelsForBrand(value?.BrandId ?? 0);
+                    FilterCars();
                 }
             }
         }
 
 
         private Model _selectedModel = null!;
-        public Model SelectedModel
+        public Model? SelectedModel
         {
             get => _selectedModel;
             set
@@ -122,8 +114,21 @@ namespace NextGen.src.UI.ViewModels
         {
             _carService = new CarService();
             LoadBrandsCommand = new RelayCommand(async () => await LoadBrandsAsync());
-            RefreshDataCommand = new RelayCommand(async () => await LoadCarsAsync());
-            InitializeAsync(); // Инициализация асинхронных операций
+            RefreshDataCommand = new RelayCommand(async () => await RefreshDataAsync());
+            _ = InitializeAsync(); // Инициализация асинхронных операций
+        }
+
+        private async Task RefreshDataAsync()
+        {
+            await LoadCarsAsync();
+            ResetSelections();
+        }
+
+        private void ResetSelections()
+        {
+            SelectedBrand = null;
+            SelectedModel = null;
+            Models.Clear();
         }
 
         private async Task InitializeAsync()
