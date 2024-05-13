@@ -3,6 +3,7 @@
     public class Car
     {
         public int CarId { get; set; }
+        public int ModelId { get; set; }
         public string? Model { get; set; }
         public string? Status { get; set; }
         public decimal Price { get; set; }

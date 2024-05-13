@@ -22,22 +22,22 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand(@"
-            SELECT m.model_name, COALESCE(MIN(t.price), 0) as min_price, m.model_image_url,
-                b.brand_name, b.brand_icon_url, 
-                COALESCE(COUNT(DISTINCT c.car_id), 0) as car_count,
-                COALESCE(COUNT(DISTINCT c.color), 0) as color_count
-                    FROM models m
-                        LEFT JOIN trims t ON m.model_id = t.model_id
-                        LEFT JOIN cars c ON t.trim_id = c.trim_id
-                        LEFT JOIN brands b ON m.brand_id = b.brand_id
-            GROUP BY m.model_name, m.model_image_url, b.brand_name, b.brand_icon_url", connection);
+                var cmd = new NpgsqlCommand(@"SELECT m.model_id, m.model_name, COALESCE(MIN(t.price), 0) as min_price, m.model_image_url,
+                    b.brand_name, b.brand_icon_url, 
+                    COALESCE(COUNT(DISTINCT c.car_id), 0) as car_count,
+                    COALESCE(COUNT(DISTINCT c.color), 0) as color_count
+                FROM models m
+                LEFT JOIN trims t ON m.model_id = t.model_id
+                LEFT JOIN cars c ON t.trim_id = c.trim_id
+                LEFT JOIN brands b ON m.brand_id = b.brand_id
+                GROUP BY m.model_id, m.model_name, m.model_image_url, b.brand_name, b.brand_icon_url", connection);
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         cars.Add(new Car
                         {
+                            ModelId = reader.GetInt32(reader.GetOrdinal("model_id")),
                             Model = reader.GetString(reader.GetOrdinal("model_name")),
                             Price = reader.IsDBNull(reader.GetOrdinal("min_price")) ? 0 : reader.GetDecimal(reader.GetOrdinal("min_price")),
                             ImageUrl = reader.IsDBNull(reader.GetOrdinal("model_image_url")) ? null : reader.GetString(reader.GetOrdinal("model_image_url")),
@@ -76,6 +76,7 @@ namespace NextGen.src.Services
             }
             return models;
         }
+
 
         public IEnumerable<Brand> GetAllBrands()
         {

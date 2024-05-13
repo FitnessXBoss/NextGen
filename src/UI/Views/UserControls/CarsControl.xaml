@@ -60,8 +60,8 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <Viewbox Stretch="Uniform">
 
-                <ItemsControl ItemsSource="{Binding FilteredCars}">
-                    <ItemsControl.ItemTemplate>
+                <ListBox ItemsSource="{Binding FilteredCars}"  MouseLeftButtonUp="ListBox_MouseLeftButtonUp">
+                    <ListBox.ItemTemplate>
                         <DataTemplate>
                             <materialDesign:Card Margin="12" Padding="0" Width="350" materialDesign:ElevationAssist.Elevation="Dp4">
                                 <materialDesign:Card.Style>
@@ -166,13 +166,13 @@
                                 </Border>
                             </materialDesign:Card>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemsPanel>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Columns="4"/>
                         </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
+                    </ListBox.ItemsPanel>
+                </ListBox>
 
             </Viewbox>
 
