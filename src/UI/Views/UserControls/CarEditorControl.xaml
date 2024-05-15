@@ -15,6 +15,15 @@
     </UserControl.Resources>
 
     <DockPanel Margin="10">
+        <!-- Верхняя панель с названием бренда, модели и фото бренда -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,0,20">
+            <Image    Width="50" Height="50" Source="{Binding BrandIconUrl}" Margin="10,-10,10,0" />
+            <TextBlock Text="{Binding BrandName}" FontSize="20" FontWeight="Bold" Margin="0,2,0,0" />
+            <TextBlock Text=" " FontSize="20" FontWeight="Bold" Margin="0,2,0,0" />
+            <TextBlock Text="{Binding ModelName}" FontSize="20" FontWeight="Bold" Margin="0,2,0,0" />
+        </StackPanel>
+
+
         <!-- Контент с автомобилями -->
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <Viewbox Stretch="Uniform">
