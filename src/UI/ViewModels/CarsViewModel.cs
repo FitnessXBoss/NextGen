@@ -1,13 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Linq;
-using NextGen.src.Data.Database.Models;  // Предполагаемое местоположение класса Car
+﻿using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
-using System.Diagnostics;  // Предполагаемое местоположение CarService
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using NextGen.src.UI.Helpers;
-
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -18,6 +18,7 @@ namespace NextGen.src.UI.ViewModels
 
         public ObservableCollection<Brand> Brands { get; set; } = new ObservableCollection<Brand>();
         public ObservableCollection<Model> Models { get; set; } = new ObservableCollection<Model>();
+        public ObservableCollection<Trim> Trims { get; set; } = new ObservableCollection<Trim>();
 
         private Brand _selectedBrand = null!;
         public Brand? SelectedBrand
@@ -35,7 +36,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-
         private Model _selectedModel = null!;
         public Model? SelectedModel
         {
@@ -46,14 +46,76 @@ namespace NextGen.src.UI.ViewModels
                 {
                     _selectedModel = value;
                     OnPropertyChanged();
-                    // Фильтрация автомобилей даже если модель не выбрана (например, если выбор модели очищен)
+                    LoadCarDetails(value?.ModelId ?? 0);
                     FilterCars();
                 }
             }
         }
 
+        private ObservableCollection<CarSummary> _carSummaries = new ObservableCollection<CarSummary>();
+        public ObservableCollection<CarSummary> CarSummaries
+        {
+            get => _carSummaries;
+            set
+            {
+                _carSummaries = value;
+                OnPropertyChanged();
+            }
+        }
 
-       
+        private ObservableCollection<CarSummary> _filteredCarSummaries = new ObservableCollection<CarSummary>();
+        public ObservableCollection<CarSummary> FilteredCarSummaries
+        {
+            get => _filteredCarSummaries;
+            set
+            {
+                _filteredCarSummaries = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private readonly CarService _carService;
+
+        public CarsViewModel()
+        {
+            _carService = new CarService();
+            LoadBrandsCommand = new RelayCommand(async () => await LoadBrandsAsync());
+            RefreshDataCommand = new RelayCommand(async () => await RefreshDataAsync());
+            _ = InitializeAsync(); // Инициализация асинхронных операций
+        }
+
+        private async Task RefreshDataAsync()
+        {
+            await LoadCarSummariesAsync();
+            ResetSelections();
+        }
+
+        private void ResetSelections()
+        {
+            SelectedBrand = null;
+            SelectedModel = null;
+            Models.Clear();
+        }
+
+        private async Task InitializeAsync()
+        {
+            await LoadCarSummariesAsync();
+            LoadBrandsCommand.Execute(null);
+        }
+
+        private async Task LoadCarSummariesAsync()
+        {
+            try
+            {
+                var carSummaries = await Task.Run(() => _carService.GetAllCarSummaries());
+                CarSummaries = new ObservableCollection<CarSummary>(carSummaries);
+                FilterCars();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error loading car summaries: " + ex.Message);
+            }
+        }
 
         private async void LoadModelsForBrand(int brandId)
         {
@@ -64,7 +126,6 @@ namespace NextGen.src.UI.ViewModels
                 Models.Add(model);
             }
         }
-
 
         private async Task LoadBrandsAsync()
         {
@@ -83,6 +144,30 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        public async void LoadCarDetails(int modelId)
+        {
+            try
+            {
+                var trims = await Task.Run(() => _carService.GetTrimsByModel(modelId));
+                Trims.Clear();
+                foreach (var trim in trims)
+                {
+                    Trims.Add(trim);
+                }
+
+                var cars = await Task.Run(() => _carService.GetCarsByTrims(Trims.Select(t => t.TrimId).ToList()));
+                Cars.Clear();
+                foreach (var car in cars)
+                {
+                    Cars.Add(car);
+                }
+                FilterCars(); // Перефильтровать автомобили после загрузки деталей
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error loading car details: " + ex.Message);
+            }
+        }
 
         private ObservableCollection<Car> _cars = new ObservableCollection<Car>();
         public ObservableCollection<Car> Cars
@@ -95,69 +180,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private ObservableCollection<Car> _filteredCars = new ObservableCollection<Car>();
-        public ObservableCollection<Car> FilteredCars
-        {
-            get => _filteredCars;
-            set
-            {
-                _filteredCars = value;
-                OnPropertyChanged();
-            }
-        }
-
-        
-
-        private readonly CarService _carService;
-
-        public CarsViewModel()
-        {
-            _carService = new CarService();
-            LoadBrandsCommand = new RelayCommand(async () => await LoadBrandsAsync());
-            RefreshDataCommand = new RelayCommand(async () => await RefreshDataAsync());
-            _ = InitializeAsync(); // Инициализация асинхронных операций
-        }
-
-        private async Task RefreshDataAsync()
-        {
-            await LoadCarsAsync();
-            ResetSelections();
-        }
-
-        private void ResetSelections()
-        {
-            SelectedBrand = null;
-            SelectedModel = null;
-            Models.Clear();
-        }
-
-        private async Task InitializeAsync()
-        {
-            await LoadCarsAsync();
-            LoadBrandsCommand.Execute(null);
-        }
-
-
-
-
-        private async Task LoadCarsAsync()
-        {
-            try
-            {
-                var cars = await Task.Run(() => _carService.GetAllCars());
-                Cars = new ObservableCollection<Car>(cars);
-                FilteredCars = new ObservableCollection<Car>(Cars);
-            }
-            catch (Exception ex)
-            {
-                // Обработка ошибок (например, показ сообщения пользователю)
-                Debug.WriteLine("Error loading cars: " + ex.Message);
-            }
-        }
-
-
-
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -165,22 +187,19 @@ namespace NextGen.src.UI.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-
         private void FilterCars()
         {
-            var filtered = new ObservableCollection<Car>(Cars);
+            var filtered = new ObservableCollection<CarSummary>(CarSummaries);
             if (SelectedBrand != null)
             {
-                filtered = new ObservableCollection<Car>(filtered.Where(car => car.BrandName == SelectedBrand.BrandName));
+                filtered = new ObservableCollection<CarSummary>(filtered.Where(cs => cs.BrandName == SelectedBrand.BrandName));
             }
             if (SelectedModel != null)
             {
-                filtered = new ObservableCollection<Car>(filtered.Where(car => car.Model == SelectedModel.ModelName));
+                filtered = new ObservableCollection<CarSummary>(filtered.Where(cs => cs.ModelName == SelectedModel.ModelName));
             }
 
-            FilteredCars = filtered; // Обновление отфильтрованного списка
+            FilteredCarSummaries = filtered;
         }
-
-
     }
 }

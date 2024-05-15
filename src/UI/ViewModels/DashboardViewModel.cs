@@ -115,11 +115,11 @@ namespace NextGen.src.UI.ViewModels
             ResetSelectionExcept("Right");
         }
 
-        public void OpenCarUserControl(UserControl content, string model, string brand, string modelId)
+        public void OpenCarUserControl(UserControl content, string modelName, string brandName, string modelId)
         {
             Console.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
 
-            string title = $"Автомобили {brand} {model} [{modelId}]";
+            string title = $"Автомобили {brandName} {modelName} [{modelId}]";
             var newItem = new DashboardItem { Name = title, Content = content };
 
             OpenUserControls.Add(newItem);
@@ -128,6 +128,7 @@ namespace NextGen.src.UI.ViewModels
             IsRightDrawerOpen = true;
             ResetSelectionExcept("Right");
         }
+
 
 
 
