@@ -50,7 +50,7 @@ namespace NextGen.src.UI.Views.UserControls
 
                 if (dashboardViewModel != null && selectedEmployee != null)
                 {
-                    dashboardViewModel.OpenUserControl(editor, selectedEmployee.FirstName, selectedEmployee.LastName, selectedEmployee.EmployeeId.ToString());
+                    dashboardViewModel.OpenEmployeeUserControl(editor, selectedEmployee.FirstName, selectedEmployee.LastName, selectedEmployee.EmployeeId.ToString());
                 }
 
             }

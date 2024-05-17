@@ -1,30 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NextGen.src.Data.Database.Models;
+using NextGen.src.UI.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace NextGen.src.UI.Views.UserControls
 {
-    /// <summary>
-    /// Логика взаимодействия для CarsControl.xaml
-    /// </summary>
     public partial class CarsControl : UserControl
     {
         public CarsControl()
         {
             InitializeComponent();
+            DataContext = new CarsViewModel();
         }
 
-        
+        public static T? FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null) return null;
+            if (parentObject is T parent) return parent;
+            return FindParent<T>(parentObject);
+        }
+
+        private void ListBox_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var listBox = sender as ListBox;
+            if (listBox != null && listBox.SelectedItem is CarSummary selectedCarSummary)
+            {
+                var editor = new CarEditorControl();
+                editor.DataContext = new CarEditorControlViewModel(selectedCarSummary.ModelId);
+
+                var dashboardViewModel = FindParent<DashboardWindow>(this)?.DataContext as DashboardViewModel;
+                if (dashboardViewModel != null)
+                {
+                    dashboardViewModel.OpenCarUserControl(editor, selectedCarSummary.ModelName, selectedCarSummary.BrandName, selectedCarSummary.ModelId.ToString());
+                }
+            }
+        }
+
+
     }
 }

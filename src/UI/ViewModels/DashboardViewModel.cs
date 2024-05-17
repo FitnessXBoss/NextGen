@@ -104,15 +104,34 @@ namespace NextGen.src.UI.ViewModels
         }
 
 
-        public void OpenUserControl(UserControl content, string? firstName, string? lastName, string employeeId)
+        public void OpenEmployeeUserControl(UserControl content, string firstName, string lastName, string employeeId)
         {
             string title = $"Редактирование {firstName ?? "не указано"} {lastName ?? "не указано"} [{employeeId}]";
             var newItem = new DashboardItem { Name = title, Content = content };
             OpenUserControls.Add(newItem);
             SelectedUserControl = newItem;
             CurrentContent = newItem.Content;
+            
             ResetSelectionExcept("Right");
         }
+
+        public void OpenCarUserControl(UserControl content, string modelName, string brandName, string modelId)
+        {
+            Console.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
+
+            string title = $"Автомобили {brandName} {modelName} [{modelId}]";
+            var newItem = new DashboardItem { Name = title, Content = content };
+
+            OpenUserControls.Add(newItem);
+            SelectedUserControl = newItem;
+            CurrentContent = newItem.Content;
+            IsRightDrawerOpen = true;
+            ResetSelectionExcept("Right");
+        }
+
+
+
+
 
         private void ToggleRightDrawer()
         {
