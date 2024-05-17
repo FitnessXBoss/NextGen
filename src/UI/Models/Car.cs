@@ -52,5 +52,10 @@
         public string? TrimName { get; set; }
         public string? TrimDetails { get; set; }
         public decimal Price { get; set; }
+        public string? Transmission { get; set; }
+        public string? Drive { get; set; }
+        public string? Fuel { get; set; }
+        public string? EngineVolume { get; set; }
+        public string? HorsePower { get; set; }
     }
 }

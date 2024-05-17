@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -66,22 +67,59 @@ namespace NextGen.src.UI.ViewModels
                 return _carService.GetCarsByTrims(trimIds);
             });
 
-            var model = (await modelTask).FirstOrDefault(m => m.ModelId == modelId);
-            if (model != null)
+            var models = await modelTask;
+            Debug.WriteLine($"Models count: {models?.Count() ?? 0}");
+
+            if (models == null || !models.Any())
             {
-                var brand = await Task.Run(() => _carService.GetAllBrands().FirstOrDefault(b => b.BrandId == model.BrandId));
-                if (brand != null)
-                {
-                    BrandName = brand.BrandName;
-                    BrandIconUrl = brand.BrandIconUrl;
-                }
-                ModelName = model.ModelName;
+                Debug.WriteLine($"No models found for modelId: {modelId}");
+                return;
             }
 
+            var model = models.FirstOrDefault(m => m.ModelId == modelId);
+            Debug.WriteLine($"Model found: {model?.ModelName}");
+
+            if (model == null)
+            {
+                Debug.WriteLine($"Model not found with modelId: {modelId}");
+                return;
+            }
+
+            var brand = await Task.Run(() => _carService.GetAllBrands().FirstOrDefault(b => b.BrandId == model.BrandId));
+            Debug.WriteLine($"Brand found: {brand?.BrandName}");
+
+            if (brand == null)
+            {
+                Debug.WriteLine($"Brand not found for brandId: {model.BrandId}");
+                return;
+            }
+
+            BrandName = brand.BrandName ?? "Default Brand Name";
+            BrandIconUrl = brand.BrandIconUrl ?? "https://celes.club/pictures/uploads/posts/2023-06/1686139250_celes-club-p-risunok-mashina-vid-sboku-risunok-vkontakt-1.jpg";
+            ModelName = model.ModelName ?? "Default Model Name";
+
             var cars = await carTask;
+
+            foreach (var car in cars)
+            {
+                car.ImageUrl = car.ImageUrl ?? "https://celes.club/pictures/uploads/posts/2023-06/1686139250_celes-club-p-risunok-mashina-vid-sboku-risunok-vkontakt-1.jpg";
+                Debug.WriteLine($"CarId: {car.CarId}, TrimId: {car.TrimId}, ImageUrl: {car.ImageUrl}, " +
+                                $"AdditionalFeatures: {car.AdditionalFeatures}, Status: {car.Status}, Year: {car.Year}, " +
+                                $"Color: {car.Color}, TrimName: {car.TrimName}, TrimDetails: {car.TrimDetails}, " +
+                                $"Price: {car.Price}, Transmission: {car.Transmission}, Drive: {car.Drive}, " +
+                                $"Fuel: {car.Fuel}, EngineVolume: {car.EngineVolume}, HorsePower: {car.HorsePower}");
+            }
+
             Cars = new ObservableCollection<CarWithTrimDetails>(cars);
             OnPropertyChanged(nameof(Cars));
         }
+
+
+
+
+
+
+
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

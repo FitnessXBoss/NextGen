@@ -75,6 +75,7 @@ namespace NextGen.src.Services
             return models;
         }
 
+
         public IEnumerable<Brand> GetAllBrands()
         {
             var brands = new List<Brand>();
@@ -131,11 +132,17 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand(@"SELECT c.car_id, c.trim_id, c.image_url, c.additional_features, c.status, c.year, c.color, 
-                                                     t.trim_name, t.trim_details, t.price 
-                                              FROM cars c
-                                              LEFT JOIN trims t ON c.trim_id = t.trim_id
-                                              WHERE c.trim_id = ANY(@trimIds)", connection);
+                var cmd = new NpgsqlCommand(@"
+            SELECT c.car_id, c.trim_id, c.image_url, c.additional_features, c.status, c.year, c.color,
+                   t.trim_name, t.trim_details, t.price,
+                   COALESCE(t.transmission, 'Не указано') AS transmission,
+                   COALESCE(t.drive, 'Не указано') AS drive,
+                   COALESCE(t.fuel, 'Не указано') AS fuel,
+                   COALESCE(t.engine_volume, 'Не указано') AS engine_volume,
+                   COALESCE(t.horse_power, 'Не указано') AS horse_power
+            FROM cars c
+            LEFT JOIN trims t ON c.trim_id = t.trim_id
+            WHERE c.trim_id = ANY(@trimIds)", connection);
                 cmd.Parameters.AddWithValue("@trimIds", trimIds);
 
                 using (var reader = cmd.ExecuteReader())
@@ -153,12 +160,18 @@ namespace NextGen.src.Services
                             Color = reader.IsDBNull(reader.GetOrdinal("color")) ? null : reader.GetString(reader.GetOrdinal("color")),
                             TrimName = reader.GetString(reader.GetOrdinal("trim_name")),
                             TrimDetails = reader.GetString(reader.GetOrdinal("trim_details")),
-                            Price = reader.GetDecimal(reader.GetOrdinal("price"))
+                            Price = reader.GetDecimal(reader.GetOrdinal("price")),
+                            Transmission = reader.GetString(reader.GetOrdinal("transmission")),
+                            Drive = reader.GetString(reader.GetOrdinal("drive")),
+                            Fuel = reader.GetString(reader.GetOrdinal("fuel")),
+                            EngineVolume = reader.GetString(reader.GetOrdinal("engine_volume")),
+                            HorsePower = reader.GetString(reader.GetOrdinal("horse_power"))
                         });
                     }
                 }
             }
             return cars;
         }
+
     }
 }
