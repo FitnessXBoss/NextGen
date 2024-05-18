@@ -53,71 +53,75 @@ namespace NextGen.src.UI.ViewModels
             LoadData(modelId);
         }
 
-        public CarEditorControlViewModel() : this(0) { }
-
-        private async void LoadData(int modelId)
+        private int? _selectedTrimId;
+        public int? SelectedTrimId
         {
-            if (modelId == 0) return;
-
-            var modelTask = Task.Run(() => _carService.GetModelsByBrand(modelId));
-            var carTask = Task.Run(() =>
+            get => _selectedTrimId;
+            set
             {
-                var trims = _carService.GetTrimsByModel(modelId).ToList();
-                var trimIds = trims.Select(t => t.TrimId).ToList();
-                return _carService.GetCarsByTrims(trimIds);
-            });
-
-            var models = await modelTask;
-            Debug.WriteLine($"Models count: {models?.Count() ?? 0}");
-
-            if (models == null || !models.Any())
-            {
-                Debug.WriteLine($"No models found for modelId: {modelId}");
-                return;
+                if (_selectedTrimId != value)
+                {
+                    _selectedTrimId = value;
+                    OnPropertyChanged();
+                    LoadCarsByTrim();
+                }
             }
-
-            var model = models.FirstOrDefault(m => m.ModelId == modelId);
-            Debug.WriteLine($"Model found: {model?.ModelName}");
-
-            if (model == null)
-            {
-                Debug.WriteLine($"Model not found with modelId: {modelId}");
-                return;
-            }
-
-            var brand = await Task.Run(() => _carService.GetAllBrands().FirstOrDefault(b => b.BrandId == model.BrandId));
-            Debug.WriteLine($"Brand found: {brand?.BrandName}");
-
-            if (brand == null)
-            {
-                Debug.WriteLine($"Brand not found for brandId: {model.BrandId}");
-                return;
-            }
-
-            BrandName = brand.BrandName ?? "Default Brand Name";
-            BrandIconUrl = brand.BrandIconUrl ?? "https://celes.club/pictures/uploads/posts/2023-06/1686139250_celes-club-p-risunok-mashina-vid-sboku-risunok-vkontakt-1.jpg";
-            ModelName = model.ModelName ?? "Default Model Name";
-
-            var cars = await carTask;
-
-            foreach (var car in cars)
-            {
-                car.ImageUrl = car.ImageUrl ?? "https://celes.club/pictures/uploads/posts/2023-06/1686139250_celes-club-p-risunok-mashina-vid-sboku-risunok-vkontakt-1.jpg";
-                Debug.WriteLine($"CarId: {car.CarId}, TrimId: {car.TrimId}, ImageUrl: {car.ImageUrl}, " +
-                                $"AdditionalFeatures: {car.AdditionalFeatures}, Status: {car.Status}, Year: {car.Year}, " +
-                                $"Color: {car.Color}, TrimName: {car.TrimName}, TrimDetails: {car.TrimDetails}, " +
-                                $"Price: {car.Price}, Transmission: {car.Transmission}, Drive: {car.Drive}, " +
-                                $"Fuel: {car.Fuel}, EngineVolume: {car.EngineVolume}, HorsePower: {car.HorsePower}");
-            }
-
-            Cars = new ObservableCollection<CarWithTrimDetails>(cars);
-            OnPropertyChanged(nameof(Cars));
         }
 
 
 
+        private async void LoadCarsByTrim()
+        {
+            if (SelectedTrimId.HasValue)
+            {
+                var cars = await Task.Run(() => _carService.GetCarsByTrimId(SelectedTrimId.Value));
+                var carDetails = cars.Select(car => new CarWithTrimDetails
+                {
+                    CarId = car.CarId,
+                    TrimId = car.TrimId,
+                    // Дополните другими свойствами, преобразуя Car в CarWithTrimDetails
+                });
+                Cars = new ObservableCollection<CarWithTrimDetails>(carDetails);
+            }
+        }
 
+        public CarEditorControlViewModel() : this(0) { }
 
+        private async void LoadData(int modelId)
+        {
+            Debug.WriteLine($"Loading data for ModelId: {modelId}");
+            if (modelId == 0) return;
+
+            var trims = await Task.Run(() => _carService.GetTrimsByModel(modelId).ToList());
+            if (!trims.Any())
+            {
+                Debug.WriteLine("No trims found for modelId: " + modelId);
+                return;
+            }
+
+            Debug.WriteLine($"Trims found: {trims.Count}");
+            var trimIds = trims.Select(t => t.TrimId).ToList();
+
+            var cars = await Task.Run(() => _carService.GetCarsByTrims(trimIds));
+            if (!cars.Any())
+            {
+                Debug.WriteLine("No cars found for the provided trims");
+                return;
+            }
+
+            Cars = new ObservableCollection<CarWithTrimDetails>(cars);
+            if (Cars.Any())
+            {
+                // Задайте свойства BrandName, ModelName, и BrandIconUrl первого автомобиля в списке
+                BrandName = Cars.First().BrandName;
+                ModelName = Cars.First().ModelName;
+                BrandIconUrl = Cars.First().BrandIconUrl;
+            }
+            OnPropertyChanged(nameof(Cars));
+            OnPropertyChanged(nameof(BrandName));
+            OnPropertyChanged(nameof(ModelName));
+            OnPropertyChanged(nameof(BrandIconUrl));
+        }
 
 
 

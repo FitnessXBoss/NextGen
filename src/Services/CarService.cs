@@ -2,6 +2,7 @@
 using NextGen.src.Data.Database.Models;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 
 namespace NextGen.src.Services
 {
@@ -20,15 +21,16 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand(@"SELECT m.model_id, m.model_name, COALESCE(MIN(t.price), 0) as min_price, m.model_image_url,
-                    b.brand_name, b.brand_icon_url, 
-                    COALESCE(COUNT(DISTINCT c.car_id), 0) as car_count,
-                    COALESCE(COUNT(DISTINCT c.color), 0) as color_count
-                FROM models m
-                LEFT JOIN trims t ON m.model_id = t.model_id
-                LEFT JOIN cars c ON t.trim_id = c.trim_id
-                LEFT JOIN brands b ON m.brand_id = b.brand_id
-                GROUP BY m.model_id, m.model_name, m.model_image_url, b.brand_name, b.brand_icon_url", connection);
+                var cmd = new NpgsqlCommand(@"
+                    SELECT m.model_id, m.model_name, COALESCE(MIN(t.price), 0) as min_price, m.model_image_url,
+                           b.brand_name, b.brand_icon_url, 
+                           COALESCE(COUNT(DISTINCT c.car_id), 0) as car_count,
+                           COALESCE(COUNT(DISTINCT c.color), 0) as color_count
+                    FROM models m
+                    LEFT JOIN trims t ON m.model_id = t.model_id
+                    LEFT JOIN cars c ON t.trim_id = c.trim_id
+                    LEFT JOIN brands b ON m.brand_id = b.brand_id
+                    GROUP BY m.model_id, m.model_name, m.model_image_url, b.brand_name, b.brand_icon_url", connection);
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -44,6 +46,7 @@ namespace NextGen.src.Services
                             CarCount = reader.GetInt32(reader.GetOrdinal("car_count")),
                             ColorCount = reader.GetInt32(reader.GetOrdinal("color_count"))
                         });
+                        Debug.WriteLine($"CarSummary: ModelId={reader.GetInt32(reader.GetOrdinal("model_id"))}, ModelName={reader.GetString(reader.GetOrdinal("model_name"))}");
                     }
                 }
             }
@@ -62,18 +65,25 @@ namespace NextGen.src.Services
                 {
                     while (reader.Read())
                     {
-                        models.Add(new Model
+                        var model = new Model
                         {
                             ModelId = reader.GetInt32(reader.GetOrdinal("model_id")),
                             ModelName = reader.GetString(reader.GetOrdinal("model_name")),
                             ModelImageUrl = reader.GetString(reader.GetOrdinal("model_image_url")),
                             BrandId = reader.GetInt32(reader.GetOrdinal("brand_id"))
-                        });
+                        };
+                        models.Add(model);
+                        Debug.WriteLine($"Model: ModelId={model.ModelId}, ModelName={model.ModelName}, BrandId={model.BrandId}");
                     }
                 }
             }
+            Debug.WriteLine($"Total models loaded: {models.Count}");
             return models;
         }
+
+
+
+
 
 
         public IEnumerable<Brand> GetAllBrands()
@@ -93,6 +103,7 @@ namespace NextGen.src.Services
                             BrandName = reader.GetString(reader.GetOrdinal("brand_name")),
                             BrandIconUrl = reader.IsDBNull(reader.GetOrdinal("brand_icon_url")) ? null : reader.GetString(reader.GetOrdinal("brand_icon_url"))
                         });
+                        Debug.WriteLine($"Brand: BrandId={reader.GetInt32(reader.GetOrdinal("brand_id"))}, BrandName={reader.GetString(reader.GetOrdinal("brand_name"))}");
                     }
                 }
             }
@@ -120,11 +131,35 @@ namespace NextGen.src.Services
                             TrimDetails = reader.GetString(reader.GetOrdinal("trim_details")),
                             Price = reader.GetDecimal(reader.GetOrdinal("price"))
                         });
+                        Debug.WriteLine($"Trim: TrimId={reader.GetInt32(reader.GetOrdinal("trim_id"))}, TrimName={reader.GetString(reader.GetOrdinal("trim_name"))}");
                     }
                 }
             }
             return trims;
         }
+
+        public IEnumerable<CarWithTrimDetails> GetCarsByTrimId(int trimId)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                var cmd = new NpgsqlCommand($"SELECT * FROM cars WHERE trim_id = {trimId}", connection);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        yield return new CarWithTrimDetails
+                        {
+                            CarId = (int)reader["car_id"],
+                            TrimId = (int)reader["trim_id"],
+                            // Дополните другими свойствами, специфичными для CarWithTrimDetails
+                        };
+                    }
+                }
+            }
+        }
+
+
 
         public IEnumerable<CarWithTrimDetails> GetCarsByTrims(List<int> trimIds)
         {
@@ -133,17 +168,23 @@ namespace NextGen.src.Services
             {
                 connection.Open();
                 var cmd = new NpgsqlCommand(@"
-            SELECT c.car_id, c.trim_id, c.image_url, c.additional_features, c.status, c.year, c.color,
-                   t.trim_name, t.trim_details, t.price,
-                   COALESCE(t.transmission, 'Не указано') AS transmission,
-                   COALESCE(t.drive, 'Не указано') AS drive,
-                   COALESCE(t.fuel, 'Не указано') AS fuel,
-                   COALESCE(t.engine_volume, 'Не указано') AS engine_volume,
-                   COALESCE(t.horse_power, 'Не указано') AS horse_power
-            FROM cars c
-            LEFT JOIN trims t ON c.trim_id = t.trim_id
-            WHERE c.trim_id = ANY(@trimIds)", connection);
-                cmd.Parameters.AddWithValue("@trimIds", trimIds);
+SELECT c.car_id, c.trim_id, 
+       COALESCE(c.image_url, 'https://i.ibb.co/hsPFKrr/free-icon-page-not-found-4380687.png') as image_url,
+       c.additional_features, c.status, c.year, 
+       COALESCE(c.color, 'Unknown') as color,
+       t.trim_name, t.trim_details, t.price,
+       COALESCE(t.transmission, 'Не указано') AS transmission,
+       COALESCE(t.drive, 'Не указано') AS drive,
+       COALESCE(t.fuel, 'Не указано') AS fuel,
+       COALESCE(t.engine_volume, 'Не указано') AS engine_volume,
+       COALESCE(t.horse_power, 'Не указано') AS horse_power,
+       m.model_name, b.brand_name, b.brand_icon_url
+FROM cars c
+LEFT JOIN trims t ON c.trim_id = t.trim_id
+LEFT JOIN models m ON t.model_id = m.model_id
+LEFT JOIN brands b ON m.brand_id = b.brand_id
+WHERE c.trim_id = ANY(@trimIds::integer[])", connection);
+                cmd.Parameters.AddWithValue("@trimIds", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Integer, trimIds.ToArray());
 
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -153,11 +194,11 @@ namespace NextGen.src.Services
                         {
                             CarId = reader.GetInt32(reader.GetOrdinal("car_id")),
                             TrimId = reader.GetInt32(reader.GetOrdinal("trim_id")),
-                            ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? null : reader.GetString(reader.GetOrdinal("image_url")),
+                            ImageUrl = reader.GetString(reader.GetOrdinal("image_url")),
                             AdditionalFeatures = reader.IsDBNull(reader.GetOrdinal("additional_features")) ? null : reader.GetString(reader.GetOrdinal("additional_features")),
                             Status = reader.IsDBNull(reader.GetOrdinal("status")) ? null : reader.GetString(reader.GetOrdinal("status")),
                             Year = reader.GetInt32(reader.GetOrdinal("year")),
-                            Color = reader.IsDBNull(reader.GetOrdinal("color")) ? null : reader.GetString(reader.GetOrdinal("color")),
+                            Color = reader.GetString(reader.GetOrdinal("color")),
                             TrimName = reader.GetString(reader.GetOrdinal("trim_name")),
                             TrimDetails = reader.GetString(reader.GetOrdinal("trim_details")),
                             Price = reader.GetDecimal(reader.GetOrdinal("price")),
@@ -165,7 +206,10 @@ namespace NextGen.src.Services
                             Drive = reader.GetString(reader.GetOrdinal("drive")),
                             Fuel = reader.GetString(reader.GetOrdinal("fuel")),
                             EngineVolume = reader.GetString(reader.GetOrdinal("engine_volume")),
-                            HorsePower = reader.GetString(reader.GetOrdinal("horse_power"))
+                            HorsePower = reader.GetString(reader.GetOrdinal("horse_power")),
+                            BrandName = reader.GetString(reader.GetOrdinal("brand_name")),
+                            ModelName = reader.GetString(reader.GetOrdinal("model_name")),
+                            BrandIconUrl = reader.IsDBNull(reader.GetOrdinal("brand_icon_url")) ? null : reader.GetString(reader.GetOrdinal("brand_icon_url"))  // Извлечение URL иконки бренда
                         });
                     }
                 }

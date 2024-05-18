@@ -1,5 +1,7 @@
 ﻿using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
+using NextGen.src.UI.Helpers;
+using NextGen.src.UI.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,7 +9,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using NextGen.src.UI.Helpers;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -119,13 +120,47 @@ namespace NextGen.src.UI.ViewModels
 
         private async void LoadModelsForBrand(int brandId)
         {
+            Debug.WriteLine($"Loading models for BrandId: {brandId}");
             var models = await Task.Run(() => _carService.GetModelsByBrand(brandId));
+            Debug.WriteLine($"Total models loaded: {models?.Count() ?? 0}");
             Models.Clear();
             foreach (var model in models)
             {
                 Models.Add(model);
+                Debug.WriteLine($"Model: ModelId={model.ModelId}, ModelName={model.ModelName}");
             }
         }
+
+
+
+        public async void LoadCarDetails(int modelId)
+        {
+            Debug.WriteLine($"Loading car details for ModelId: {modelId}");
+            try
+            {
+                var trims = await Task.Run(() => _carService.GetTrimsByModel(modelId));
+                Trims.Clear();
+                foreach (var trim in trims)
+                {
+                    Trims.Add(trim);
+                    Debug.WriteLine($"Trim: TrimId={trim.TrimId}, TrimName={trim.TrimName}");
+                }
+
+                var cars = await Task.Run(() => _carService.GetCarsByTrims(Trims.Select(t => t.TrimId).ToList()));
+                Cars.Clear();
+                foreach (var car in cars)
+                {
+                    Cars.Add(car);
+                    Debug.WriteLine($"Car: CarId={car.CarId}, ModelName={car.ModelName}");
+                }
+                FilterCars(); // Перефильтровать автомобили после загрузки деталей
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error loading car details: " + ex.Message);
+            }
+        }
+
 
         private async Task LoadBrandsAsync()
         {
@@ -136,6 +171,7 @@ namespace NextGen.src.UI.ViewModels
                 foreach (var brand in brands)
                 {
                     Brands.Add(brand);
+                    Debug.WriteLine($"Brand: BrandId={brand.BrandId}, BrandName={brand.BrandName}");
                 }
             }
             catch (Exception ex)
@@ -144,30 +180,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public async void LoadCarDetails(int modelId)
-        {
-            try
-            {
-                var trims = await Task.Run(() => _carService.GetTrimsByModel(modelId));
-                Trims.Clear();
-                foreach (var trim in trims)
-                {
-                    Trims.Add(trim);
-                }
-
-                var cars = await Task.Run(() => _carService.GetCarsByTrims(Trims.Select(t => t.TrimId).ToList()));
-                Cars.Clear();
-                foreach (var car in cars)
-                {
-                    Cars.Add(car);
-                }
-                FilterCars(); // Перефильтровать автомобили после загрузки деталей
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Error loading car details: " + ex.Message);
-            }
-        }
+       
 
         private ObservableCollection<Car> _cars = new ObservableCollection<Car>();
         public ObservableCollection<Car> Cars

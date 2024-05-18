@@ -1,10 +1,14 @@
-﻿using NextGen.src.Services;
+﻿using NextGen.src.Data.Database.Models;
+using NextGen.src.Services;
 using NextGen.src.UI.Helpers;
 using NextGen.src.UI.Models;
 using NextGen.src.UI.Views;
 using NextGen.src.UI.Views.UserControls;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,6 +17,22 @@ namespace NextGen.src.UI.ViewModels
 {
     class DashboardViewModel : INotifyPropertyChanged
     {
+        private readonly CarService _carService;
+
+        public DashboardViewModel()
+        {
+            _carService = new CarService(); // Инициализация поля
+            InitializeCommands(); // Сначала инициализируйте команды
+            InitializeItems();
+            FilterItems();
+
+            // Проверьте, инициализированы ли элементы до их использования
+            _selectedItem = Items.FirstOrDefault();
+            if (_selectedItem != null)
+            {
+                CurrentContent = _selectedItem.Content;
+            }
+        }
 
         // Свойства для команд управления интерфейсом
         public ICommand? ChangeUserCommand { get; private set; }
@@ -28,6 +48,7 @@ namespace NextGen.src.UI.ViewModels
         public ObservableCollection<DashboardItem> OpenUserControls { get; set; } = new ObservableCollection<DashboardItem>();
         public ObservableCollection<DashboardItem> Items { get; } = new ObservableCollection<DashboardItem>();
         public ObservableCollection<DashboardItem> VisibleItems { get; } = new ObservableCollection<DashboardItem>();
+        public ObservableCollection<Model> Models { get; set; } = new ObservableCollection<Model>();
 
         // Свойства для состояния интерфейса
         private bool _isDrawerOpen;
@@ -103,7 +124,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-
         public void OpenEmployeeUserControl(UserControl content, string firstName, string lastName, string employeeId)
         {
             string title = $"Редактирование {firstName ?? "не указано"} {lastName ?? "не указано"} [{employeeId}]";
@@ -111,7 +131,7 @@ namespace NextGen.src.UI.ViewModels
             OpenUserControls.Add(newItem);
             SelectedUserControl = newItem;
             CurrentContent = newItem.Content;
-            
+
             ResetSelectionExcept("Right");
         }
 
@@ -128,9 +148,6 @@ namespace NextGen.src.UI.ViewModels
             IsRightDrawerOpen = true;
             ResetSelectionExcept("Right");
         }
-
-
-
 
 
         private void ToggleRightDrawer()
@@ -150,7 +167,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-
         private void InitializeItems()
         {
             Items.Add(new DashboardItem { Name = "Домашняя страница", Content = new HomeControl() });
@@ -158,20 +174,6 @@ namespace NextGen.src.UI.ViewModels
             Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarsControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
             // Добавьте другие элементы по мере необходимости
-        }
-
-        private DashboardViewModel()
-        {
-            InitializeCommands(); // Сначала инициализируйте команды
-            InitializeItems();
-            FilterItems();
-
-            // Проверьте, инициализированы ли элементы до их использования
-            _selectedItem = Items.FirstOrDefault();
-            if (_selectedItem != null)
-            {
-                CurrentContent = _selectedItem.Content;
-            }
         }
 
         private void InitializeCommands()
@@ -188,18 +190,9 @@ namespace NextGen.src.UI.ViewModels
 
         private void UpdateCurrentContent()
         {
-            if (_selectedItem != null)
-            {
-                CurrentContent = _selectedItem.Content;
-            }
-            else if (_selectedUserControl != null)
-            {
-                CurrentContent = _selectedUserControl.Content;
-            }
-            else
-            {
-                CurrentContent = null;
-            }
+            if (_selectedItem != null) { CurrentContent = _selectedItem.Content; }
+            else if (_selectedUserControl != null) { CurrentContent = _selectedUserControl.Content; }
+            else { CurrentContent = null; }
         }
 
         private void FilterItems()
@@ -310,6 +303,8 @@ namespace NextGen.src.UI.ViewModels
                 }
             });
         }
+
+        
 
         // Реализация INotifyPropertyChanged интерфейса
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -57,5 +57,9 @@
         public string? Fuel { get; set; }
         public string? EngineVolume { get; set; }
         public string? HorsePower { get; set; }
+        public string? BrandName { get; set; } 
+        public string? ModelName { get; set; } 
+        public string? BrandIconUrl { get; set;}
     }
+
 }

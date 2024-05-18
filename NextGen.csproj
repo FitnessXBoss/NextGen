@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <None Remove="src\Assets\Icons\Icon.ico" />
+    <None Remove="src\Assets\Images\DefaultNoSearch.png" />
     <None Remove="src\Assets\Images\illustration.png" />
     <None Remove="src\Assets\Images\logo.png" />
     <None Remove="src\UI\ViewModels\s354h3ac.5b2~" />
@@ -27,7 +28,7 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.2" />
-    <PackageReference Include="Npgsql" Version="8.0.2" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
   </ItemGroup>
 
@@ -43,6 +44,9 @@
 
   <ItemGroup>
     <Resource Include="src\Assets\Icons\Icon.ico" />
+    <Resource Include="src\Assets\Images\defaultnosearch.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="src\Assets\Images\illustration.png" />
     <Resource Include="src\Assets\Images\logo.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
