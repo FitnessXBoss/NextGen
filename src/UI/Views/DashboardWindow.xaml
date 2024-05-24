@@ -49,7 +49,7 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="0">
-                            <Image Margin="0" Source="/src/Assets/Images/logo.png" Height="32" Width="30" Cursor="Hand">
+                            <Image Margin="0" Source="/src/Assets/Images/logo.png" Height="30" Width="30" Cursor="Hand">
                                 <Image.InputBindings>
                                     <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleDrawerCommand}" />
                                 </Image.InputBindings>

@@ -1,78 +1,106 @@
-﻿<UserControl x:Class="NextGen.src.UI.Views.UserControls.HomeControl"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels" 
-             mc:Ignorable="d"
-             FontFamily="Nont">
+﻿<UserControl
+    x:Class="NextGen.src.UI.Views.UserControls.HomeControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+    FontFamily="Nont"
+    mc:Ignorable="d">
 
-    
 
-   
+
+
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="300"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="300" />
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Домашняя страница автосалона" 
-                   VerticalAlignment="Center" 
-                   HorizontalAlignment="Center" 
-                   FontSize="20"
-                   Grid.Row="0"/>
+        <TextBlock
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontSize="20"
+            Text="Домашняя страница автосалона" />
 
         <Grid Grid.Row="1" Margin="10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Карточка для мониторинга количества пользователей в сети -->
-            <materialDesign:Card Padding="10" Margin="5" Grid.Column="0">
+            <!--  Карточка для мониторинга количества пользователей в сети  -->
+            <materialDesign:Card
+                Grid.Column="0"
+                Margin="5"
+                Padding="10">
                 <StackPanel>
-                    <!-- Отображение количества пользователей онлайн -->
-                    <TextBlock Text="{Binding OnlineCount, StringFormat='Онлайн: {0}'}" FontSize="16" Margin="10"/>
+                    <!--  Отображение количества пользователей онлайн  -->
+                    <TextBlock
+                        Margin="10"
+                        FontSize="16"
+                        Text="{Binding OnlineCount, StringFormat='Онлайн: {0}'}" />
 
-                    <!-- ListBox с автоматической вертикальной прокруткой -->
-                    <ListBox ItemsSource="{Binding Users}" ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="300">
-                        
+                    <!--  ListBox с автоматической вертикальной прокруткой  -->
+                    <ListBox
+                        MaxHeight="300"
+                        ItemsSource="{Binding Users}"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto">
+
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <!-- Использование Grid для размещения элементов в строке -->
+                                <!--  Использование Grid для размещения элементов в строке  -->
                                 <Grid Height="Auto" Margin="5">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="50"/>
-                                        <!-- Пространство для изображения пользователя -->
-                                        <ColumnDefinition Width="*"/>
-                                        <!-- Пространство для текста -->
-                                        <ColumnDefinition Width="40"/>
-                                        <!-- Пространство для индикатора онлайн -->
+                                        <ColumnDefinition Width="50" />
+                                        <!--  Пространство для изображения пользователя  -->
+                                        <ColumnDefinition Width="*" />
+                                        <!--  Пространство для текста  -->
+                                        <ColumnDefinition Width="40" />
+                                        <!--  Пространство для индикатора онлайн  -->
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Эллипс для отображения изображения пользователя -->
-                                    <Ellipse Width="40" Height="40" Grid.Column="0" VerticalAlignment="Center">
+                                    <!--  Эллипс для отображения изображения пользователя  -->
+                                    <Ellipse
+                                        Grid.Column="0"
+                                        Width="40"
+                                        Height="40"
+                                        VerticalAlignment="Center">
                                         <Ellipse.Fill>
                                             <ImageBrush ImageSource="{Binding UserPhotoUrl}" />
                                         </Ellipse.Fill>
                                     </Ellipse>
 
-                                    <!-- StackPanel для текстовых блоков -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                        <TextBlock FontSize="16" Text="{Binding UserName}" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding UserRole}" FontSize="12" TextWrapping="Wrap"/>
+                                    <!--  StackPanel для текстовых блоков  -->
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center">
+                                        <TextBlock
+                                            FontSize="16"
+                                            Text="{Binding UserName}"
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            FontSize="12"
+                                            Text="{Binding UserRole}"
+                                            TextWrapping="Wrap" />
                                     </StackPanel>
 
-                                    <!-- Эллипс для индикатора онлайн-статуса -->
-                                    <Ellipse Width="20" Height="20" Grid.Column="3" VerticalAlignment="Center" Margin="10,0,10,0">
+                                    <!--  Эллипс для индикатора онлайн-статуса  -->
+                                    <Ellipse
+                                        Grid.Column="3"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="10,0,10,0"
+                                        VerticalAlignment="Center">
                                         <Ellipse.Fill>
-                                            <SolidColorBrush Color="{Binding StatusColor.Color}"/>
+                                            <SolidColorBrush Color="{Binding StatusColor.Color}" />
                                         </Ellipse.Fill>
                                     </Ellipse>
                                 </Grid>
@@ -86,26 +114,47 @@
 
 
 
-            <!-- График продаж за день -->
-            <materialDesign:Card Padding="10" Margin="5" Grid.Column="1">
+            <!--  График продаж за день  -->
+            <materialDesign:Card
+                Grid.Column="1"
+                Margin="5"
+                Padding="10">
                 <StackPanel>
-                    <TextBlock Text="Продажи за день" FontSize="14" FontWeight="Bold"/>
-                   
+                    <TextBlock
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Text="Продажи за день" />
+
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Карточка для общего числа проданных автомобилей -->
-            <materialDesign:Card Padding="10" Margin="5" Grid.Column="2">
+            <!--  Карточка для общего числа проданных автомобилей  -->
+            <materialDesign:Card
+                Grid.Column="2"
+                Margin="5"
+                Padding="10">
                 <StackPanel>
-                    <TextBlock Text="Продано автомобилей" FontSize="14" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding SoldCarsCount}" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Text="Продано автомобилей" />
+                    <TextBlock
+                        FontSize="24"
+                        FontWeight="Bold"
+                        Text="{Binding SoldCarsCount}" />
                 </StackPanel>
             </materialDesign:Card>
 
-            <!-- Карточка для отображения доступных моделей -->
-            <materialDesign:Card Padding="10" Margin="5" Grid.Column="3">
+            <!--  Карточка для отображения доступных моделей  -->
+            <materialDesign:Card
+                Grid.Column="3"
+                Margin="5"
+                Padding="10">
                 <StackPanel>
-                    <TextBlock Text="Доступные модели" FontSize="14" FontWeight="Bold"/>
+                    <TextBlock
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Text="Доступные модели" />
                     <ListView ItemsSource="{Binding AvailableCars}">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -117,11 +166,14 @@
             </materialDesign:Card>
         </Grid>
 
-        <!-- Место для отзывов клиентов и дополнительных данных -->
+        <!--  Место для отзывов клиентов и дополнительных данных  -->
         <Grid Grid.Row="2" Margin="10">
-            <materialDesign:Card Padding="10" Margin="5">
+            <materialDesign:Card Margin="5" Padding="10">
                 <StackPanel>
-                    <TextBlock Text="Отзывы клиентов" FontSize="16" FontWeight="Bold"/>
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Text="Отзывы клиентов" />
                     <ListView ItemsSource="{Binding CustomerFeedbacks}">
                         <ListView.ItemTemplate>
                             <DataTemplate>

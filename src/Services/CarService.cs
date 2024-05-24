@@ -3,6 +3,7 @@ using NextGen.src.Data.Database.Models;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using NextGen.src.UI.ViewModels;
 
 namespace NextGen.src.Services
 {
@@ -14,6 +15,64 @@ namespace NextGen.src.Services
         {
             connectionString = ConfigurationManager.ConnectionStrings["SecurityData"].ConnectionString;
         }
+
+        public CarDetails GetCarDetails(int carId)
+        {
+            CarDetails details = new CarDetails();
+
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Получение основных данных о машине
+                var carCmd = new NpgsqlCommand($@"
+                    SELECT car_id, image_url, trim_id, status, color, additional_features, year 
+                    FROM cars 
+                    WHERE car_id = @carId", connection);
+                carCmd.Parameters.AddWithValue("@carId", carId);
+
+                using (var reader = carCmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        details.CarId = reader.GetInt32(reader.GetOrdinal("car_id"));
+                        details.ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? null : reader.GetString(reader.GetOrdinal("image_url"));
+                        details.TrimId = reader.GetInt32(reader.GetOrdinal("trim_id"));
+                        details.Status = reader.IsDBNull(reader.GetOrdinal("status")) ? null : reader.GetString(reader.GetOrdinal("status"));
+                        details.Color = reader.IsDBNull(reader.GetOrdinal("color")) ? null : reader.GetString(reader.GetOrdinal("color"));
+                        details.AdditionalFeatures = reader.IsDBNull(reader.GetOrdinal("additional_features")) ? null : reader.GetString(reader.GetOrdinal("additional_features"));
+                        details.Year = reader.GetInt32(reader.GetOrdinal("year"));
+                    }
+                }
+
+                // Получение дополнительных изображений
+                if (connection.State == System.Data.ConnectionState.Closed)
+                    connection.Open();
+
+                var imagesCmd = new NpgsqlCommand($@"
+                    SELECT image_id, image_url, description 
+                    FROM car_images 
+                    WHERE car_id = @carId", connection);
+                imagesCmd.Parameters.AddWithValue("@carId", carId);
+
+                using (var reader = imagesCmd.ExecuteReader())
+                {
+                    details.Images = new List<CarImage>();
+                    while (reader.Read())
+                    {
+                        details.Images.Add(new CarImage
+                        {
+                            ImageId = reader.GetInt32(reader.GetOrdinal("image_id")),
+                            ImagePath = reader.GetString(reader.GetOrdinal("image_url")),
+                            Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description"))
+                        });
+                    }
+                }
+            }
+
+            return details;
+        }
+
 
         public IEnumerable<CarSummary> GetAllCarSummaries()
         {
@@ -167,8 +226,7 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand(@"
-SELECT c.car_id, c.trim_id, 
+                var cmd = new NpgsqlCommand(@"SELECT c.car_id, c.trim_id, 
        COALESCE(c.image_url, 'https://i.ibb.co/hsPFKrr/free-icon-page-not-found-4380687.png') as image_url,
        c.additional_features, c.status, c.year, 
        COALESCE(c.color, 'Unknown') as color,

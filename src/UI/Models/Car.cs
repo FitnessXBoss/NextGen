@@ -62,4 +62,24 @@
         public string? BrandIconUrl { get; set;}
     }
 
+    public class CarDetails
+    {
+        public int CarId { get; set; }
+        public int TrimId { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Status { get; set; }
+        public string? Color { get; set; }
+        public string? AdditionalFeatures { get; set; }
+        public int Year { get; set; }
+        public List<CarImage> Images { get; set; }
+    }
+
+    public class CarImage
+    {
+        public int ImageId { get; set; }
+        public string? ImagePath { get; set; }
+        public string? Description { get; set; }
+    }
+
+
 }

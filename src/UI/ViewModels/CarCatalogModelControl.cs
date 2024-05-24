@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace NextGen.src.UI.ViewModels
 {
-    public class CarEditorControlViewModel : INotifyPropertyChanged
+    public class CarCatalogModelControl : INotifyPropertyChanged
     {
         private readonly CarService _carService;
         public ObservableCollection<CarWithTrimDetails> Cars { get; private set; } = new ObservableCollection<CarWithTrimDetails>();
@@ -47,7 +47,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public CarEditorControlViewModel(int modelId)
+        public CarCatalogModelControl(int modelId)
         {
             _carService = new CarService();
             LoadData(modelId);
@@ -85,7 +85,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public CarEditorControlViewModel() : this(0) { }
+        public CarCatalogModelControl() : this(0) { }
 
         private async void LoadData(int modelId)
         {

@@ -149,6 +149,22 @@ namespace NextGen.src.UI.ViewModels
             ResetSelectionExcept("Right");
         }
 
+        public void OpenCarDetailsControl(UserControl content, string modelName, string brandName, string carId, string trimName)
+        {
+            Console.WriteLine($"Opening Car Details UserControl with CarId: {carId}, Trim: {trimName}");
+
+            string title = $"Автомобиль {brandName} {modelName} {trimName} [{carId}]";
+            var newItem = new DashboardItem { Name = title, Content = content };
+
+            OpenUserControls.Add(newItem);
+            SelectedUserControl = newItem;
+            CurrentContent = newItem.Content;
+            IsRightDrawerOpen = true;
+            ResetSelectionExcept("Right");
+        }
+
+
+
 
         private void ToggleRightDrawer()
         {
@@ -171,7 +187,7 @@ namespace NextGen.src.UI.ViewModels
         {
             Items.Add(new DashboardItem { Name = "Домашняя страница", Content = new HomeControl() });
             Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
-            Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarsControl() });
+            Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarCatalogControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
             // Добавьте другие элементы по мере необходимости
         }
