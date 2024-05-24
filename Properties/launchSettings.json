@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NextGen": {
+      "commandName": "Project",
+      "hotReloadEnabled": true
+    }
+  }
+}

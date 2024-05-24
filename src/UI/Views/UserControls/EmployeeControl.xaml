@@ -1,57 +1,167 @@
-﻿<!-- EmployeeControl.xaml -->
-<UserControl x:Class="NextGen.src.UI.Views.UserControls.EmployeeControl"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
+﻿<!--  EmployeeControl.xaml  -->
+<UserControl
+    x:Class="NextGen.src.UI.Views.UserControls.EmployeeControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
     <Grid>
-        <StackPanel Orientation="Vertical" Cursor="">
-            <!-- Search Bar with Material Design Style -->
-            
-            <!-- Buttons for CRUD Operations with Material Design Style -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
-                <TextBox x:Name="SearchBox" FontSize="12" Width="480" Margin="0,15,0,0" materialDesign:HintAssist.Hint="Поиск" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:TextFieldAssist.HasClearButton="True" DockPanel.Dock="Top" Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Content="Добавить" Margin="5" Style="{StaticResource MaterialDesignFlatButton}" Click="AddButton_Click"/>
-                <Button Content="Изменить" Margin="5" Style="{StaticResource MaterialDesignFlatButton}" Click="EditButton_Click"/>
-                <Button Content="Удалить" Margin="5" Style="{StaticResource MaterialDesignFlatButton}" Click="DeleteButton_Click"/>
+        <StackPanel Cursor="" Orientation="Vertical">
+            <!--  Search Bar with Material Design Style  -->
+
+            <!--  Buttons for CRUD Operations with Material Design Style  -->
+            <StackPanel
+                Margin="10"
+                HorizontalAlignment="Left"
+                Orientation="Horizontal">
+                <TextBox
+                    x:Name="SearchBox"
+                    Width="480"
+                    Margin="0,15,0,0"
+                    materialDesign:HintAssist.Hint="Поиск"
+                    materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+                    materialDesign:TextFieldAssist.HasClearButton="True"
+                    DockPanel.Dock="Top"
+                    FontSize="12"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
+                <Button
+                    Margin="5"
+                    Click="AddButton_Click"
+                    Content="Добавить"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
+                <Button
+                    Margin="5"
+                    Click="EditButton_Click"
+                    Content="Изменить"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
+                <Button
+                    Margin="5"
+                    Click="DeleteButton_Click"
+                    Content="Удалить"
+                    Style="{StaticResource MaterialDesignFlatButton}" />
             </StackPanel>
-                <!-- DataGrid with Material Design Style and Auto-Resizing Columns -->
-            <DataGrid x:Name="dataGrid" ItemsSource="{Binding Employees}" AutoGenerateColumns="False" Margin="10"
-          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-          IsReadOnly="True" MouseDoubleClick="DataGrid_MouseDoubleClick" materialDesign:DataGridAssist.CellPadding="13,4,13,4" materialDesign:DataGridAssist.ColumnHeaderPadding="13,6,13,6">
+            <!--  DataGrid with Material Design Style and Auto-Resizing Columns  -->
+            <DataGrid
+                x:Name="dataGrid"
+                Margin="10"
+                materialDesign:DataGridAssist.CellPadding="13,4,13,4"
+                materialDesign:DataGridAssist.ColumnHeaderPadding="13,6,13,6"
+                AutoGenerateColumns="False"
+                HorizontalScrollBarVisibility="Auto"
+                IsReadOnly="True"
+                ItemsSource="{Binding Employees}"
+                MouseDoubleClick="DataGrid_MouseDoubleClick"
+                VerticalScrollBarVisibility="Auto">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Имя" Binding="{Binding FirstName}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Фамилия" Binding="{Binding LastName}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Пол" Binding="{Binding Gender}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Роль" Binding="{Binding RoleName}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Должность" Binding="{Binding Position}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="AUTO"/>
-                    
-                    
-                    
-                    <DataGridTextColumn Header="Страховой номер" Binding="{Binding PensionInsuranceNumber}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Серия и номер паспорта" Binding="{Binding PassportSeriesNumber}" Width="AUTO"/>
-                    <DataGridCheckBoxColumn Header="Согласие на обработку данных" Binding="{Binding ConsentToProcessPersonalData}" Width="AUTO"/>
-                    <DataGridCheckBoxColumn Header="Судимость" Binding="{Binding CriminalRecord}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Профессия" Binding="{Binding Profession}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Дата выдачи паспорта" Binding="{Binding PassportIssueDate}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Место регистрации" Binding="{Binding RegistrationPlace}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Страховой номер здоровья" Binding="{Binding HealthInsuranceNumber}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Семейное положение" Binding="{Binding MaritalStatus}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Адрес проживания" Binding="{Binding ResidenceAddress}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Номер призывного билета" Binding="{Binding DraftCardNumber}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Дата регистрации призыва" Binding="{Binding DraftRegistrationDate}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Уровень образования" Binding="{Binding EducationLevel}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Номер налога" Binding="{Binding TaxNumber}" Width="AUTO"/>
-                    <DataGridTextColumn Header="Тип налога" Binding="{Binding TaxType}" Width="AUTO"/>
-                    <DataGridTextColumn Header="ИНН" Binding="{Binding Inn}" Width="AUTO"/>
-                    <DataGridTextColumn Header="СНИЛС" Binding="{Binding Snils}" Width="AUTO"/>
-                    <DataGridTextColumn Header="ОМС" Binding="{Binding Oms}" Width="AUTO"/>
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding FirstName}"
+                        Header="Имя" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding LastName}"
+                        Header="Фамилия" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Gender}"
+                        Header="Пол" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding RoleName}"
+                        Header="Роль" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Position}"
+                        Header="Должность" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Phone}"
+                        Header="Телефон" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Email}"
+                        Header="Email" />
+
+
+
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding PensionInsuranceNumber}"
+                        Header="Страховой номер" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding PassportSeriesNumber}"
+                        Header="Серия и номер паспорта" />
+                    <DataGridCheckBoxColumn
+                        Width="AUTO"
+                        Binding="{Binding ConsentToProcessPersonalData}"
+                        Header="Согласие на обработку данных" />
+                    <DataGridCheckBoxColumn
+                        Width="AUTO"
+                        Binding="{Binding CriminalRecord}"
+                        Header="Судимость" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Profession}"
+                        Header="Профессия" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding PassportIssueDate}"
+                        Header="Дата выдачи паспорта" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding RegistrationPlace}"
+                        Header="Место регистрации" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding HealthInsuranceNumber}"
+                        Header="Страховой номер здоровья" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding MaritalStatus}"
+                        Header="Семейное положение" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding ResidenceAddress}"
+                        Header="Адрес проживания" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding DraftCardNumber}"
+                        Header="Номер призывного билета" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding DraftRegistrationDate}"
+                        Header="Дата регистрации призыва" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding EducationLevel}"
+                        Header="Уровень образования" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding TaxNumber}"
+                        Header="Номер налога" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding TaxType}"
+                        Header="Тип налога" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Inn}"
+                        Header="ИНН" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Snils}"
+                        Header="СНИЛС" />
+                    <DataGridTextColumn
+                        Width="AUTO"
+                        Binding="{Binding Oms}"
+                        Header="ОМС" />
                 </DataGrid.Columns>
             </DataGrid>
 

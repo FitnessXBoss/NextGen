@@ -7,9 +7,9 @@ using System.Windows.Media;
 
 namespace NextGen.src.UI.Views.UserControls
 {
-    public partial class CarsControl : UserControl
+    public partial class CarCatalogControl : UserControl
     {
-        public CarsControl()
+        public CarCatalogControl()
         {
             InitializeComponent();
             DataContext = new CarsViewModel();
@@ -28,8 +28,8 @@ namespace NextGen.src.UI.Views.UserControls
             var listBox = sender as ListBox;
             if (listBox != null && listBox.SelectedItem is CarSummary selectedCarSummary)
             {
-                var editor = new CarEditorControl();
-                editor.DataContext = new CarEditorControlViewModel(selectedCarSummary.ModelId);
+                var editor = new CarCatalogModelControl();
+                editor.DataContext = new ViewModels.CarCatalogModelControl(selectedCarSummary.ModelId);
 
                 var dashboardViewModel = FindParent<DashboardWindow>(this)?.DataContext as DashboardViewModel;
                 if (dashboardViewModel != null)

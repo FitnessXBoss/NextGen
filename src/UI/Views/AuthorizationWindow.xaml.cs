@@ -38,6 +38,7 @@ namespace NextGen.src.UI.Views
 
         private void ResetAuthText_MouseDown(object sender, MouseButtonEventArgs e)
         {
+
             MessageBox.Show("Функция восстановления пароля находится в разработке.");
             
         }
