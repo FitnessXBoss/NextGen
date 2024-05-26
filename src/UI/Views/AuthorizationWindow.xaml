@@ -4,7 +4,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
         xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
-        Title="Авторизация" Height="750" Width="450"
+        Title="Авторизация" Height="700" Width="400"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontFamily="Noto"
         Background="{x:Null}"  
@@ -18,7 +18,7 @@
     
     
 
-    <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="25" materialDesign:ElevationAssist.Elevation="Dp4">
+    <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
         <materialDesign:DialogHost CloseOnClickAway="True" x:Name="DialogHost" Identifier="RootDialog">
             <StackPanel>
 

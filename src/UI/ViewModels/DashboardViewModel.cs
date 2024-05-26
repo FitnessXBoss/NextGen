@@ -145,7 +145,7 @@ namespace NextGen.src.UI.ViewModels
             OpenUserControls.Add(newItem);
             SelectedUserControl = newItem;
             CurrentContent = newItem.Content;
-            IsRightDrawerOpen = true;
+            
             ResetSelectionExcept("Right");
         }
 
@@ -159,7 +159,7 @@ namespace NextGen.src.UI.ViewModels
             OpenUserControls.Add(newItem);
             SelectedUserControl = newItem;
             CurrentContent = newItem.Content;
-            IsRightDrawerOpen = true;
+            
             ResetSelectionExcept("Right");
         }
 

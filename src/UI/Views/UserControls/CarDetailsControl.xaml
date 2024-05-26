@@ -4,43 +4,342 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             d:DesignHeight="450"
-             d:DesignWidth="800"
+             d:DesignHeight="1000"
+             d:DesignWidth="1200"
              FontFamily="Noto"
              mc:Ignorable="d">
-    <Grid Margin="0,0,0,50">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+    <ScrollViewer >
+        <StackPanel Margin="10">
+            <Grid Margin="0,0,0,50">
+                
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- Основное изображение -->
-        <Viewbox Grid.Column="0">
-            <Image Source="{Binding CarImages[0].ImagePath}" Stretch="UniformToFill"/>
-        </Viewbox>
+                <!-- Основное изображение -->
+                <Viewbox Grid.Column="0">
+                    <Image Source="{Binding CarImages[0].ImagePath}" Stretch="UniformToFill"/>
+                </Viewbox>
 
-        <!-- Дополнительные изображения -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+                <!-- Дополнительные изображения -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-            <!-- Верхний правый блок изображений -->
-            <Viewbox Grid.Row="0">
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="{Binding CarImages[1].ImagePath}" Stretch="UniformToFill"/>
-                    <Image Source="{Binding CarImages[2].ImagePath}" Stretch="UniformToFill"/>
-                </StackPanel>
-            </Viewbox>
+                    <!-- Верхний правый блок изображений -->
+                    <Viewbox Grid.Row="0">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding CarImages[1].ImagePath}" Stretch="UniformToFill"/>
+                            <Image Source="{Binding CarImages[2].ImagePath}" Stretch="UniformToFill"/>
+                        </StackPanel>
+                    </Viewbox>
 
-            <!-- Нижний правый блок изображений -->
-            <Viewbox Grid.Row="1">
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="{Binding CarImages[3].ImagePath}" Stretch="UniformToFill"/>
-                    <Image Source="{Binding CarImages[4].ImagePath}" Stretch="UniformToFill"/>
-                </StackPanel>
-            </Viewbox>
-        </Grid>
-    </Grid>
+                    <!-- Нижний правый блок изображений -->
+                    <Viewbox Grid.Row="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding CarImages[3].ImagePath}" Stretch="UniformToFill"/>
+                            <Image Source="{Binding CarImages[4].ImagePath}" Stretch="UniformToFill"/>
+                        </StackPanel>
+                    </Viewbox>
+                </Grid>
+            </Grid>
+
+            <!-- Новые элементы, добавляемые ниже -->
+            <materialDesign:Card Margin="10" UniformCornerRadius="10"  >
+                <DockPanel LastChildFill="True">
+                    <!-- Header -->
+                    <StackPanel DockPanel.Dock="Top" Margin="10">
+                        <TextBlock FontSize="20" Margin="0,10,0,0">
+                            <Run Text="Комплектация" Foreground="Gray" FontSize="14"/>
+                            <Run Text="Комфорт" Foreground="Black" FontSize="16"/>
+                        </TextBlock>
+                        <Rectangle Height="1" Fill="Gray" Margin="0,10,0,5"/>
+                    </StackPanel>
+
+                    <!-- Right Section -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0" DockPanel.Dock="Right">
+                        <StackPanel Orientation="Vertical" Margin="0,0,20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="BullseyeArrow" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Год производства" FontSize="10" Foreground="Gray" Margin="0,10,0,0"/>
+                                    <TextBlock Text="2023" Margin="0,3,0,10" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="CarTransmission" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Трансмиссия" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="АКПП-8" Margin="0,3,0,10" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                        </StackPanel>
+
+
+                        <StackPanel Orientation="Vertical" Margin="0,0,20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Car" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Кузов" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="Седан" Margin="0,10,0,10"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Fuel" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Топливо" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="Бензин" Margin="0,10,0,10"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Third Column -->
+                        <StackPanel Orientation="Vertical" Margin="0,0,20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="CarSettings" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Привод" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="Передний" Margin="0,10,0,10" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+
+
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FuelPump" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Расход, л/100 км" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="5.4 - 9.3" Margin="0,10,0,10" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Fourth Column -->
+                        <StackPanel Orientation="Vertical" Margin="0,0,20,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Engine" Height="30" Width="40" Margin="10,5,5,0"/>
+                                <StackPanel>
+                                    <TextBlock Text="Двигатель" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="206 л.с." Margin="0,10,0,10" FontSize="12"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Left Section -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,0,0,0" Width="220" HorizontalAlignment="Left">
+                        <Ellipse Width="40" Height="40" Stroke="Black" StrokeThickness="0" HorizontalAlignment="Left" Margin="10,0,0,0">
+                            <Ellipse.Fill>
+                                <SolidColorBrush Color="{Binding CarColor}"/>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <StackPanel Orientation="Vertical" Margin="10,0,0,0" Height="45" HorizontalAlignment="Center">
+                            <TextBlock Text="Цвет кузова" Margin="0,5,0,0"  FontSize="10" Foreground="Gray"/>
+                            <TextBlock Text="Серебристый перламутр" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </materialDesign:Card>
+
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <!-- Для левой колонки, более широкой -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Для правой колонки, фиксированной ширины -->
+                </Grid.ColumnDefinitions>
+                <!-- Левая часть для характеристик с TabControl -->
+                <materialDesign:Card Grid.Column="0" Margin="10" UniformCornerRadius="10">
+                    <TabControl Margin="0,0,0,50">
+                        <TabItem Header="Базовые комплектация">
+                            <StackPanel>
+                                <Expander Header="Экстерьер" HorizontalAlignment="Stretch">
+                                    <StackPanel Margin="24,8,24,16">
+                                        <TextBlock Text="Количество дверей: ..." />
+                                        <TextBlock Text="Тип кузова: ..." />
+                                    </StackPanel>
+                                </Expander>
+                                <Border Style="{StaticResource MaterialDesignToolBarMainPanelBorderStyle}" />
+                                <Expander Header="Комфорт" HorizontalAlignment="Stretch">
+                                    <StackPanel Margin="24,8,24,16">
+                                        <TextBlock Text="Тип сидений: ..." />
+                                        <TextBlock Text="Климат-контроль: ..." />
+                                    </StackPanel>
+                                </Expander>
+                                <Border Style="{StaticResource MaterialDesignToolBarMainPanelBorderStyle}" />
+                                <Expander Header="Безопасность" HorizontalAlignment="Stretch">
+                                    <StackPanel Margin="24,8,24,16">
+                                        <TextBlock Text="Аирбэги: ..." />
+                                        <TextBlock Text="Системы помощи: ..." />
+                                    </StackPanel>
+                                </Expander>
+                                <Border Style="{StaticResource MaterialDesignToolBarMainPanelBorderStyle}" />
+                                <Expander Header="Мультимедиа" HorizontalAlignment="Stretch">
+                                    <StackPanel Margin="24,8,24,16">
+                                        <TextBlock Text="Аудиосистема: ..." />
+                                        <TextBlock Text="Навигация: ..." />
+                                    </StackPanel>
+                                </Expander>
+                                <TextBlock Text="Посмотреть все опции" Margin="20,10,20,10" Cursor="Hand" Foreground="Blue"/>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Характеристики">
+                            <Grid Margin="20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Для левой колонки -->
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- Для правой колонки -->
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Левая колонка -->
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Margin="0,10">
+            <Run Text="Цвет" FontWeight="Bold"/>
+            <Run Text=": Серебристый перламутр"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Год" FontWeight="Bold"/>
+            <Run Text=": 2023"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Кузов" FontWeight="Bold"/>
+            <Run Text=": Седан"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Места" FontWeight="Bold"/>
+            <Run Text=": 5"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Длина" FontWeight="Bold"/>
+            <Run Text=": 4 885 мм"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Ширина" FontWeight="Bold"/>
+            <Run Text=": 1 840 мм"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Высота" FontWeight="Bold"/>
+            <Run Text=": 1 455 мм"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Объем багажника" FontWeight="Bold"/>
+            <Run Text=": 469 л"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <!-- Правая колонка -->
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Margin="0,10">
+            <Run Text="Коробка" FontWeight="Bold"/>
+            <Run Text=": АКПП-8"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Мощность" FontWeight="Bold"/>
+            <Run Text=": 206 л.с."/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Объем двигателя" FontWeight="Bold"/>
+            <Run Text=": 2,5 л"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Тип топлива" FontWeight="Bold"/>
+            <Run Text=": Бензин"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Объем бака" FontWeight="Bold"/>
+            <Run Text=": 60 л"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Расход (смешанный)" FontWeight="Bold"/>
+            <Run Text=": 6,8 л/100 км"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Расход (город)" FontWeight="Bold"/>
+            <Run Text=": 9,3 л/100 км"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Расход (трасса)" FontWeight="Bold"/>
+            <Run Text=": 5,4 л/100 км"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Макс. скорость" FontWeight="Bold"/>
+            <Run Text=": 210 км/ч"/>
+                                    </TextBlock>
+
+                                    <TextBlock Margin="0,10">
+            <Run Text="Разгон до 100 км/ч" FontWeight="Bold"/>
+            <Run Text=": 8,7 с"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+
+                        </TabItem>
+
+                    </TabControl>
+                </materialDesign:Card>
+
+
+                <!-- Правая часть для стоимости -->
+                <materialDesign:Card Grid.Column="1" Margin="10" UniformCornerRadius="10" Width="400">
+                    <StackPanel Margin="0,0,0,50" HorizontalAlignment="Stretch">
+                        <TextBlock Text="Стоимость автомобиля" FontSize="16"  Margin="10,10,0,0"/>
+                        <!-- Используем Rectangle вместо Line -->
+                        <Rectangle Height="2" Fill="Gray" Margin="10,10,10,0"/>
+                        <TextBlock Text="Стоимость" Margin="15,10,0,0"/>
+                        <TextBlock Text="Цена без учета выгод: 17 300 000 ₸" Margin="15,5,0,5"/>
+                        <Button Content="Получить предложение" Margin="15,10,15,0"/>
+                    </StackPanel>
+                </materialDesign:Card>
+            </Grid>
+
+
+
+
+
+            <!-- Ввод данных клиента -->
+            <StackPanel Margin="0,0,0,50" HorizontalAlignment="Center">
+                <TextBlock Text="Информация о клиенте" FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
+                <TextBox Width="200" Margin="0,5,0,0" Text="{Binding CustomerId, UpdateSourceTrigger=PropertyChanged}">
+                    <materialDesign:HintAssist.Hint>Идентификатор клиента</materialDesign:HintAssist.Hint>
+                </TextBox>
+                <TextBox Width="200" Margin="0,5,0,0" Text="{Binding CustomerFirstName, UpdateSourceTrigger=PropertyChanged}">
+                    <materialDesign:HintAssist.Hint>Имя клиента</materialDesign:HintAssist.Hint>
+                </TextBox>
+                <TextBox Width="200" Margin="0,5,0,0" Text="{Binding CustomerLastName, UpdateSourceTrigger=PropertyChanged}">
+                    <materialDesign:HintAssist.Hint>Фамилия клиента</materialDesign:HintAssist.Hint>
+                </TextBox>
+                <TextBox Width="200" Margin="0,5,0,0" Text="{Binding CustomerEmail, UpdateSourceTrigger=PropertyChanged}">
+                    <materialDesign:HintAssist.Hint>Email клиента</materialDesign:HintAssist.Hint>
+                </TextBox>
+                <TextBox Width="200" Margin="0,5,0,0" Text="{Binding CustomerPhone, UpdateSourceTrigger=PropertyChanged}">
+                    <materialDesign:HintAssist.Hint>Телефон клиента</materialDesign:HintAssist.Hint>
+                </TextBox>
+            </StackPanel>
+
+            <!-- Кнопка продажи автомобиля -->
+            <Button Content="Продать автомобиль" Margin="10" Width="200" Height="50" Command="{Binding SellCarCommand}" HorizontalAlignment="Center" Background="DodgerBlue" Foreground="White"/>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

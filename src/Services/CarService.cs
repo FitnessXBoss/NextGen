@@ -218,6 +218,73 @@ namespace NextGen.src.Services
             }
         }
 
+        public void SellCar(int carId, int userId, int customerId, string customerFirstName, string customerLastName, string customerEmail, string customerPhone)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Проверка существования пользователя
+                using (var userCheckCmd = new NpgsqlCommand("SELECT COUNT(*) FROM users WHERE user_id = @user_id", connection))
+                {
+                    userCheckCmd.Parameters.AddWithValue("user_id", userId);
+                    var userExists = (long)userCheckCmd.ExecuteScalar() > 0;
+
+                    if (!userExists)
+                    {
+                        // Создать нового пользователя, если он не существует
+                        using (var createUserCmd = new NpgsqlCommand("INSERT INTO users (user_id, username, password_hash, salt) VALUES (@user_id, @username, @password_hash, @salt)", connection))
+                        {
+                            createUserCmd.Parameters.AddWithValue("user_id", userId);
+                            createUserCmd.Parameters.AddWithValue("username", "new_user"); // или другое имя пользователя
+                            createUserCmd.Parameters.AddWithValue("password_hash", "default_hash"); // установите по умолчанию
+                            createUserCmd.Parameters.AddWithValue("salt", "default_salt"); // установите по умолчанию
+                            createUserCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                // Проверка существования клиента
+                using (var customerCheckCmd = new NpgsqlCommand("SELECT COUNT(*) FROM customers WHERE customer_id = @customer_id", connection))
+                {
+                    customerCheckCmd.Parameters.AddWithValue("customer_id", customerId);
+                    var customerExists = (long)customerCheckCmd.ExecuteScalar() > 0;
+
+                    if (!customerExists)
+                    {
+                        // Создать нового клиента, если он не существует
+                        using (var createCustomerCmd = new NpgsqlCommand("INSERT INTO customers (customer_id, first_name, last_name, email, phone) VALUES (@customer_id, @first_name, @last_name, @email, @phone)", connection))
+                        {
+                            createCustomerCmd.Parameters.AddWithValue("customer_id", customerId);
+                            createCustomerCmd.Parameters.AddWithValue("first_name", customerFirstName);
+                            createCustomerCmd.Parameters.AddWithValue("last_name", customerLastName);
+                            createCustomerCmd.Parameters.AddWithValue("email", customerEmail);
+                            createCustomerCmd.Parameters.AddWithValue("phone", customerPhone);
+                            createCustomerCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+                // Вставка данных о продаже
+                using (var cmd = new NpgsqlCommand("INSERT INTO sales (car_id, user_id, customer_id, sale_date) VALUES (@car_id, @user_id, @customer_id, @sale_date)", connection))
+                {
+                    cmd.Parameters.AddWithValue("car_id", carId);
+                    cmd.Parameters.AddWithValue("user_id", userId);
+                    cmd.Parameters.AddWithValue("customer_id", customerId);
+                    cmd.Parameters.AddWithValue("sale_date", DateTime.Now);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Обновление статуса автомобиля
+                using (var cmd = new NpgsqlCommand("UPDATE cars SET status = 'Sold' WHERE car_id = @car_id", connection))
+                {
+                    cmd.Parameters.AddWithValue("car_id", carId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+
 
 
         public IEnumerable<CarWithTrimDetails> GetCarsByTrims(List<int> trimIds)
