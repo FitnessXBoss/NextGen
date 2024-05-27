@@ -18,6 +18,9 @@ namespace NextGen.src.UI.ViewModels
         private string _customerLastName;
         private string _customerEmail;
         private string _customerPhone;
+        private bool _isAgreeToPersonalDataProcessing;
+        private bool _isAgreeToReceiveOffers;
+        private bool _isAgreeToCreditTerms;
 
         public int CustomerId { get; set; }
         public ICommand SellCarCommand { get; }
@@ -28,6 +31,56 @@ namespace NextGen.src.UI.ViewModels
             LoadDetailsForCar(_carId);
             SellCarCommand = new RelayCommand(SellCar);
         }
+
+        public bool IsAgreeToPersonalDataProcessing
+        {
+            get => _isAgreeToPersonalDataProcessing;
+            set
+            {
+                _isAgreeToPersonalDataProcessing = value;
+                OnPropertyChanged(nameof(IsAgreeToPersonalDataProcessing));
+                UpdateFormValidity();
+            }
+        }
+
+        public bool IsAgreeToReceiveOffers
+        {
+            get => _isAgreeToReceiveOffers;
+            set
+            {
+                _isAgreeToReceiveOffers = value;
+                OnPropertyChanged(nameof(IsAgreeToReceiveOffers));
+                UpdateFormValidity();
+            }
+        }
+
+        public bool IsAgreeToCreditTerms
+        {
+            get => _isAgreeToCreditTerms;
+            set
+            {
+                _isAgreeToCreditTerms = value;
+                OnPropertyChanged(nameof(IsAgreeToCreditTerms));
+                UpdateFormValidity();
+            }
+        }
+
+        private bool _isFormValid;
+        public bool IsFormValid
+        {
+            get => _isFormValid;
+            private set
+            {
+                _isFormValid = value;
+                OnPropertyChanged(nameof(IsFormValid));
+            }
+        }
+
+        private void UpdateFormValidity()
+        {
+            IsFormValid = IsAgreeToPersonalDataProcessing && IsAgreeToCreditTerms; // Пример условия валидации формы
+        }
+
 
         public string CustomerFirstName
         {
