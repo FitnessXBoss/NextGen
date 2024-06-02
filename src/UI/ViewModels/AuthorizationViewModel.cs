@@ -3,8 +3,10 @@ using System.Windows.Input;
 using NextGen.src.Services;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
+using MaterialDesignThemes.Wpf;
 using NextGen.src.UI.Views;
 using static NextGen.src.Services.Security.AuthService;
+using System.Windows.Controls;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -47,7 +49,7 @@ namespace NextGen.src.UI.ViewModels
         private void Login()
         {
             AuthService authService = new AuthService();
-            var user = authService.AuthenticateUser(Username, Password);
+            var (user, errorMessage) = authService.AuthenticateUser(Username, Password);
             if (user != null)
             {
                 CurrentUser = user;
@@ -61,8 +63,22 @@ namespace NextGen.src.UI.ViewModels
             }
             else
             {
-                MessageBox.Show("Неверное имя пользователя или пароль!", "Ошибка входа", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowErrorDialog(errorMessage ?? "Неверное имя пользователя или пароль!");
             }
+        }
+
+        private void ShowErrorDialog(string message)
+        {
+            Application.Current.Dispatcher.Invoke(async () =>
+            {
+                // Этот код отображает диалоговое окно с ошибкой
+                await DialogHost.Show(new TextBlock
+                {
+                    Text = message,
+                    FontSize = 16,
+                    Padding = new Thickness(20)
+                }, "RootDialog");
+            });
         }
     }
 }

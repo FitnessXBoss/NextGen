@@ -10,13 +10,13 @@ namespace NextGen.src.Services.Security
     {
         public AuthService() : base() { }
 
-        public UserAuthData? AuthenticateUser(string username, string password)
+        public (UserAuthData?, string?) AuthenticateUser(string username, string password)
         {
             try
             {
                 using (var conn = GetConnection())
                 {
-                    using (var cmd = new NpgsqlCommand("SELECT user_id, username, password_hash, salt, employee_id FROM users WHERE username = @username\r\n", conn))
+                    using (var cmd = new NpgsqlCommand("SELECT user_id, username, password_hash, salt, employee_id FROM users WHERE username = @username", conn))
                     {
                         cmd.Parameters.AddWithValue("@username", username);
                         using (var reader = cmd.ExecuteReader())
@@ -37,18 +37,23 @@ namespace NextGen.src.Services.Security
                                         EmployeeId = reader.GetInt32(4)
                                     };
                                     UserSessionService.Instance.SetCurrentUser(user); // Устанавливаем текущего пользователя
-                                    return user;
+                                    return (user, null);
                                 }
                             }
                         }
                     }
                 }
             }
+            catch (NpgsqlException ex)
+            {
+                Console.WriteLine($"Database connection error: {ex.Message}");
+                return (null, "Ошибка подключения к базе данных!");
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Authentication error: {ex.Message}");
             }
-            return null;
+            return (null, "Неверное имя пользователя или пароль!");
         }
 
 

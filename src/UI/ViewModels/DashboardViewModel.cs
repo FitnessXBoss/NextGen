@@ -190,7 +190,7 @@ namespace NextGen.src.UI.ViewModels
             Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
             Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarCatalogControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
-            Items.Add(new DashboardItem { Name = "Отчеты", Content = new ReportsControl() });
+            Items.Add(new DashboardItem { Name = "Деньги", Content = new MoneyControl() });
             // Добавьте другие элементы по мере необходимости
         }
 
