@@ -81,7 +81,6 @@ namespace NextGen.src.UI.ViewModels
             IsFormValid = IsAgreeToPersonalDataProcessing && IsAgreeToCreditTerms; // Пример условия валидации формы
         }
 
-
         public string CustomerFirstName
         {
             get => _customerFirstName;
@@ -144,7 +143,7 @@ namespace NextGen.src.UI.ViewModels
             return 1; // Заглушка для примера
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
         {
