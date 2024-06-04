@@ -10,24 +10,28 @@
         Background="{x:Null}"  
         AllowsTransparency="True"
         WindowStyle="None"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
 
     <Window.DataContext>
         <local:AuthorizationViewModel/>
     </Window.DataContext>
-    
-    
 
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
         <materialDesign:DialogHost CloseOnClickAway="True" x:Name="DialogHost" Identifier="RootDialog">
             <StackPanel>
-                <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
-                    <StackPanel Margin="0,0,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
-                        <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
-                        <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
-                        <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" />
-                    </StackPanel>
-                </materialDesign:PopupBox>
+                <!-- Верхняя часть окна для перетаскивания -->
+                <Grid Background="{DynamicResource MaterialDesign.Brush.Chip.Background}" Height="40" MouseDown="Header_MouseDown">
+                    <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 1 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25" >
+                        <StackPanel Margin="0,0,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
+                            <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
+                            <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
+                            <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" Click="Btn_Exit_Click"/>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                </Grid>
+
+                
 
                 <Image Margin="0,60,0,25" Source="/src/Assets/Images/logo.png" Height="100"/>
                 <TextBlock FontSize="30" HorizontalAlignment="Center" Text="Авторизируйтесь" Foreground="{DynamicResource MaterialDesignBody}" FontFamily="Modern No. 20"/>
@@ -47,7 +51,5 @@
                 <Button Margin="0,20,0,0" x:Name="LoginButton" Command="{Binding LoginCommand}" Style="{StaticResource MaterialDesignFlatMidBgButton}" materialDesign:ElevationAssist.Elevation="Dp0" Height="53" Width="300" materialDesign:ButtonAssist.CornerRadius="10" FontSize="18" Content="Войти" Click="LoginButton_Click"/>
             </StackPanel>
         </materialDesign:DialogHost>
-
-
     </materialDesign:Card>
 </Window>
