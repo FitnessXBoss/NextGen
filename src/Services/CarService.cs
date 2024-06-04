@@ -26,9 +26,9 @@ namespace NextGen.src.Services
 
                 // Получение основных данных о машине
                 var carCmd = new NpgsqlCommand($@"
-                    SELECT car_id, image_url, trim_id, status, color, additional_features, year 
-                    FROM cars 
-                    WHERE car_id = @carId", connection);
+            SELECT car_id, image_url, trim_id, status, color, additional_features, year 
+            FROM cars 
+            WHERE car_id = @carId", connection);
                 carCmd.Parameters.AddWithValue("@carId", carId);
 
                 using (var reader = carCmd.ExecuteReader())
@@ -46,13 +46,10 @@ namespace NextGen.src.Services
                 }
 
                 // Получение дополнительных изображений
-                if (connection.State == System.Data.ConnectionState.Closed)
-                    connection.Open();
-
                 var imagesCmd = new NpgsqlCommand($@"
-                    SELECT image_id, image_url, description 
-                    FROM car_images 
-                    WHERE car_id = @carId", connection);
+            SELECT image_id, image_url, description 
+            FROM car_images 
+            WHERE car_id = @carId", connection);
                 imagesCmd.Parameters.AddWithValue("@carId", carId);
 
                 using (var reader = imagesCmd.ExecuteReader())
@@ -68,10 +65,57 @@ namespace NextGen.src.Services
                         });
                     }
                 }
+
+                // Получение дополнительных характеристик
+                var trimCmd = new NpgsqlCommand($@"
+            SELECT transmission, drive, fuel, engine_volume, horse_power, price 
+            FROM trims 
+            WHERE trim_id = @trimId", connection);
+                trimCmd.Parameters.AddWithValue("@trimId", details.TrimId);
+
+                using (var reader = trimCmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        details.Transmission = reader.IsDBNull(reader.GetOrdinal("transmission")) ? null : reader.GetString(reader.GetOrdinal("transmission"));
+                        details.Drive = reader.IsDBNull(reader.GetOrdinal("drive")) ? null : reader.GetString(reader.GetOrdinal("drive"));
+                        details.Fuel = reader.IsDBNull(reader.GetOrdinal("fuel")) ? null : reader.GetString(reader.GetOrdinal("fuel"));
+                        details.EngineVolume = reader.IsDBNull(reader.GetOrdinal("engine_volume")) ? null : reader.GetString(reader.GetOrdinal("engine_volume"));
+                        details.HorsePower = reader.IsDBNull(reader.GetOrdinal("horse_power")) ? null : reader.GetString(reader.GetOrdinal("horse_power"));
+                        details.Price = reader.GetDecimal(reader.GetOrdinal("price"));
+                    }
+                }
+
+                // Получение характеристик из таблицы car_specs
+                var specsCmd = new NpgsqlCommand($@"
+            SELECT seats, length, width, height, trunk_volume, fuel_tank_volume, mixed_consumption, city_consumption, highway_consumption, max_speed, acceleration, body_type
+            FROM car_specs 
+            WHERE car_id = @carId", connection);
+                specsCmd.Parameters.AddWithValue("@carId", carId);
+
+                using (var reader = specsCmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        details.Seats = reader.GetInt32(reader.GetOrdinal("seats"));
+                        details.Length = reader.GetString(reader.GetOrdinal("length"));
+                        details.Width = reader.GetString(reader.GetOrdinal("width"));
+                        details.Height = reader.GetString(reader.GetOrdinal("height"));
+                        details.TrunkVolume = reader.GetString(reader.GetOrdinal("trunk_volume"));
+                        details.FuelTankVolume = reader.GetString(reader.GetOrdinal("fuel_tank_volume"));
+                        details.MixedConsumption = reader.GetString(reader.GetOrdinal("mixed_consumption"));
+                        details.CityConsumption = reader.GetString(reader.GetOrdinal("city_consumption"));
+                        details.HighwayConsumption = reader.GetString(reader.GetOrdinal("highway_consumption"));
+                        details.MaxSpeed = reader.GetString(reader.GetOrdinal("max_speed"));
+                        details.Acceleration = reader.GetString(reader.GetOrdinal("acceleration"));
+                        details.CarBodyType = reader.IsDBNull(reader.GetOrdinal("body_type")) ? null : reader.GetString(reader.GetOrdinal("body_type"));
+                    }
+                }
             }
 
             return details;
         }
+
 
 
         public IEnumerable<CarSummary> GetAllCarSummaries()

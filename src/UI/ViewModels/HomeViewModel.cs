@@ -15,6 +15,10 @@ namespace NextGen.src.UI.ViewModels
         public ObservableCollection<User> Users { get; private set; } = new ObservableCollection<User>();
         private DatabaseService _databaseService;
 
+        public HomeViewModel() : this(new DatabaseService()) // Или передайте сюда нужный экземпляр DatabaseService
+        {
+        }
+
         public HomeViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
@@ -43,6 +47,10 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        public void RefreshData()
+        {
+            LoadData();
+        }
 
         private async void LoadData()
         {
