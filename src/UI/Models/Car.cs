@@ -70,6 +70,8 @@
         public string? Status { get; set; }
         public string? Color { get; set; }
         public string? AdditionalFeatures { get; set; }
+        public string? ColorName { get; set; }
+        public string? ColorHex { get; set; }
         public int Year { get; set; }
         public List<CarImage> Images { get; set; }
         public string? Transmission { get; set; }
@@ -91,6 +93,10 @@
         public string? MaxSpeed { get; set; }
         public string? Acceleration { get; set; }
         public string? CarBodyType { get; set; }
+
+        public string? BrandName { get; set; }
+        public string? ModelName { get; set; }
+        public string? TrimName { get; set; }
 
     }
 

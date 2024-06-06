@@ -57,7 +57,7 @@ namespace NextGen.src.UI.ViewModels
             StatusMessage = "Подключение к базе данных...";
             try
             {
-                using (var connection = _databaseService.GetConnection())
+                using (var connection = await _databaseService.GetConnectionAsync())
                 {
                     await Task.Delay(1000);
                 }
@@ -105,8 +105,5 @@ namespace NextGen.src.UI.ViewModels
                 _currentWindow?.Close(); // Закрытие текущего окна
             });
         }
-
-
-
     }
 }

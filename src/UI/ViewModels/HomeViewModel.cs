@@ -7,6 +7,8 @@ using System.Windows.Media;
 using System.Windows;
 using NextGen.src.Services;
 using Npgsql;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -56,55 +58,55 @@ namespace NextGen.src.UI.ViewModels
         {
             var tempList = new List<User>();
 
-            // Загрузка информации о пользователях
-            using (var conn = _databaseService.GetConnection())
+            try
             {
-               
-                var cmd = new NpgsqlCommand("SELECT e.first_name, e.last_name, r.role_name, e.photo_url, u.is_online FROM employees e JOIN users u ON e.employee_id = u.employee_id JOIN roles r ON e.role_id = r.role_id", conn);
-                using (var reader = await cmd.ExecuteReaderAsync())
+                // Загрузка информации о пользователях
+                using (var conn = await _databaseService.GetConnectionAsync())
                 {
-                    while (reader.Read())
+                    var cmd = new NpgsqlCommand("SELECT e.first_name, e.last_name, r.role_name, e.photo_url, u.is_online FROM employees e JOIN users u ON e.employee_id = u.employee_id JOIN roles r ON e.role_id = r.role_id", conn);
+                    using (var reader = await _databaseService.ExecuteReaderWithRetryAsync(cmd))
                     {
-                        var user = new User
+                        while (reader.Read())
                         {
-                            FirstName = reader["first_name"] as string,
-                            LastName = reader["last_name"] as string,
-                            UserRole = reader["role_name"] as string,
-                            UserPhotoUrl = reader.IsDBNull(reader.GetOrdinal("photo_url")) ? null : reader["photo_url"] as string,
-                            IsOnline = Convert.ToBoolean(reader["is_online"])
-                        };
-                        tempList.Add(user);
+                            var user = new User
+                            {
+                                FirstName = reader["first_name"] as string,
+                                LastName = reader["last_name"] as string,
+                                UserRole = reader["role_name"] as string,
+                                UserPhotoUrl = reader.IsDBNull(reader.GetOrdinal("photo_url")) ? null : reader["photo_url"] as string,
+                                IsOnline = Convert.ToBoolean(reader["is_online"])
+                            };
+                            tempList.Add(user);
+                        }
                     }
                 }
-            }
 
-            int salesCount = 0;
-            // Загрузка данных о продажах
-            using (var conn = _databaseService.GetConnection())
-            {
-                if (conn.State != System.Data.ConnectionState.Open)
+                int salesCount = 0;
+                // Загрузка данных о продажах
+                using (var conn = await _databaseService.GetConnectionAsync())
                 {
-                    await conn.OpenAsync();
+                    var salesCmd = new NpgsqlCommand("SELECT COUNT(*) FROM sales", conn);
+                    salesCount = Convert.ToInt32(await _databaseService.ExecuteScalarWithRetryAsync(salesCmd));
                 }
-                var salesCmd = new NpgsqlCommand("SELECT COUNT(*) FROM sales", conn);
-                salesCount = Convert.ToInt32(await salesCmd.ExecuteScalarAsync());
 
-            }
+                TotalSales = salesCount;  // Обновление общего числа продаж
+                var sortedUsers = tempList.OrderByDescending(user => user.IsOnline).ThenBy(user => user.FirstName).ToList();
 
-            TotalSales = salesCount;  // Обновление общего числа продаж
-            var sortedUsers = tempList.OrderByDescending(user => user.IsOnline).ThenBy(user => user.FirstName).ToList();
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                Users.Clear();
-                foreach (var user in sortedUsers)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Users.Add(user);
-                }
-                OnlineCount = Users.Count(u => u.IsOnline);  // Обновление количества онлайн пользователей
-            });
+                    Users.Clear();
+                    foreach (var user in sortedUsers)
+                    {
+                        Users.Add(user);
+                    }
+                    OnlineCount = Users.Count(u => u.IsOnline);  // Обновление количества онлайн пользователей
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -112,7 +114,6 @@ namespace NextGen.src.UI.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
     }
 
     public class User

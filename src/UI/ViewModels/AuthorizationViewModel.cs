@@ -1,12 +1,13 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Input;
 using NextGen.src.Services;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.UI.Views;
-using static NextGen.src.Services.Security.AuthService;
 using System.Windows.Controls;
+using System.Threading.Tasks;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -31,12 +32,11 @@ namespace NextGen.src.UI.ViewModels
         public ICommand LoginCommand { get; private set; }
         public ICommand ToggleThemeCommand { get; private set; }
 
-
         public static UserAuthData? CurrentUser { get; private set; }
 
         public AuthorizationViewModel()
         {
-            LoginCommand = new RelayCommand(Login);
+            LoginCommand = new RelayCommand(async () => await LoginAsync());
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
         }
 
@@ -46,10 +46,10 @@ namespace NextGen.src.UI.ViewModels
             themeService.ToggleTheme();
         }
 
-        private void Login()
+        private async Task LoginAsync()
         {
             AuthService authService = new AuthService();
-            var (user, errorMessage) = authService.AuthenticateUser(Username, Password);
+            var (user, errorMessage) = await authService.AuthenticateUserAsync(Username, Password);
             if (user != null)
             {
                 CurrentUser = user;

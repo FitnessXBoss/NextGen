@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NextGen.src.Services.Security
 {
@@ -10,16 +11,16 @@ namespace NextGen.src.Services.Security
     {
         public AuthService() : base() { }
 
-        public (UserAuthData?, string?) AuthenticateUser(string username, string password)
+        public async Task<(UserAuthData?, string?)> AuthenticateUserAsync(string username, string password)
         {
             try
             {
-                using (var conn = GetConnection())
+                using (var conn = await GetConnectionAsync())
                 {
                     using (var cmd = new NpgsqlCommand("SELECT user_id, username, password_hash, salt, employee_id FROM users WHERE username = @username", conn))
                     {
                         cmd.Parameters.AddWithValue("@username", username);
-                        using (var reader = cmd.ExecuteReader())
+                        using (var reader = await ExecuteReaderWithRetryAsync(cmd))
                         {
                             if (reader.Read())
                             {
@@ -56,29 +57,23 @@ namespace NextGen.src.Services.Security
             return (null, "Неверное имя пользователя или пароль!");
         }
 
-
-
-
-        public bool RegisterUser(string username, string password)
+        public async Task<bool> RegisterUserAsync(string username, string password)
         {
             try
             {
-                using (var conn = GetConnection())
+                using (var conn = await GetConnectionAsync())
                 {
-                    conn.Open();
-                    using (var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt) VALUES (@username, @hash, @salt)", conn))
-                    {
-                        var salt = GenerateSalt();
-                        var hash = HashPassword(password, salt);
-                        var saltBase64 = Convert.ToBase64String(salt);
+                    var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt) VALUES (@username, @hash, @salt)", conn);
+                    var salt = GenerateSalt();
+                    var hash = HashPassword(password, salt);
+                    var saltBase64 = Convert.ToBase64String(salt);
 
-                        cmd.Parameters.AddWithValue("@username", username);
-                        cmd.Parameters.AddWithValue("@hash", hash);
-                        cmd.Parameters.AddWithValue("@salt", saltBase64);
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@hash", hash);
+                    cmd.Parameters.AddWithValue("@salt", saltBase64);
 
-                        int result = cmd.ExecuteNonQuery();
-                        return result > 0;
-                    }
+                    int result = await cmd.ExecuteNonQueryAsync();
+                    return result > 0;
                 }
             }
             catch (Exception ex)
@@ -89,13 +84,12 @@ namespace NextGen.src.Services.Security
             }
         }
 
-        public bool UpdateUserCredentials(int employeeId, string newPassword)
+        public async Task<bool> UpdateUserCredentialsAsync(int employeeId, string newPassword)
         {
             try
             {
-                using (var conn = GetConnection())
+                using (var conn = await GetConnectionAsync())
                 {
-                    conn.Open();
                     byte[] newSalt = GenerateSalt();
                     string newPasswordHash = HashPassword(newPassword, newSalt);
                     string saltBase64 = Convert.ToBase64String(newSalt);
@@ -106,7 +100,7 @@ namespace NextGen.src.Services.Security
                         cmd.Parameters.AddWithValue("@salt", saltBase64);
                         cmd.Parameters.AddWithValue("@id", employeeId);
 
-                        int result = cmd.ExecuteNonQuery();
+                        int result = await cmd.ExecuteNonQueryAsync();
                         return result > 0;
                     }
                 }
@@ -117,8 +111,6 @@ namespace NextGen.src.Services.Security
                 return false;
             }
         }
-
-
 
         private byte[] GenerateSalt()
         {
