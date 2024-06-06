@@ -318,7 +318,17 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged(nameof(IsFormValid));
             }
         }
-
+        public string CarFullName => $"{_carService.GetCarDetails(_carId).BrandName} {_carService.GetCarDetails(_carId).ModelName}";
+        private decimal _monthlyPayment;
+        public decimal MonthlyPayment
+        {
+            get => _monthlyPayment;
+            set
+            {
+                _monthlyPayment = value;
+                OnPropertyChanged(nameof(MonthlyPayment));
+            }
+        }
         private void UpdateFormValidity()
         {
             IsFormValid = IsAgreeToPersonalDataProcessing && IsAgreeToCreditTerms; // Пример условия валидации формы
@@ -364,6 +374,40 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        private string _carColorHex;
+        public string CarColorHex
+        {
+            get => _carColorHex;
+            set
+            {
+                _carColorHex = value;
+                OnPropertyChanged(nameof(CarColorHex));
+            }
+        }
+
+        private string _carColorName;
+        public string CarColorName
+        {
+            get => _carColorName;
+            set
+            {
+                _carColorName = value;
+                OnPropertyChanged(nameof(CarColorName));
+            }
+        }
+
+        private string _carTrimName;
+        public string CarTrimName
+        {
+            get => _carTrimName;
+            set
+            {
+                _carTrimName = value;
+                OnPropertyChanged(nameof(CarTrimName));
+            }
+        }
+
+
         private void LoadDetailsForCar(int carId)
         {
             CarDetails details = _carService.GetCarDetails(carId);
@@ -374,6 +418,8 @@ namespace NextGen.src.UI.ViewModels
             }
 
             CarColor = details.Color;
+            CarColorName = details.Color;
+            CarColorHex = details.ColorHex;
             CarYear = details.Year;
             CarAdditionalFeatures = details.AdditionalFeatures;
             CarTransmission = details.Transmission;
@@ -395,6 +441,9 @@ namespace NextGen.src.UI.ViewModels
             CarMaxSpeed = details.MaxSpeed;
             CarAcceleration = details.Acceleration;
             CarBodyType = details.CarBodyType;
+            CarTrimName = details.TrimName;
+
+            MonthlyPayment = CarPrice / 36; // 36 месяцев для расчета на сумму
         }
 
         private void SellCar()
