@@ -4,6 +4,7 @@ using MaterialDesignThemes.Wpf;
 using NextGen.src.UI.Helpers;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
+using NextGen.src.Services.Security;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -11,8 +12,12 @@ namespace NextGen.src.UI.ViewModels
     {
         private string _customerFirstName;
         private string _customerLastName;
+        private DateTime _customerDateOfBirth;
+        private string _customerPassportNumber;
         private string _customerEmail;
         private string _customerPhone;
+        private string _customerAddress;
+        private bool _isFormValid;
         private CustomerService _customerService = new CustomerService();
         private readonly Action<Customer> _addCustomerAction;
 
@@ -22,7 +27,7 @@ namespace NextGen.src.UI.ViewModels
             set
             {
                 _customerFirstName = value;
-                OnPropertyChanged(nameof(CustomerFirstName));
+                OnPropertyChanged();
                 ValidateForm();
             }
         }
@@ -33,7 +38,29 @@ namespace NextGen.src.UI.ViewModels
             set
             {
                 _customerLastName = value;
-                OnPropertyChanged(nameof(CustomerLastName));
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public DateTime CustomerDateOfBirth
+        {
+            get => _customerDateOfBirth;
+            set
+            {
+                _customerDateOfBirth = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public string CustomerPassportNumber
+        {
+            get => _customerPassportNumber;
+            set
+            {
+                _customerPassportNumber = value;
+                OnPropertyChanged();
                 ValidateForm();
             }
         }
@@ -44,7 +71,7 @@ namespace NextGen.src.UI.ViewModels
             set
             {
                 _customerEmail = value;
-                OnPropertyChanged(nameof(CustomerEmail));
+                OnPropertyChanged();
                 ValidateForm();
             }
         }
@@ -55,19 +82,29 @@ namespace NextGen.src.UI.ViewModels
             set
             {
                 _customerPhone = value;
-                OnPropertyChanged(nameof(CustomerPhone));
+                OnPropertyChanged();
                 ValidateForm();
             }
         }
 
-        private bool _isFormValid;
+        public string CustomerAddress
+        {
+            get => _customerAddress;
+            set
+            {
+                _customerAddress = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
         public bool IsFormValid
         {
             get => _isFormValid;
             private set
             {
                 _isFormValid = value;
-                OnPropertyChanged(nameof(IsFormValid));
+                OnPropertyChanged();
             }
         }
 
@@ -87,11 +124,15 @@ namespace NextGen.src.UI.ViewModels
             {
                 FirstName = CustomerFirstName,
                 LastName = CustomerLastName,
+                DateOfBirth = CustomerDateOfBirth,
+                PassportNumber = CustomerPassportNumber,
                 Email = CustomerEmail,
-                Phone = CustomerPhone
+                Phone = CustomerPhone,
+                Address = CustomerAddress
             };
 
-            newCustomer = _customerService.AddCustomer(newCustomer);
+            int createdBy = GetCurrentUserId();
+            newCustomer = _customerService.AddCustomer(newCustomer, createdBy);
             _addCustomerAction(newCustomer);
             DialogHost.CloseDialogCommand.Execute(true, null);
         }
@@ -105,8 +146,19 @@ namespace NextGen.src.UI.ViewModels
         {
             IsFormValid = !string.IsNullOrWhiteSpace(CustomerFirstName)
                           && !string.IsNullOrWhiteSpace(CustomerLastName)
+                          && CustomerDateOfBirth != default
+                          && !string.IsNullOrWhiteSpace(CustomerPassportNumber)
                           && !string.IsNullOrWhiteSpace(CustomerEmail)
-                          && !string.IsNullOrWhiteSpace(CustomerPhone);
+                          && !string.IsNullOrWhiteSpace(CustomerPhone)
+                          && !string.IsNullOrWhiteSpace(CustomerAddress);
         }
+
+        private int GetCurrentUserId()
+        {
+            var currentUser = CurrentUser;
+            return currentUser?.UserId ?? 0; // Возвращает ID текущего пользователя или 0, если пользователь не найден
+        }
+
+        public UserAuthData? CurrentUser => UserSessionService.Instance.CurrentUser;
     }
 }

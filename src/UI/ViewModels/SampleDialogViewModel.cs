@@ -103,19 +103,28 @@ namespace NextGen.src.UI.ViewModels
             ConfirmSellCommand = new RelayCommand(ConfirmSell, () => IsFormValid);
             AddCustomerCommand = new RelayCommand(async () => await ExecuteAddCustomerDialogAsync());
             CloseDialogCommand = new RelayCommand(CloseDialog);
+            Customers = new ObservableCollection<Customer>();
             LoadCustomers();
         }
 
-        private void LoadCustomers()
+        private async void LoadCustomers()
         {
-            var customers = _customerService.GetAllCustomers();
-            Customers = new ObservableCollection<Customer>(customers);
+            var customers = await Task.Run(() => _customerService.GetAllCustomers());
+            foreach (var customer in customers)
+            {
+                Customers.Add(customer);
+            }
         }
 
         public void AddNewCustomer(Customer newCustomer)
         {
             Customers.Add(newCustomer);
             SelectedCustomer = newCustomer;
+            // Обновление свойств, чтобы ComboBox отобразил правильные значения
+            CustomerFirstName = newCustomer.FirstName;
+            CustomerLastName = newCustomer.LastName;
+            CustomerEmail = newCustomer.Email;
+            CustomerPhone = newCustomer.Phone;
         }
 
         private void ConfirmSell()
