@@ -1,6 +1,6 @@
-﻿using Npgsql;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Configuration;
+using Npgsql;
 using NextGen.src.Data.Database.Models;
 
 namespace NextGen.src.Services
@@ -14,15 +14,13 @@ namespace NextGen.src.Services
             connectionString = ConfigurationManager.ConnectionStrings["SecurityData"].ConnectionString;
         }
 
-        public List<Customer> GetAllCustomers()
+        public IEnumerable<Customer> GetAllCustomers()
         {
             var customers = new List<Customer>();
-
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
                 var cmd = new NpgsqlCommand("SELECT customer_id, first_name, last_name, email, phone FROM customers", connection);
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -38,8 +36,23 @@ namespace NextGen.src.Services
                     }
                 }
             }
-
             return customers;
+        }
+
+        public Customer AddCustomer(Customer newCustomer)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, last_name, email, phone) VALUES (@first_name, @last_name, @email, @phone) RETURNING customer_id", connection);
+                cmd.Parameters.AddWithValue("first_name", newCustomer.FirstName);
+                cmd.Parameters.AddWithValue("last_name", newCustomer.LastName);
+                cmd.Parameters.AddWithValue("email", newCustomer.Email);
+                cmd.Parameters.AddWithValue("phone", newCustomer.Phone);
+
+                newCustomer.Id = (int)cmd.ExecuteScalar();
+            }
+            return newCustomer;
         }
     }
 }

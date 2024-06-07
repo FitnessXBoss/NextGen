@@ -1,23 +1,20 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
 using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.UI.Helpers;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
-using System.Threading.Tasks;
-using NextGen.src.UI.Views.UserControls;
 
 namespace NextGen.src.UI.ViewModels
 {
-    public class SampleDialogViewModel : BaseViewModel
+    public class AddCustomerDialogViewModel : BaseViewModel
     {
         private string _customerFirstName;
         private string _customerLastName;
         private string _customerEmail;
         private string _customerPhone;
-        private Customer _selectedCustomer;
-        private bool _isFormValid;
         private CustomerService _customerService = new CustomerService();
+        private readonly Action<Customer> _addCustomerAction;
 
         public string CustomerFirstName
         {
@@ -63,27 +60,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public int CustomerId => _selectedCustomer?.Id ?? 0;
-
-        public Customer SelectedCustomer
-        {
-            get => _selectedCustomer;
-            set
-            {
-                _selectedCustomer = value;
-                OnPropertyChanged(nameof(SelectedCustomer));
-                if (_selectedCustomer != null)
-                {
-                    CustomerFirstName = _selectedCustomer.FirstName;
-                    CustomerLastName = _selectedCustomer.LastName;
-                    CustomerEmail = _selectedCustomer.Email;
-                    CustomerPhone = _selectedCustomer.Phone;
-                }
-            }
-        }
-
-        public ObservableCollection<Customer> Customers { get; set; }
-
+        private bool _isFormValid;
         public bool IsFormValid
         {
             get => _isFormValid;
@@ -94,43 +71,29 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public ICommand ConfirmSellCommand { get; }
         public ICommand AddCustomerCommand { get; }
         public ICommand CloseDialogCommand { get; }
 
-        public SampleDialogViewModel()
+        public AddCustomerDialogViewModel(Action<Customer> addCustomerAction)
         {
-            ConfirmSellCommand = new RelayCommand(ConfirmSell, () => IsFormValid);
-            AddCustomerCommand = new RelayCommand(async () => await ExecuteAddCustomerDialogAsync());
+            _addCustomerAction = addCustomerAction;
+            AddCustomerCommand = new RelayCommand(AddCustomer, () => IsFormValid);
             CloseDialogCommand = new RelayCommand(CloseDialog);
-            LoadCustomers();
         }
 
-        private void LoadCustomers()
+        private void AddCustomer()
         {
-            var customers = _customerService.GetAllCustomers();
-            Customers = new ObservableCollection<Customer>(customers);
-        }
-
-        public void AddNewCustomer(Customer newCustomer)
-        {
-            Customers.Add(newCustomer);
-            SelectedCustomer = newCustomer;
-        }
-
-        private void ConfirmSell()
-        {
-            DialogHost.CloseDialogCommand.Execute(true, null);
-        }
-
-        private async Task ExecuteAddCustomerDialogAsync()
-        {
-            var view = new AddCustomerDialog
+            var newCustomer = new Customer
             {
-                DataContext = new AddCustomerDialogViewModel(AddNewCustomer)
+                FirstName = CustomerFirstName,
+                LastName = CustomerLastName,
+                Email = CustomerEmail,
+                Phone = CustomerPhone
             };
 
-            await DialogHost.Show(view, "AddCustomerDialogHost");
+            newCustomer = _customerService.AddCustomer(newCustomer);
+            _addCustomerAction(newCustomer);
+            DialogHost.CloseDialogCommand.Execute(true, null);
         }
 
         private void CloseDialog()

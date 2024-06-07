@@ -349,7 +349,7 @@
                 </Grid>
             </StackPanel>
         </ScrollViewer>
-
-        <materialDesign:DialogHost Identifier="RootDialogHost"/>
+        <materialDesign:DialogHost Identifier="AddCustomerDialogHost" HorizontalAlignment="Right" />
+        <materialDesign:DialogHost Identifier="RootDialogHost" OverlayBackground="Black" />
     </Grid>
 </UserControl>
