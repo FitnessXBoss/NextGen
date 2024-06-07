@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Input;
 
 namespace NextGen.src.UI.Helpers
@@ -22,13 +23,16 @@ namespace NextGen.src.UI.Helpers
 
         public bool CanExecute(object? parameter)
         {
-            return _canExecute == null || (parameter is T t && _canExecute(t));
+            bool result = _canExecute == null || (parameter is T t && _canExecute(t));
+            Debug.WriteLine($"CanExecute called with parameter: {parameter}, result: {result}");
+            return result;
         }
 
         public void Execute(object? parameter)
         {
             if (parameter is T t)
             {
+                Debug.WriteLine($"Execute called with parameter: {parameter}");
                 _execute(t);
             }
             else
@@ -38,7 +42,7 @@ namespace NextGen.src.UI.Helpers
         }
     }
 
-        public class RelayCommand : ICommand
+    public class RelayCommand : ICommand
     {
         private readonly Action _execute;
         private readonly Func<bool>? _canExecute;
@@ -57,11 +61,14 @@ namespace NextGen.src.UI.Helpers
 
         public bool CanExecute(object? parameter)
         {
-            return _canExecute == null || _canExecute();
+            bool result = _canExecute == null || _canExecute();
+            Debug.WriteLine($"CanExecute called with result: {result}");
+            return result;
         }
 
         public void Execute(object? parameter)
         {
+            Debug.WriteLine($"Execute called");
             _execute();
         }
     }

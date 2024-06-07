@@ -16,9 +16,6 @@
         WindowStyle="None"
         WindowStartupLocation="CenterScreen">
 
-
-
-
     <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
         <Grid Cursor="">
             <Grid.RowDefinitions>
@@ -31,15 +28,13 @@
                 <ColumnDefinition Width="300"/>
             </Grid.ColumnDefinitions>
 
-            <materialDesign:ColorZone Height="80" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}">
+            <materialDesign:ColorZone Height="80" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1" ClipToBounds="False" CornerRadius="10" Background="{DynamicResource MaterialDesign.Brush.Chip.Background}" MouseDown="Header_MouseDown" MouseDoubleClick="Header_MouseDoubleClick">
                 <DockPanel>
                     <WrapPanel DockPanel.Dock="Right">
                         <Button x:Name="OpenTabsDrawerButton" Content="{materialDesign:PackIcon Kind=Menu}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding ToggleRightDrawerCommand}" ToolTip="Открыть вкладки"/>
-
                         <Button x:Name="MinimizeButton" Content="{materialDesign:PackIcon Kind=Minimize}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding MinimizeCommand}" ToolTip="Минимизировать"/>
                         <Button x:Name="MaximizeButton" Content="{materialDesign:PackIcon Kind=ArrowExpand}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding MaximizeRestoreCommand}" ToolTip="Максимизировать/Восстановить"/>
                         <Button x:Name="CloseButton" Content="{materialDesign:PackIcon Kind=Close}" Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding CloseCommand}" ToolTip="Закрыть"/>
-                    
                     </WrapPanel>
 
                     <Grid>
@@ -57,10 +52,9 @@
                             <TextBlock Margin="10,0,15,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Text="Next Gen Auto" />
                         </StackPanel>
 
-
-                        <StackPanel  Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Top">
-                            <materialDesign:PopupBox PopupUniformCornerRadius="10" TextBlock.FontSize="14" TextBlock.FontWeight="Medium" Grid.Column="1"  VerticalContentAlignment="Center" materialDesign:RippleAssist.IsCentered="False" ClipToBounds="True" PopupVerticalOffset="13">
-                            <materialDesign:PopupBox.ToggleContent>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Top">
+                            <materialDesign:PopupBox PopupUniformCornerRadius="10" TextBlock.FontSize="14" TextBlock.FontWeight="Medium" Grid.Column="1" VerticalContentAlignment="Center" materialDesign:RippleAssist.IsCentered="False" ClipToBounds="True" PopupVerticalOffset="13">
+                                <materialDesign:PopupBox.ToggleContent>
                                     <materialDesign:ColorZone CornerRadius="10" Height="50" Background="{DynamicResource MaterialDesign.Brush.Button.FlatClick}">
                                         <materialDesign:Ripple Padding="20,0" HorizontalContentAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}" VerticalContentAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}" Focusable="False">
                                             <StackPanel Orientation="Horizontal">
@@ -76,97 +70,75 @@
                                                 <materialDesign:PackIcon HorizontalAlignment="Center" VerticalAlignment="Center" Kind="ChevronDown" Margin="10,0,0,0" Width="18" Height="18"/>
                                             </StackPanel>
                                         </materialDesign:Ripple>
-
                                     </materialDesign:ColorZone>
-                            </materialDesign:PopupBox.ToggleContent>
+                                </materialDesign:PopupBox.ToggleContent>
                                 <StackPanel Margin="0,-8,0,-8" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
-
                                     <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
                                     <Button ToolTip="Настройки" Margin="0,0,0,0" Content="Настройки"/>
                                     <Button ToolTip="Возникли проблемы c приложениям?" Margin="0 0 0 0" Content="Помощь мне"  />
-                                    <Button x:Name="Btn_ChangeUser" Content="Сменить пользователя"  ToolTip="Сменить учетную запись?"  Margin="0,0,0,0" Command="{Binding ChangeUserCommand}" />
-
+                                    <Button x:Name="Btn_ChangeUser" Content="Сменить пользователя" ToolTip="Сменить учетную запись?" Margin="0,0,0,0" Command="{Binding ChangeUserCommand}" />
                                 </StackPanel>
-                        </materialDesign:PopupBox>
+                            </materialDesign:PopupBox>
                         </StackPanel>
                     </Grid>
                 </DockPanel>
-
-
             </materialDesign:ColorZone>
 
             <materialDesign:DrawerHost x:Name="MainDrawerHost" IsLeftDrawerOpen="{Binding IsDrawerOpen}" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:ElevationAssist.Elevation="Dp24">
-                
-                    <materialDesign:DrawerHost.LeftDrawerContent>
+                <materialDesign:DrawerHost.LeftDrawerContent>
                     <DockPanel MinWidth="220">
-
                         <TextBox x:Name="ItemsSearchBox"
-                        FontSize="12"
-                        Width="200"
-                        Margin="0,15,0,0"
-                        materialDesign:HintAssist.Hint="Поиск"
-                        materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
-                        materialDesign:TextFieldAssist.HasClearButton="True"
-                        DockPanel.Dock="Top"
-                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                        Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
-
+                                 FontSize="12"
+                                 Width="200"
+                                 Margin="0,15,0,0"
+                                 materialDesign:HintAssist.Hint="Поиск"
+                                 materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
+                                 materialDesign:TextFieldAssist.HasClearButton="True"
+                                 DockPanel.Dock="Top"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}" />
                         <ListBox x:Name="ItemsListBox" Width="200"
-                        Margin="0,10,0,0"
-                        ItemsSource="{Binding VisibleItems}"
-                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                        Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                                 Margin="0,10,0,0"
+                                 ItemsSource="{Binding VisibleItems}"
+                                 SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                 Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Name}" Margin="20,2,0,4" FontSize="12"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-
                     </DockPanel>
-                    </materialDesign:DrawerHost.LeftDrawerContent>
+                </materialDesign:DrawerHost.LeftDrawerContent>
                 <ContentControl Content="{Binding CurrentContent}"/>
             </materialDesign:DrawerHost>
 
-
             <materialDesign:DrawerHost x:Name="RightDrawerHost" IsRightDrawerOpen="{Binding IsRightDrawerOpen}" OverlayBackground="{x:Null}" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:ElevationAssist.Elevation="Dp24">
                 <materialDesign:DrawerHost.RightDrawerContent >
-
                     <DockPanel MinWidth="220">
-
                         <TextBlock Text="Открытые вкладки" FontSize="16" DockPanel.Dock="Top" Width="200" FontWeight="Bold" Margin="50,25,0,0"/>
-
                         <ListBox x:Name="OpenedUserControlsListBox" Width="300" Margin="0,10,0,0"
-         ItemsSource="{Binding OpenUserControls}"
-         SelectedItem="{Binding SelectedUserControl}"
-         Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                                 ItemsSource="{Binding OpenUserControls}"
+                                 SelectedItem="{Binding SelectedUserControl}"
+                                 Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <!-- Иконка 'Pencil' для визуализации редактирования (без функционала кнопки) -->
                                         <materialDesign:PackIcon Kind="Pencil" Margin="0,0,5,0" VerticalAlignment="Center"/>
-
                                         <!-- Текстовый блок для отображения названия -->
                                         <TextBlock Text="{Binding Name}" Margin="0,5,6,0" FontSize="12" VerticalAlignment="Center"/>
-
                                         <!-- Кнопка для закрытия UserControl -->
                                         <Button Command="{Binding DataContext.CloseUserControlCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignIconButton}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-5">
                                             <materialDesign:PackIcon Kind="Close" Margin="0,5,0,0" Width="20" Height="20" VerticalAlignment="Center" />
                                         </Button>
-
-
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
-
                     </DockPanel>
                 </materialDesign:DrawerHost.RightDrawerContent>
             </materialDesign:DrawerHost>
         </Grid>
     </materialDesign:Card>
-
-
-
-
 </Window>

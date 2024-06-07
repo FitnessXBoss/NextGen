@@ -1,15 +1,16 @@
 ﻿using NextGen.src.Services.Security;
 using NextGen.src.Services;
 using Npgsql;
+using System.Threading.Tasks;
 
 public class UserSessionService
 {
     private static UserSessionService? _instance;
-    private readonly DatabaseService _databaseService;  // Добавляем поле для хранения экземпляра
+    private readonly DatabaseService _databaseService;
 
-    public static UserSessionService Instance => _instance ??= new UserSessionService(new DatabaseService());  // Изменяем конструктор для передачи DatabaseService
+    public static UserSessionService Instance => _instance ??= new UserSessionService(new DatabaseService());
 
-    private UserSessionService(DatabaseService databaseService)  // Приватный конструктор
+    private UserSessionService(DatabaseService databaseService)
     {
         _databaseService = databaseService;
     }
@@ -30,7 +31,7 @@ public class UserSessionService
     {
         if (CurrentUser != null)
         {
-            using (var conn = _databaseService.GetConnection())
+            using (var conn = await _databaseService.GetConnectionAsync())
             {
                 using (var cmd = new NpgsqlCommand(@"SELECT u.user_id, u.username, u.last_login, e.employee_id, e.first_name, e.last_name, e.role_id, e.email, e.phone, e.address, e.photo_url, r.role_name, r.permissions FROM employees e JOIN users u ON e.employee_id = u.employee_id JOIN roles r ON e.role_id = r.role_id WHERE u.employee_id = @employeeId", conn))
                 {
@@ -53,9 +54,4 @@ public class UserSessionService
         }
         return false; // Данные не загружены
     }
-
-
-
-
-
 }

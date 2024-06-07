@@ -4,51 +4,40 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
         xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
-        Title="Авторизация" Height="750" Width="450"
+        Title="Авторизация" Height="700" Width="400"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontFamily="Noto"
         Background="{x:Null}"  
         AllowsTransparency="True"
         WindowStyle="None"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
 
     <Window.DataContext>
         <local:AuthorizationViewModel/>
     </Window.DataContext>
-    
-    
 
-    <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="25" materialDesign:ElevationAssist.Elevation="Dp4">
+    <materialDesign:Card UniformCornerRadius="15" Background="{DynamicResource MaterialDesignPaper}" Margin="0" materialDesign:ElevationAssist.Elevation="Dp4">
         <materialDesign:DialogHost CloseOnClickAway="True" x:Name="DialogHost" Identifier="RootDialog">
             <StackPanel>
+                <!-- Верхняя часть окна для перетаскивания -->
+                <Grid Background="{DynamicResource MaterialDesign.Brush.Chip.Background}" Height="40" MouseDown="Header_MouseDown">
+                    <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 1 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25" >
+                        <StackPanel Margin="0,0,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
+                            <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
+                            <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
+                            <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" Click="Btn_Exit_Click"/>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                </Grid>
 
-            <materialDesign:PopupBox HorizontalAlignment="Right" PopupUniformCornerRadius="15" Margin="0 20 20 0" PlacementMode="BottomAndAlignRightEdges" StaysOpen="False" Height="25">
-                    <StackPanel Margin="0,0,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type materialDesign:PopupBox}}}">
-
-                        <Button ToolTip="Сменить тему" Content="Сменить тему" Margin="0 0 0 0" Command="{Binding ToggleThemeCommand}" />
-                        <Button ToolTip="Возникли проблемы с входом в систему?" Margin="0 8 0 0" Content="Помощь мне"  />
-                        <Button x:Name="Btn_Exit" ToolTip="Закрыть приложения" Content="Выход из приложения" />
-
-                    </StackPanel>
-            </materialDesign:PopupBox>
-
+                
 
                 <Image Margin="0,60,0,25" Source="/src/Assets/Images/logo.png" Height="100"/>
-
-                <TextBlock FontSize="30"  HorizontalAlignment="Center"  Text="Авторизируйтесь" Foreground="{DynamicResource MaterialDesignBody}"  FontFamily="Modern No. 20"/>
-
-                <TextBox Margin="0,50,0,0" x:Name="txtUsername" Width="300" FontSize="18" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:HintAssist.Hint="Логин" Foreground="{DynamicResource MaterialDesignBody}"  Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
-
-                <PasswordBox Margin="0,20,0,0" x:Name="txtPassword" Width="300" FontSize="18" materialDesign:HintAssist.Hint="Пароль"
-                    materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed"
-                    IsEnabled="{Binding ElementName=RevealPasswordOutlinedEnabled, Path=IsChecked}"
-                    Foreground="{DynamicResource MaterialDesignBody}"
-                    Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                    VerticalContentAlignment="Bottom"
-                             helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-
-                <TextBlock x:Name="ResetAuthText" Text="Забыли свой пароль?" Cursor="Hand" FontSize="18" Width="300" Height="25" Margin="0,20,0,0"
-        TextAlignment="Center" Foreground="{DynamicResource MaterialDesignBody}" MouseDown="ResetAuthText_MouseDown">
+                <TextBlock FontSize="30" HorizontalAlignment="Center" Text="Авторизируйтесь" Foreground="{DynamicResource MaterialDesignBody}" FontFamily="Modern No. 20"/>
+                <TextBox Margin="0,50,0,0" x:Name="txtUsername" Width="300" FontSize="18" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" materialDesign:HintAssist.Hint="Логин" Foreground="{DynamicResource MaterialDesignBody}" Style="{StaticResource MaterialDesignOutlinedTextBox}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
+                <PasswordBox Margin="0,20,0,0" x:Name="txtPassword" Width="300" FontSize="18" materialDesign:HintAssist.Hint="Пароль" materialDesign:TextFieldAssist.HasClearButton="True" materialDesign:TextFieldAssist.DecorationVisibility="Collapsed" IsEnabled="{Binding ElementName=RevealPasswordOutlinedEnabled, Path=IsChecked}" Foreground="{DynamicResource MaterialDesignBody}" Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}" VerticalContentAlignment="Bottom" helpers:PasswordBoxHelper.BoundPassword="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock x:Name="ResetAuthText" Text="Забыли свой пароль?" Cursor="Hand" FontSize="18" Width="300" Height="25" Margin="0,20,0,0" TextAlignment="Center" Foreground="{DynamicResource MaterialDesignBody}" MouseDown="ResetAuthText_MouseDown">
                     <TextBlock.Style>
                         <Style TargetType="{x:Type TextBlock}">
                             <Style.Triggers>
@@ -59,17 +48,8 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-
-
-                <Button  Margin="0,20,0,0" x:Name="LoginButton" Command="{Binding LoginCommand}" Style="{StaticResource MaterialDesignFlatMidBgButton}" materialDesign:ElevationAssist.Elevation="Dp0" Height="53" Width="300" materialDesign:ButtonAssist.CornerRadius="10" FontSize="18" Content="Войти" Click="LoginButton_Click"/>
-
-
-
-
-
+                <Button Margin="0,20,0,0" x:Name="LoginButton" Command="{Binding LoginCommand}" Style="{StaticResource MaterialDesignFlatMidBgButton}" materialDesign:ElevationAssist.Elevation="Dp0" Height="53" Width="300" materialDesign:ButtonAssist.CornerRadius="10" FontSize="18" Content="Войти" Click="LoginButton_Click"/>
             </StackPanel>
-            
         </materialDesign:DialogHost>
-        
     </materialDesign:Card>
 </Window>

@@ -9,6 +9,7 @@ using NextGen.src.UI.Models;
 using Npgsql;
 using NextGen.src.Services.Security;
 using NextGen.src.Components.Common.Utils;
+using System.Threading.Tasks;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -33,8 +34,6 @@ namespace NextGen.src.UI.ViewModels
             LoadData();
         }
 
-       
-
         private Employee MaskSensitiveData(Employee employee, bool canViewPersonal)
         {
             if (canViewPersonal) return employee;  // Если пользователь имеет права, возвращаем объект без изменений
@@ -58,17 +57,15 @@ namespace NextGen.src.UI.ViewModels
             return employee;
         }
 
-
-
         private async void LoadData()
         {
             var tempList = new List<Employee>();
             bool canViewPersonal = UserSessionService.Instance.CurrentUser?.HasPermission("can_view_employees") ?? false;
 
-            using (var conn = _databaseService.GetConnection())
+            using (var conn = await _databaseService.GetConnectionAsync())
             {
                 var cmd = new NpgsqlCommand("SELECT * FROM employees_view", conn);
-                using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await _databaseService.ExecuteReaderWithRetryAsync(cmd))
                 {
                     while (reader.Read())
                     {
@@ -82,8 +79,6 @@ namespace NextGen.src.UI.ViewModels
                             Email = reader["email"] as string ?? string.Empty,
                             RoleName = reader["role_name"] as string ?? string.Empty,
                             PhotoUrl = reader["photo_url"] as string ?? string.Empty,
-
-
                             PensionInsuranceNumber = reader["pension_insurance_number"] as string ?? string.Empty,
                             MilitaryIssuedBy = reader["military_issued_by"] as string ?? string.Empty,
                             MilitaryDutyStatus = reader["military_duty_status"] as string ?? string.Empty,
@@ -94,7 +89,7 @@ namespace NextGen.src.UI.ViewModels
                             ConsentToProcessPersonalData = (bool)reader["consent_to_process_personal_data"],
                             CriminalRecord = (bool)reader["criminal_record"],
                             Profession = reader["profession"] as string ?? string.Empty,
-                            PassportIssueDate = reader["passport_issue_date"] as string ?? string.Empty,                         
+                            PassportIssueDate = reader["passport_issue_date"] as string ?? string.Empty,
                             MilitaryIssueDate = reader["military_issue_date"] as string ?? string.Empty,
                             RegistrationPlace = reader["registration_place"] as string ?? string.Empty,
                             HealthInsuranceNumber = reader["health_insurance_number"] as string ?? string.Empty,
@@ -107,8 +102,8 @@ namespace NextGen.src.UI.ViewModels
                             EducationLevel = reader["education_level"] as string ?? string.Empty,
                             TaxNumber = reader["tax_number"] as string ?? string.Empty,
                             TaxType = reader["tax_type"] as string ?? string.Empty,
-                            Inn = reader["inn"] as string ?? string.Empty, 
-                            Snils = reader["snils"] as string ?? string.Empty, 
+                            Inn = reader["inn"] as string ?? string.Empty,
+                            Snils = reader["snils"] as string ?? string.Empty,
                             Oms = reader["oms"] as string ?? string.Empty
                         };
 
@@ -125,7 +120,6 @@ namespace NextGen.src.UI.ViewModels
                     Employees.Add(employee);
                 }
             });
-
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

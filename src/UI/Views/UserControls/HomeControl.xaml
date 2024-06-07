@@ -6,6 +6,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
     FontFamily="Nont"
     mc:Ignorable="d">
 
@@ -30,15 +31,15 @@
         <Grid Grid.Row="1" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="13*" />
+                <ColumnDefinition Width="21*" />
+                <ColumnDefinition Width="9*" />
             </Grid.ColumnDefinitions>
 
             <!--  Карточка для мониторинга количества пользователей в сети  -->
             <materialDesign:Card
                 Grid.Column="0"
-                Margin="5"
+                Margin="5,5,5,5"
                 Padding="10">
                 <StackPanel>
                     <!--  Отображение количества пользователей онлайн  -->
@@ -117,7 +118,7 @@
             <!--  График продаж за день  -->
             <materialDesign:Card
                 Grid.Column="1"
-                Margin="5"
+                Margin="5,5,5,5"
                 Padding="10">
                 <StackPanel>
                     <TextBlock
@@ -131,7 +132,7 @@
             <!--  Карточка для общего числа проданных автомобилей  -->
             <materialDesign:Card
                 Grid.Column="2"
-                Margin="5"
+                Margin="5,5,5,5"
                 Padding="10">
                 <StackPanel>
                     <TextBlock
@@ -141,7 +142,31 @@
                     <TextBlock
                         FontSize="24"
                         FontWeight="Bold"
-                        Text="{Binding SoldCarsCount}" />
+                        Text="{Binding TotalSales}" />
+                    <lvc:CartesianChart Height="200" Width="auto">
+                        <lvc:CartesianChart.Series>
+                            <lvc:ColumnSeries Title="Продажи" Values="{Binding SalesData}" />
+                        </lvc:CartesianChart.Series>
+                    </lvc:CartesianChart>
+                </StackPanel>
+            </materialDesign:Card>
+            <materialDesign:Card
+        Padding="10" Margin="5,5,5,5" Grid.Column="3">
+                <StackPanel
+        >
+                    <TextBlock
+        FontWeight="Bold" FontSize="14" Text="Доступные модели"/>
+                    <ListView
+        ItemsSource="{Binding AvailableCars}">
+                        <ListView.ItemTemplate
+        >
+                            <DataTemplate
+        >
+                                <TextBlock
+        Text="{Binding ModelName}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                 </StackPanel>
             </materialDesign:Card>
 

@@ -127,41 +127,42 @@ namespace NextGen.src.UI.ViewModels
         public void OpenEmployeeUserControl(UserControl content, string firstName, string lastName, string employeeId)
         {
             string title = $"Редактирование {firstName ?? "не указано"} {lastName ?? "не указано"} [{employeeId}]";
-            var newItem = new DashboardItem { Name = title, Content = content };
-            OpenUserControls.Add(newItem);
-            SelectedUserControl = newItem;
-            CurrentContent = newItem.Content;
-
-            ResetSelectionExcept("Right");
+            ActivateOrOpenNewUserControl(content, title);
         }
 
         public void OpenCarUserControl(UserControl content, string modelName, string brandName, string modelId)
         {
             Console.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
-
             string title = $"Автомобили {brandName} {modelName} [{modelId}]";
-            var newItem = new DashboardItem { Name = title, Content = content };
-
-            OpenUserControls.Add(newItem);
-            SelectedUserControl = newItem;
-            CurrentContent = newItem.Content;
-            IsRightDrawerOpen = true;
-            ResetSelectionExcept("Right");
+            ActivateOrOpenNewUserControl(content, title);
         }
 
         public void OpenCarDetailsControl(UserControl content, string modelName, string brandName, string carId, string trimName)
         {
             Console.WriteLine($"Opening Car Details UserControl with CarId: {carId}, Trim: {trimName}");
-
             string title = $"Автомобиль {brandName} {modelName} {trimName} [{carId}]";
-            var newItem = new DashboardItem { Name = title, Content = content };
+            ActivateOrOpenNewUserControl(content, title);
+        }
 
-            OpenUserControls.Add(newItem);
-            SelectedUserControl = newItem;
-            CurrentContent = newItem.Content;
-            IsRightDrawerOpen = true;
+        private void ActivateOrOpenNewUserControl(UserControl content, string title)
+        {
+            var existingItem = OpenUserControls.FirstOrDefault(x => x.Name == title);
+            if (existingItem != null)
+            {
+                SelectedUserControl = existingItem;
+                CurrentContent = existingItem.Content;
+            }
+            else
+            {
+                var newItem = new DashboardItem { Name = title, Content = content };
+                OpenUserControls.Add(newItem);
+                SelectedUserControl = newItem;
+                CurrentContent = newItem.Content;
+            }
+
             ResetSelectionExcept("Right");
         }
+
 
 
 
@@ -189,6 +190,7 @@ namespace NextGen.src.UI.ViewModels
             Items.Add(new DashboardItem { Name = "Настройки", Content = new SettingsControl() });
             Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarCatalogControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
+            Items.Add(new DashboardItem { Name = "Деньги", Content = new MoneyControl() });
             // Добавьте другие элементы по мере необходимости
         }
 

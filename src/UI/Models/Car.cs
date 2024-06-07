@@ -70,8 +70,34 @@
         public string? Status { get; set; }
         public string? Color { get; set; }
         public string? AdditionalFeatures { get; set; }
+        public string? ColorName { get; set; }
+        public string? ColorHex { get; set; }
         public int Year { get; set; }
         public List<CarImage> Images { get; set; }
+        public string? Transmission { get; set; }
+        public string? Drive { get; set; }
+        public string? Fuel { get; set; }
+        public string? EngineVolume { get; set; }
+        public string? HorsePower { get; set; }
+        public decimal Price { get; set; }
+        public string? TrimDetails { get; set; }
+        public int Seats { get; set; }
+        public string? Length { get; set; }
+        public string? Width { get; set; }
+        public string? Height { get; set; }
+        public string? TrunkVolume { get; set; }
+        public string? FuelTankVolume { get; set; }
+        public string? MixedConsumption { get; set; }
+        public string? CityConsumption { get; set; }
+        public string? HighwayConsumption { get; set; }
+        public string? MaxSpeed { get; set; }
+        public string? Acceleration { get; set; }
+        public string? CarBodyType { get; set; }
+
+        public string? BrandName { get; set; }
+        public string? ModelName { get; set; }
+        public string? TrimName { get; set; }
+
     }
 
     public class CarImage
