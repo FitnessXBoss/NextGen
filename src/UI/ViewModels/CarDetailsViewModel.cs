@@ -5,6 +5,9 @@ using NextGen.src.UI.Helpers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using MaterialDesignThemes.Wpf;
+using System;
+using NextGen.src.UI.Views.UserControls;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -12,12 +15,14 @@ namespace NextGen.src.UI.ViewModels
     {
         public ObservableCollection<CarImage> CarImages { get; set; }
         private CarService _carService = new CarService();
+        private SaleService _saleService = new SaleService(); // Добавление SaleService
         private int _carId;
 
         private string _customerFirstName;
         private string _customerLastName;
         private string _customerEmail;
         private string _customerPhone;
+        private int _customerId;
         private bool _isAgreeToPersonalDataProcessing;
         private bool _isAgreeToReceiveOffers;
         private bool _isAgreeToCreditTerms;
@@ -265,14 +270,25 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public int CustomerId { get; set; }
+        public int CustomerId
+        {
+            get => _customerId;
+            set
+            {
+                _customerId = value;
+                OnPropertyChanged(nameof(CustomerId));
+            }
+        }
+
         public ICommand SellCarCommand { get; }
+        public ICommand RunExtendedDialogCommand { get; }
 
         public CarDetailsViewModel(int carId)
         {
             _carId = carId;
             LoadDetailsForCar(_carId);
             SellCarCommand = new RelayCommand(SellCar);
+            RunExtendedDialogCommand = new RelayCommand(() => ExecuteRunExtendedDialog(null));
         }
 
         public bool IsAgreeToPersonalDataProcessing
@@ -318,6 +334,7 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged(nameof(IsFormValid));
             }
         }
+
         public string CarFullName => $"{_carService.GetCarDetails(_carId).BrandName} {_carService.GetCarDetails(_carId).ModelName}";
         private decimal _monthlyPayment;
         public decimal MonthlyPayment
@@ -329,6 +346,7 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged(nameof(MonthlyPayment));
             }
         }
+
         private void UpdateFormValidity()
         {
             IsFormValid = IsAgreeToPersonalDataProcessing && IsAgreeToCreditTerms; // Пример условия валидации формы
@@ -446,10 +464,29 @@ namespace NextGen.src.UI.ViewModels
             MonthlyPayment = CarPrice / 36; // 36 месяцев для расчета на сумму
         }
 
+        private async void ExecuteRunExtendedDialog(object _)
+        {
+            var view = new SampleDialog
+            {
+                DataContext = new SampleDialogViewModel()
+            };
+
+            var result = await DialogHost.Show(view, "RootDialogHost");
+            if (result is bool dialogResult && dialogResult)
+            {
+                var dialogViewModel = (SampleDialogViewModel)view.DataContext;
+                CustomerFirstName = dialogViewModel.CustomerFirstName;
+                CustomerLastName = dialogViewModel.CustomerLastName;
+                CustomerEmail = dialogViewModel.CustomerEmail;
+                CustomerPhone = dialogViewModel.CustomerPhone;
+                CustomerId = dialogViewModel.CustomerId; // Получение CustomerId
+                SellCar();
+            }
+        }
+
         private void SellCar()
         {
-            _carService.SellCar(_carId, GetCurrentUserId(), CustomerId, CustomerFirstName, CustomerLastName, CustomerEmail, CustomerPhone);
-            // Обновите статус автомобиля в представлении, если необходимо
+            _saleService.RecordSale(_carId, GetCurrentUserId(), CustomerId, CarPrice);
         }
 
         private int GetCurrentUserId()
