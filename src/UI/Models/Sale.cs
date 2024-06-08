@@ -9,4 +9,6 @@
         public DateTime SaleDate { get; set; }
         public decimal Amount { get; set; }
     }
+
+
 }

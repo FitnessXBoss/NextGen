@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using NextGen.src.UI.ViewModels;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace NextGen.src.UI.Views.UserControls
 {
-    /// <summary>
-    /// Логика взаимодействия для AddCustomerDialog.xaml
-    /// </summary>
     public partial class AddCustomerDialog : UserControl
     {
         public AddCustomerDialog()
         {
             InitializeComponent();
+        }
+
+        private void EmailComboBox_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            var viewModel = DataContext as AddCustomerDialogViewModel;
+            if (viewModel != null && sender is ComboBox comboBox)
+            {
+                viewModel.SetEmailComboBox(comboBox);
+            }
         }
     }
 }

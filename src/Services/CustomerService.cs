@@ -49,18 +49,58 @@ namespace NextGen.src.Services
             {
                 connection.Open();
                 var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, last_name, date_of_birth, passport_number, email, phone, address, created_by) VALUES (@first_name, @last_name, @date_of_birth, @passport_number, @email, @phone, @address, @created_by) RETURNING customer_id", connection);
-                cmd.Parameters.AddWithValue("first_name", newCustomer.FirstName);
-                cmd.Parameters.AddWithValue("last_name", newCustomer.LastName);
+                cmd.Parameters.AddWithValue("first_name", newCustomer.FirstName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("last_name", newCustomer.LastName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("date_of_birth", newCustomer.DateOfBirth);
-                cmd.Parameters.AddWithValue("passport_number", newCustomer.PassportNumber);
-                cmd.Parameters.AddWithValue("email", newCustomer.Email);
-                cmd.Parameters.AddWithValue("phone", newCustomer.Phone);
-                cmd.Parameters.AddWithValue("address", newCustomer.Address);
+                cmd.Parameters.AddWithValue("passport_number", newCustomer.PassportNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("email", newCustomer.Email ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("phone", newCustomer.Phone ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("address", newCustomer.Address ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("created_by", createdBy);
 
                 newCustomer.Id = (int)cmd.ExecuteScalar();
             }
             return newCustomer;
+        }
+
+        public enum CustomerExistenceType
+        {
+            None,
+            PassportNumber,
+            Email,
+            Phone
+        }
+
+        public CustomerExistenceType CheckCustomerExistence(string passportNumber, string email, string phone)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                var cmd = new NpgsqlCommand("SELECT passport_number, email, phone FROM customers WHERE passport_number = @passport_number OR email = @email OR phone = @phone", connection);
+                cmd.Parameters.AddWithValue("passport_number", NpgsqlTypes.NpgsqlDbType.Varchar, (object)passportNumber ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("email", NpgsqlTypes.NpgsqlDbType.Varchar, (object)email ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("phone", NpgsqlTypes.NpgsqlDbType.Varchar, (object)phone ?? DBNull.Value);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        if (reader["passport_number"].ToString() == passportNumber)
+                        {
+                            return CustomerExistenceType.PassportNumber;
+                        }
+                        if (reader["email"].ToString() == email)
+                        {
+                            return CustomerExistenceType.Email;
+                        }
+                        if (reader["phone"].ToString() == phone)
+                        {
+                            return CustomerExistenceType.Phone;
+                        }
+                    }
+                }
+            }
+            return CustomerExistenceType.None;
         }
     }
 }

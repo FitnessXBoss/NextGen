@@ -5,6 +5,8 @@ using NextGen.src.UI.Helpers;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
 using System.Threading.Tasks;
+using System.Linq;
+using System.ComponentModel;
 using NextGen.src.UI.Views.UserControls;
 
 namespace NextGen.src.UI.ViewModels
@@ -17,6 +19,9 @@ namespace NextGen.src.UI.ViewModels
         private string _customerPhone;
         private Customer _selectedCustomer;
         private bool _isFormValid;
+        private string _filterText;
+        private ObservableCollection<Customer> _customers;
+        private ObservableCollection<Customer> _filteredCustomers;
         private CustomerService _customerService = new CustomerService();
 
         public string CustomerFirstName
@@ -82,7 +87,37 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public ObservableCollection<Customer> Customers { get; set; }
+        public string FilterText
+        {
+            get => _filterText;
+            set
+            {
+                _filterText = value;
+                OnPropertyChanged(nameof(FilterText));
+                ApplyFilter();
+            }
+        }
+
+        public ObservableCollection<Customer> Customers
+        {
+            get => _customers;
+            set
+            {
+                _customers = value;
+                OnPropertyChanged(nameof(Customers));
+                ApplyFilter();
+            }
+        }
+
+        public ObservableCollection<Customer> FilteredCustomers
+        {
+            get => _filteredCustomers;
+            set
+            {
+                _filteredCustomers = value;
+                OnPropertyChanged(nameof(FilteredCustomers));
+            }
+        }
 
         public bool IsFormValid
         {
@@ -104,6 +139,7 @@ namespace NextGen.src.UI.ViewModels
             AddCustomerCommand = new RelayCommand(async () => await ExecuteAddCustomerDialogAsync());
             CloseDialogCommand = new RelayCommand(CloseDialog);
             Customers = new ObservableCollection<Customer>();
+            FilteredCustomers = new ObservableCollection<Customer>();
             LoadCustomers();
         }
 
@@ -125,6 +161,25 @@ namespace NextGen.src.UI.ViewModels
             CustomerLastName = newCustomer.LastName;
             CustomerEmail = newCustomer.Email;
             CustomerPhone = newCustomer.Phone;
+            ApplyFilter();
+        }
+
+        private void ApplyFilter()
+        {
+            if (string.IsNullOrWhiteSpace(FilterText))
+            {
+                FilteredCustomers = new ObservableCollection<Customer>(Customers);
+            }
+            else
+            {
+                var lowerCaseFilter = FilterText.ToLower();
+                var filteredList = Customers.Where(c =>
+                    c.FirstName.ToLower().Contains(lowerCaseFilter) ||
+                    c.LastName.ToLower().Contains(lowerCaseFilter) ||
+                    c.Email.ToLower().Contains(lowerCaseFilter) ||
+                    c.Phone.ToLower().Contains(lowerCaseFilter)).ToList();
+                FilteredCustomers = new ObservableCollection<Customer>(filteredList);
+            }
         }
 
         private void ConfirmSell()

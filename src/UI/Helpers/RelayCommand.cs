@@ -40,6 +40,11 @@ namespace NextGen.src.UI.Helpers
                 throw new ArgumentException("Invalid command parameter type.", nameof(parameter));
             }
         }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     public class RelayCommand : ICommand
@@ -71,6 +76,10 @@ namespace NextGen.src.UI.Helpers
             Debug.WriteLine($"Execute called");
             _execute();
         }
-    }
 
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
 }
