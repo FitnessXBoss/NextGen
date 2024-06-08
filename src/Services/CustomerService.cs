@@ -77,9 +77,9 @@ namespace NextGen.src.Services
             {
                 connection.Open();
                 var cmd = new NpgsqlCommand("SELECT passport_number, email, phone FROM customers WHERE passport_number = @passport_number OR email = @email OR phone = @phone", connection);
-                cmd.Parameters.AddWithValue("passport_number", NpgsqlTypes.NpgsqlDbType.Varchar, (object)passportNumber ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("email", NpgsqlTypes.NpgsqlDbType.Varchar, (object)email ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("phone", NpgsqlTypes.NpgsqlDbType.Varchar, (object)phone ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("passport_number", NpgsqlTypes.NpgsqlDbType.Varchar, passportNumber ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("email", NpgsqlTypes.NpgsqlDbType.Varchar, email ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("phone", NpgsqlTypes.NpgsqlDbType.Varchar, phone ?? (object)DBNull.Value);
 
                 using (var reader = cmd.ExecuteReader())
                 {
