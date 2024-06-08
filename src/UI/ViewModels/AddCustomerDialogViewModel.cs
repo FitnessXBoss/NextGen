@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
@@ -15,6 +16,7 @@ namespace NextGen.src.UI.ViewModels
 {
     public class AddCustomerDialogViewModel : BaseViewModel
     {
+        // Existing properties
         private string _customerFirstName;
         private string _customerLastName;
         private DateTime _customerDateOfBirth;
@@ -26,8 +28,13 @@ namespace NextGen.src.UI.ViewModels
         private ObservableCollection<string> _emailSuggestions;
         private string _customerPhone;
         private string _customerAddress;
+        private string _addressInput;
+        private string _displayedAddress;
+        private string _selectedAddressSuggestion;
+        private ObservableCollection<string> _addressSuggestions;
         private bool _isFormValid;
         private bool _isDropDownOpen;
+        private bool _isAddressDropDownOpen;
         private CustomerService _customerService = new CustomerService();
         private readonly Action<Customer> _addCustomerAction;
         private readonly DadataService _dadataService;
@@ -39,11 +46,13 @@ namespace NextGen.src.UI.ViewModels
             _dadataService = new DadataService("45abec0000854b701535bb88095334adfed134b3"); // Ваш API-ключ
 
             EmailSuggestions = new ObservableCollection<string>();
+            AddressSuggestions = new ObservableCollection<string>();
 
             AddCustomerCommand = new RelayCommand(AddCustomer, () => IsFormValid);
             CloseDialogCommand = new RelayCommand(CloseDialog);
         }
 
+        // Existing properties with getters and setters
         public string CustomerFirstName
         {
             get => _customerFirstName;
@@ -175,6 +184,60 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        public string AddressInput
+        {
+            get => _addressInput;
+            set
+            {
+                if (_addressInput != value)
+                {
+                    _addressInput = value;
+                    OnPropertyChanged();
+                    UpdateDisplayedAddress();
+                    GetAddressSuggestions(value);
+                    ValidateForm(); // Validate form when address input changes
+                }
+            }
+        }
+
+        public string DisplayedAddress
+        {
+            get => _displayedAddress;
+            set
+            {
+                _displayedAddress = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string SelectedAddressSuggestion
+        {
+            get => _selectedAddressSuggestion;
+            set
+            {
+                _selectedAddressSuggestion = value;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    CustomerAddress = value;
+                    AddressInput = value;
+                    DisplayedAddress = value;
+                    IsAddressDropDownOpen = false; // Закрыть выпадающий список после выбора
+                }
+                OnPropertyChanged();
+                ValidateForm(); // Validate form when address suggestion is selected
+            }
+        }
+
+        public ObservableCollection<string> AddressSuggestions
+        {
+            get => _addressSuggestions;
+            set
+            {
+                _addressSuggestions = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsFormValid
         {
             get => _isFormValid;
@@ -191,6 +254,16 @@ namespace NextGen.src.UI.ViewModels
             set
             {
                 _isDropDownOpen = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsAddressDropDownOpen
+        {
+            get => _isAddressDropDownOpen;
+            set
+            {
+                _isAddressDropDownOpen = value;
                 OnPropertyChanged();
             }
         }
@@ -258,7 +331,7 @@ namespace NextGen.src.UI.ViewModels
                           && !string.IsNullOrWhiteSpace(CustomerPassportNumber)
                           && !string.IsNullOrWhiteSpace(EmailInput) // Validate based on EmailInput
                           && !string.IsNullOrWhiteSpace(CustomerPhone)
-                          && !string.IsNullOrWhiteSpace(CustomerAddress);
+                          && !string.IsNullOrWhiteSpace(AddressInput); // Validate based on AddressInput
             ((RelayCommand)AddCustomerCommand).RaiseCanExecuteChanged();
         }
 
@@ -293,6 +366,37 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        private async void GetAddressSuggestions(string query)
+        {
+            Debug.WriteLine($"Getting address suggestions for: {query}");
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                AddressSuggestions.Clear();
+                IsAddressDropDownOpen = false;
+                return;
+            }
+
+            try
+            {
+                var suggestions = await _dadataService.GetAddressSuggestions(query);
+
+                AddressSuggestions.Clear();
+                foreach (var suggestion in suggestions)
+                {
+                    AddressSuggestions.Add(suggestion);
+                }
+
+                IsAddressDropDownOpen = AddressSuggestions.Count > 0;
+                UpdateDisplayedAddress();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
+                IsAddressDropDownOpen = false;
+            }
+        }
+
         private void UpdateDisplayedEmail()
         {
             if (EmailSuggestions.Count > 0)
@@ -313,6 +417,26 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        private void UpdateDisplayedAddress()
+        {
+            if (AddressSuggestions.Count > 0)
+            {
+                var suggestion = AddressSuggestions[0];
+                if (suggestion.StartsWith(AddressInput, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    DisplayedAddress = AddressInput + suggestion.Substring(AddressInput.Length);
+                }
+                else
+                {
+                    DisplayedAddress = AddressInput;
+                }
+            }
+            else
+            {
+                DisplayedAddress = AddressInput;
+            }
+        }
+
         private int GetCurrentUserId()
         {
             var currentUser = CurrentUser;
@@ -320,5 +444,16 @@ namespace NextGen.src.UI.ViewModels
         }
 
         public UserAuthData? CurrentUser => UserSessionService.Instance.CurrentUser;
+
+        // Обработчики событий LostFocus для закрытия выпадающих списков
+        public void EmailTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsDropDownOpen = false;
+        }
+
+        public void AddressTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsAddressDropDownOpen = false;
+        }
     }
 }

@@ -46,5 +46,33 @@ namespace NextGen.src.Services.Api
                 return new List<string>();
             }
         }
+
+        public async Task<List<string>> GetAddressSuggestions(string query)
+        {
+            string apiUrl = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address";
+            var content = new StringContent($"{{\"query\":\"{query}\"}}", Encoding.UTF8, "application/json");
+
+            try
+            {
+                HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, content);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                JObject responseJson = JObject.Parse(responseBody);
+
+                var suggestions = new List<string>();
+                foreach (var suggestion in responseJson["suggestions"])
+                {
+                    suggestions.Add(suggestion["value"].ToString());
+                }
+
+                return suggestions;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
+                return new List<string>();
+            }
+        }
     }
 }

@@ -99,7 +99,8 @@
                              Style="{StaticResource MaterialDesignOutlinedTextBox}" 
                              materialDesign:HintAssist.Hint="Email клиента" 
                              Background="Transparent"
-                             Padding="15,0,0,0"/>
+                             Padding="15,0,0,0"
+                             LostFocus="EmailTextBox_LostFocus"/>
                     <TextBlock Text="{Binding DisplayedEmail}" Foreground="Gray" IsHitTestVisible="False" 
                                VerticalAlignment="Center" HorizontalAlignment="Left"
                                Margin="16,0,0,0" Padding="0" Panel.ZIndex="-1"/>
@@ -123,10 +124,28 @@
                             materialDesign:HintAssist.Hint="Телефон клиента" 
                             Grid.Column="1" Grid.Row="3"/>
 
-                <TextBox Margin="0,5,0,10" 
-                         Text="{Binding CustomerAddress, UpdateSourceTrigger=PropertyChanged}" 
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}" 
-                         materialDesign:HintAssist.Hint="Адрес клиента" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2"/>
+                <Grid  Height="50" Margin="0,5,0,10" Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" >
+                    <TextBox x:Name="addressTextBox" Text="{Binding AddressInput, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                             materialDesign:HintAssist.Hint="Адрес клиента" 
+                             Background="Transparent"
+                             Padding="15,0,0,0"
+                             LostFocus="AddressTextBox_LostFocus"/>
+                    <TextBlock Text="{Binding DisplayedAddress}" Foreground="Gray" IsHitTestVisible="False" 
+                               VerticalAlignment="Center" HorizontalAlignment="Left" 
+                               Margin="16,0,0,0" Padding="0,0,0,0" Panel.ZIndex="-1"/>
+                </Grid>
+
+                <Popup IsOpen="{Binding IsAddressDropDownOpen}" PlacementTarget="{Binding ElementName=addressTextBox}" StaysOpen="False">
+                    <ListBox ItemsSource="{Binding AddressSuggestions}" SelectedItem="{Binding SelectedAddressSuggestion, Mode=TwoWay}" 
+                             Width="{Binding ActualWidth, ElementName=addressTextBox}" MaxHeight="100" Style="{StaticResource PopupListBoxStyle}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Padding="5"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Popup>
 
                 <StackPanel Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button Content="Добавить" 
