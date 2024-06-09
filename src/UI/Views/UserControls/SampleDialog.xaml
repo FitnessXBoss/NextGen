@@ -44,8 +44,8 @@
                 Style="{StaticResource MaterialDesignRaisedButton}" 
                 Margin="0,20,0,0"/>
 
-        <Button Content="Продать" 
-                Command="{Binding ConfirmSellCommand}" 
+        <Button Content="Составить договор купли-продажи" 
+                Command="{Binding OpenSalesContractCommand}" 
                 IsEnabled="{Binding IsFormValid}"
                 Style="{StaticResource MaterialDesignRaisedButton}" 
                 Margin="0,20,0,0"/>

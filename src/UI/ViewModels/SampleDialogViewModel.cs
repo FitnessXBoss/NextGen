@@ -1,13 +1,15 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
-using MaterialDesignThemes.Wpf;
-using NextGen.src.UI.Helpers;
+﻿using MaterialDesignThemes.Wpf;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
-using System.Threading.Tasks;
-using System.Linq;
-using System.ComponentModel;
+using NextGen.src.UI.Helpers;
+using NextGen.src.UI.Views;
 using NextGen.src.UI.Views.UserControls;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -132,12 +134,15 @@ namespace NextGen.src.UI.ViewModels
         public ICommand ConfirmSellCommand { get; }
         public ICommand AddCustomerCommand { get; }
         public ICommand CloseDialogCommand { get; }
+        public ICommand OpenSalesContractCommand { get; } // Добавляем команду
 
         public SampleDialogViewModel()
         {
-            ConfirmSellCommand = new RelayCommand(ConfirmSell, () => IsFormValid);
+            ConfirmSellCommand = new RelayCommand(ConfirmSell, () => IsFormValid); // Исправлено
             AddCustomerCommand = new RelayCommand(async () => await ExecuteAddCustomerDialogAsync());
             CloseDialogCommand = new RelayCommand(CloseDialog);
+            OpenSalesContractCommand = new RelayCommand(OpenSalesContractDialog);
+
             Customers = new ObservableCollection<Customer>();
             FilteredCustomers = new ObservableCollection<Customer>();
             LoadCustomers();
@@ -184,7 +189,7 @@ namespace NextGen.src.UI.ViewModels
 
         private void ConfirmSell()
         {
-            DialogHost.CloseDialogCommand.Execute(true, null);
+            OpenSalesContractDialog();
         }
 
         private async Task ExecuteAddCustomerDialogAsync()
@@ -208,6 +213,23 @@ namespace NextGen.src.UI.ViewModels
                           && !string.IsNullOrWhiteSpace(CustomerLastName)
                           && !string.IsNullOrWhiteSpace(CustomerEmail)
                           && !string.IsNullOrWhiteSpace(CustomerPhone);
+        }
+
+        private void OpenSalesContractDialog()
+        {
+            if (SelectedCustomer != null)
+            {
+                var view = new SalesContractDialog
+                {
+                    DataContext = new SalesContractViewModel(SelectedCustomer)
+                };
+
+                var dashboardViewModel = Application.Current.Windows.OfType<DashboardWindow>().FirstOrDefault()?.DataContext as DashboardViewModel;
+                if (dashboardViewModel != null)
+                {
+                    dashboardViewModel.OpenSalesContractControl(view, SelectedCustomer.FirstName, SelectedCustomer.LastName, SelectedCustomer.Id);
+                }
+            }
         }
     }
 }

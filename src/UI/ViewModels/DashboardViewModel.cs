@@ -144,6 +144,14 @@ namespace NextGen.src.UI.ViewModels
             ActivateOrOpenNewUserControl(content, title);
         }
 
+        public void OpenSalesContractControl(UserControl content, string firstName, string lastName, int customerId)
+        {
+            string title = $"Договор {firstName} {lastName} [{customerId}]";
+            ActivateOrOpenNewUserControl(content, title);
+        }
+
+
+
         private void ActivateOrOpenNewUserControl(UserControl content, string title)
         {
             var existingItem = OpenUserControls.FirstOrDefault(x => x.Name == title);
