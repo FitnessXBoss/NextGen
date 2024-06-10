@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using NextGen.src.Services.Security;
 using System.Linq;
 using System.Windows;
+using NextGen.src.Services;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
@@ -21,6 +24,7 @@ namespace NextGen.src.UI.ViewModels
         private readonly CarService _carService;
         private readonly DocumentGenerator _documentGenerator;
         private readonly TemplateService _templateService;
+        private readonly UserSessionService _userSessionService;
         private readonly string destinationFolder = @"C:\Users\pitsk\Downloads\TEST";
 
         public Customer SelectedCustomer { get; }
@@ -71,6 +75,7 @@ namespace NextGen.src.UI.ViewModels
             _organizationService = new OrganizationService();
             _documentGenerator = new DocumentGenerator();
             _templateService = new TemplateService();
+            _userSessionService = UserSessionService.Instance;
 
             SelectedCustomer = TempDataStore.SelectedCustomer;
             SaveContractCommand = new RelayCommand(SaveContract);
@@ -95,7 +100,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private void SaveContract()
+        private async void SaveContract()
         {
             var organization = _organizationService.GetOrganization();
 
@@ -111,44 +116,72 @@ namespace NextGen.src.UI.ViewModels
                 return;
             }
 
+            if (!await _userSessionService.LoadAdditionalUserDataAsync())
+            {
+                MessageBox.Show("Не удалось загрузить данные текущего пользователя.");
+                return;
+            }
+
+            var currentUser = _userSessionService.CurrentUser;
+            if (currentUser == null)
+            {
+                MessageBox.Show("Не удалось определить текущего пользователя.");
+                return;
+            }
+
             string priceInWords = NumberToWordsConverter.Convert(Car.Price);
+            string employeeFullName = currentUser.FullName;
+            string employeeNameInInitials = ConvertToInitials(employeeFullName);
+            string customerFullName = SelectedCustomer.FullName;
+            string customerNameInInitials = ConvertToInitials(customerFullName);
 
             var placeholders = new Dictionary<string, string>
-            {
-                { "{{Название компании}}", organization.Name ?? string.Empty },
-                { "{{Адрес компании}}", organization.Address ?? string.Empty },
-                { "{{Телефон компании}}", organization.Phone ?? string.Empty },
-                { "{{Email компании}}", organization.Email ?? string.Empty },
-                { "{{Сайт компании}}", organization.Website ?? string.Empty },
-                { "{{Регистрационный номер компании}}", organization.RegistrationNumber ?? string.Empty },
-                { "{{ФИО директора}}", organization.DirectorFullName ?? string.Empty },
-                { "{{Должность директора}}", organization.DirectorTitle ?? string.Empty },
-                { "{{Доверенность}}", organization.PowerOfAttorney ?? string.Empty },
-                { "{{Город}}", organization.City ?? string.Empty },
+    {
+        { "{{Название компании}}", organization.Name ?? string.Empty },
+        { "{{Адрес компании}}", organization.Address ?? string.Empty },
+        { "{{Телефон компании}}", organization.Phone ?? string.Empty },
+        { "{{Email компании}}", organization.Email ?? string.Empty },
+        { "{{Сайт компании}}", organization.Website ?? string.Empty },
+        { "{{Регистрационный номер компании}}", organization.RegistrationNumber ?? string.Empty },
+        { "{{ИНН компании}}", organization.INN ?? string.Empty },
+        { "{{КПП компании}}", organization.KPP ?? string.Empty },
+        { "{{ОКПО компании}}", organization.OKPO ?? string.Empty },
+        { "{{Рассчетный счет компании}}", organization.BankAccount ?? string.Empty },
+        { "{{Корреспондентский счет компании}}", organization.CorrespondentAccount ?? string.Empty },
+        { "{{Банк компании}}", organization.BankName ?? string.Empty },
+        { "{{БИК компании}}", organization.BIK ?? string.Empty },
 
-                { "{{ФИО сотрудника}}", "Лебидь Аэлита Вадимовна" },
-                { "{{Должность сотрудника}}", "Старший менеджер отдела продаж" },
+        { "{{ФИО директора}}", organization.DirectorFullName ?? string.Empty },
+        { "{{Должность директора}}", organization.DirectorTitle ?? string.Empty },
+        { "{{Доверенность}}", organization.PowerOfAttorney ?? string.Empty },
+        { "{{Город}}", organization.City ?? string.Empty },
 
-                { "{{ФИО покупателя}}", CustomerFullName ?? string.Empty },
-                { "{{Номер паспорта покупателя}}", SelectedCustomer?.PassportNumber ?? string.Empty },
-                { "{{Дата выдачи паспорта}}", SelectedCustomer?.PassportIssueDate.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "{{Кем выдан паспорт}}", SelectedCustomer?.PassportIssuer ?? string.Empty },
-                { "{{Адрес покупателя}}", SelectedCustomer?.Address ?? string.Empty },
-                { "{{Телефон покупателя}}", CustomerPhone ?? string.Empty },
+        { "{{ФИО сотрудника}}", employeeFullName ?? string.Empty },
+        { "{{Должность сотрудника}}", "Старший менеджер отдела продаж" },
+        { "{{ФИО сотрудника в инициалах}}", employeeNameInInitials ?? string.Empty },
 
-                { "{{Тип ТС}}", Car.CarBodyType ?? string.Empty },
-                { "{{Модель ТС}}", Car.ModelName ?? string.Empty },
-                { "{{Год выпуска ТС}}", Car.Year.ToString() ?? string.Empty },
-                { "{{Цвет ТС}}", Car.Color ?? string.Empty },
-                { "{{Мощность двигателя}}", Car.HorsePower ?? string.Empty },
-                { "{{VIN}}", Car.VIN ?? string.Empty },
-                { "{{Цена}}", Car.Price.ToString("C") ?? string.Empty },
-                { "{{Цена прописью}}", priceInWords },
+        { "{{ФИО покупателя}}", customerFullName ?? string.Empty },
+        { "{{ФИО покупателя в инициалах}}", customerNameInInitials ?? string.Empty },
+        { "{{Номер паспорта покупателя}}", SelectedCustomer?.PassportNumber ?? string.Empty },
+        { "{{Дата выдачи паспорта}}", SelectedCustomer?.PassportIssueDate.ToString("dd.MM.yyyy") ?? string.Empty },
+        { "{{Кем выдан паспорт}}", SelectedCustomer?.PassportIssuer ?? string.Empty },
+        { "{{Адрес покупателя}}", SelectedCustomer?.Address ?? string.Empty },
+        { "{{Телефон покупателя}}", CustomerPhone ?? string.Empty },
 
-                { "{{Дата составления}}", ContractDate.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "{{Номер договора}}", ContractNumber ?? string.Empty },
-                { "{{Дата договора}}", DateTime.Now.ToString("dd.MM.yyyy") ?? string.Empty }
-            };
+        { "{{Тип ТС}}", Car.CarBodyType ?? string.Empty },
+        { "{{Код модели}}", Car.TrimName ?? string.Empty },
+        { "{{Модель ТС}}", Car.ModelName ?? string.Empty },
+        { "{{Год выпуска ТС}}", Car.Year.ToString() ?? string.Empty },
+        { "{{Цвет ТС}}", Car.Color ?? string.Empty },
+        { "{{Мощность двигателя}}", Car.HorsePower ?? string.Empty },
+        { "{{VIN}}", Car.VIN ?? string.Empty },
+        { "{{Цена}}", Car.Price.ToString("C") ?? string.Empty },
+        { "{{Цена прописью}}", priceInWords },
+
+        { "{{Дата составления}}", ContractDate.ToString("dd.MM.yyyy") ?? string.Empty },
+        { "{{Номер договора}}", ContractNumber ?? string.Empty },
+        { "{{Дата договора}}", DateTime.Now.ToString("dd.MM.yyyy") ?? string.Empty }
+    };
 
             try
             {
@@ -179,17 +212,17 @@ namespace NextGen.src.UI.ViewModels
                 GenerateAndValidateDocument("Акт приема-передачи", tempActPath, placeholders);
                 GenerateAndValidateDocument("Договор купли-продажи", tempSaleContractPath, placeholders);
 
-                // Перемещаем документы в целевую папку и открываем их
-                MoveAndOpenDocument(tempContractPath, destinationFolder);
-                MoveAndOpenDocument(tempActPath, destinationFolder);
-                MoveAndOpenDocument(tempSaleContractPath, destinationFolder);
+                // Перемещаем документы в целевую папку и переименовываем их
+                string renamedContractPath = MoveAndRenameDocument(tempContractPath, destinationFolder, "Предварительный договор купли-продажи");
+                string renamedActPath = MoveAndRenameDocument(tempActPath, destinationFolder, "Акт приема-передачи");
+                string renamedSaleContractPath = MoveAndRenameDocument(tempSaleContractPath, destinationFolder, "Договор купли-продажи");
 
                 // Удаление временных файлов
                 DeleteTemporaryFile(tempContractPath);
                 DeleteTemporaryFile(tempActPath);
                 DeleteTemporaryFile(tempSaleContractPath);
 
-                MessageBox.Show($"Документы для клиента {CustomerFullName} сохранены и открыты.");
+                MessageBox.Show($"Документы для клиента {customerFullName} сохранены и открыты.");
             }
             catch (Exception ex)
             {
@@ -197,6 +230,17 @@ namespace NextGen.src.UI.ViewModels
                 MessageBox.Show($"Произошла ошибка при создании документа: {ex.Message}\nStack Trace: {ex.StackTrace}");
             }
         }
+
+        private string ConvertToInitials(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName)) return string.Empty;
+
+            var parts = fullName.Split(' ');
+            if (parts.Length == 2) return $"{parts[0]} {parts[1][0]}.";
+            if (parts.Length == 3) return $"{parts[0]} {parts[1][0]}. {parts[2][0]}.";
+            return fullName;
+        }
+
 
         private void SaveTemplateToFile(string templateName, string filePath)
         {
@@ -276,10 +320,12 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private void MoveAndOpenDocument(string filePath, string destinationFolder)
+        private string MoveAndRenameDocument(string filePath, string destinationFolder, string baseFileName)
         {
             string fileName = Path.GetFileName(filePath);
             string destinationPath = Path.Combine(destinationFolder, fileName);
+            string newFileName = $"{baseFileName} {CustomerFullName}.docx";
+            string newFilePath = Path.Combine(destinationFolder, newFileName);
 
             if (!Directory.Exists(destinationFolder))
             {
@@ -292,7 +338,16 @@ namespace NextGen.src.UI.ViewModels
             }
 
             File.Move(filePath, destinationPath);
-            Process.Start(new ProcessStartInfo(destinationPath) { UseShellExecute = true });
+
+            if (File.Exists(newFilePath))
+            {
+                File.Delete(newFilePath);
+            }
+
+            File.Move(destinationPath, newFilePath);
+            Process.Start(new ProcessStartInfo(newFilePath) { UseShellExecute = true });
+
+            return newFilePath;
         }
 
         private void DeleteTemporaryFile(string filePath)

@@ -22,13 +22,17 @@ namespace NextGen.src.UI.Models
             public string KPP { get; set; }
             public string OGRN { get; set; }
             public string OKPO { get; set; }
-            public string BankDetails { get; set; }
+            public string BankAccount { get; set; }
+            public string CorrespondentAccount { get; set; }
+            public string BankName { get; set; }
+            public string BIK { get; set; }
             public string DirectorFullName { get; set; }
             public string DirectorTitle { get; set; }
             public string PowerOfAttorney { get; set; }
-            public string City { get; set; } // Новое поле
+            public string City { get; set; }
         }
     }
+
 
 
 }

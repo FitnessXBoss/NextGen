@@ -20,7 +20,7 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand("SELECT customer_id, first_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_issuer, email, phone, address, created_by FROM customers", connection);
+                var cmd = new NpgsqlCommand("SELECT customer_id, first_name, middle_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_issuer, email, phone, address, created_by FROM customers", connection);
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -29,11 +29,12 @@ namespace NextGen.src.Services
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("customer_id")),
                             FirstName = reader.GetString(reader.GetOrdinal("first_name")),
+                            MiddleName = reader.GetString(reader.GetOrdinal("middle_name")), // Добавлено чтение нового поля
                             LastName = reader.GetString(reader.GetOrdinal("last_name")),
                             DateOfBirth = reader.GetDateTime(reader.GetOrdinal("date_of_birth")),
                             PassportNumber = reader.GetString(reader.GetOrdinal("passport_number")),
-                            PassportIssueDate = reader.GetDateTime(reader.GetOrdinal("passport_issue_date")), // Добавлено чтение нового поля
-                            PassportIssuer = reader.GetString(reader.GetOrdinal("passport_issuer")), // Добавлено чтение нового поля
+                            PassportIssueDate = reader.GetDateTime(reader.GetOrdinal("passport_issue_date")),
+                            PassportIssuer = reader.GetString(reader.GetOrdinal("passport_issuer")),
                             Email = reader.GetString(reader.GetOrdinal("email")),
                             Phone = reader.GetString(reader.GetOrdinal("phone")),
                             Address = reader.GetString(reader.GetOrdinal("address")),
@@ -50,13 +51,14 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_issuer, email, phone, address, created_by) VALUES (@first_name, @last_name, @date_of_birth, @passport_number, @passport_issue_date, @passport_issuer, @email, @phone, @address, @created_by) RETURNING customer_id", connection);
+                var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, middle_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_issuer, email, phone, address, created_by) VALUES (@first_name, @middle_name, @last_name, @date_of_birth, @passport_number, @passport_issue_date, @passport_issuer, @email, @phone, @address, @created_by) RETURNING customer_id", connection);
                 cmd.Parameters.AddWithValue("first_name", newCustomer.FirstName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("middle_name", newCustomer.MiddleName ?? (object)DBNull.Value); // Добавлено новое поле
                 cmd.Parameters.AddWithValue("last_name", newCustomer.LastName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("date_of_birth", newCustomer.DateOfBirth);
                 cmd.Parameters.AddWithValue("passport_number", newCustomer.PassportNumber ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("passport_issue_date", newCustomer.PassportIssueDate); // Добавлено новое поле
-                cmd.Parameters.AddWithValue("passport_issuer", newCustomer.PassportIssuer ?? (object)DBNull.Value); // Добавлено новое поле
+                cmd.Parameters.AddWithValue("passport_issue_date", newCustomer.PassportIssueDate);
+                cmd.Parameters.AddWithValue("passport_issuer", newCustomer.PassportIssuer ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("email", newCustomer.Email ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("phone", newCustomer.Phone ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("address", newCustomer.Address ?? (object)DBNull.Value);
