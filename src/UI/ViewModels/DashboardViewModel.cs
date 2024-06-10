@@ -127,24 +127,37 @@ namespace NextGen.src.UI.ViewModels
         public void OpenEmployeeUserControl(UserControl content, string firstName, string lastName, string employeeId)
         {
             string title = $"Редактирование {firstName ?? "не указано"} {lastName ?? "не указано"} [{employeeId}]";
-            ActivateOrOpenNewUserControl(content, title);
+            ActivateOrOpenNewUserControl(content, title); // Вызываем перегруженный метод без carId
         }
 
         public void OpenCarUserControl(UserControl content, string modelName, string brandName, string modelId)
         {
             Console.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
             string title = $"Автомобили {brandName} {modelName} [{modelId}]";
-            ActivateOrOpenNewUserControl(content, title);
+            ActivateOrOpenNewUserControl(content, title); // Вызываем перегруженный метод без carId
         }
 
         public void OpenCarDetailsControl(UserControl content, string modelName, string brandName, string carId, string trimName)
         {
             Console.WriteLine($"Opening Car Details UserControl with CarId: {carId}, Trim: {trimName}");
             string title = $"Автомобиль {brandName} {modelName} {trimName} [{carId}]";
-            ActivateOrOpenNewUserControl(content, title);
+            ActivateOrOpenNewUserControl(content, title, int.Parse(carId)); // Передаем carId
         }
 
+        public void OpenSalesContractControl(UserControl content, string firstName, string lastName, int customerId, int carId)
+        {
+            string title = $"Договор {firstName} {lastName} [{customerId}]";
+            ActivateOrOpenNewUserControl(content, title, carId); // Передаем carId
+        }
+
+
+
         private void ActivateOrOpenNewUserControl(UserControl content, string title)
+        {
+            ActivateOrOpenNewUserControl(content, title, 0); // Значение по умолчанию для carId
+        }
+
+        private void ActivateOrOpenNewUserControl(UserControl content, string title, int carId)
         {
             var existingItem = OpenUserControls.FirstOrDefault(x => x.Name == title);
             if (existingItem != null)
@@ -161,6 +174,9 @@ namespace NextGen.src.UI.ViewModels
             }
 
             ResetSelectionExcept("Right");
+
+            // Debugging line to ensure carId is correct
+            Debug.WriteLine($"CarId passed to Dashboard: {carId}");
         }
 
 
@@ -191,6 +207,7 @@ namespace NextGen.src.UI.ViewModels
             Items.Add(new DashboardItem { Name = "Автомобили", Content = new CarCatalogControl() });
             Items.Add(new DashboardItem { Name = "Сотрудники", Content = new EmployeeControl() });
             Items.Add(new DashboardItem { Name = "Деньги", Content = new MoneyControl() });
+            Items.Add(new DashboardItem { Name = "Шаблоны документов", Content = new DocumentTemplateControl() });
             // Добавьте другие элементы по мере необходимости
         }
 

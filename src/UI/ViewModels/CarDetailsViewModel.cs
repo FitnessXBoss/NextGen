@@ -5,6 +5,10 @@ using NextGen.src.UI.Helpers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
+using MaterialDesignThemes.Wpf;
+using System;
+using NextGen.src.UI.Views.UserControls;
+using System.Diagnostics;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -12,12 +16,14 @@ namespace NextGen.src.UI.ViewModels
     {
         public ObservableCollection<CarImage> CarImages { get; set; }
         private CarService _carService = new CarService();
+        private SaleService _saleService = new SaleService(); // Добавление SaleService
         private int _carId;
 
         private string _customerFirstName;
         private string _customerLastName;
         private string _customerEmail;
         private string _customerPhone;
+        private int _customerId;
         private bool _isAgreeToPersonalDataProcessing;
         private bool _isAgreeToReceiveOffers;
         private bool _isAgreeToCreditTerms;
@@ -44,6 +50,16 @@ namespace NextGen.src.UI.ViewModels
         private string _carMaxSpeed;
         private string _carAcceleration;
         private string _carBodyType;
+
+        public int CarId
+        {
+            get => _carId;
+            set
+            {
+                _carId = value;
+                OnPropertyChanged(nameof(CarId));
+            }
+        }
 
         public string CarColor
         {
@@ -265,14 +281,25 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public int CustomerId { get; set; }
+        public int CustomerId
+        {
+            get => _customerId;
+            set
+            {
+                _customerId = value;
+                OnPropertyChanged(nameof(CustomerId));
+            }
+        }
+
         public ICommand SellCarCommand { get; }
+        public ICommand RunExtendedDialogCommand { get; }
 
         public CarDetailsViewModel(int carId)
         {
-            _carId = carId;
-            LoadDetailsForCar(_carId);
-            SellCarCommand = new RelayCommand(SellCar);
+            CarId = carId; // Устанавливаем значение CarId
+            LoadDetailsForCar(CarId);
+            SellCarCommand = new RelayCommand(() => SellCar(CarId)); // Изменено
+            RunExtendedDialogCommand = new RelayCommand<int>(ExecuteRunExtendedDialog); // Изменено на RelayCommand<int>
         }
 
         public bool IsAgreeToPersonalDataProcessing
@@ -318,6 +345,7 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged(nameof(IsFormValid));
             }
         }
+
         public string CarFullName => $"{_carService.GetCarDetails(_carId).BrandName} {_carService.GetCarDetails(_carId).ModelName}";
         private decimal _monthlyPayment;
         public decimal MonthlyPayment
@@ -329,6 +357,7 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged(nameof(MonthlyPayment));
             }
         }
+
         private void UpdateFormValidity()
         {
             IsFormValid = IsAgreeToPersonalDataProcessing && IsAgreeToCreditTerms; // Пример условия валидации формы
@@ -407,7 +436,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-
         private void LoadDetailsForCar(int carId)
         {
             CarDetails details = _carService.GetCarDetails(carId);
@@ -417,6 +445,7 @@ namespace NextGen.src.UI.ViewModels
                 CarImages.Add(img);
             }
 
+            // Установка значений свойств автомобиля
             CarColor = details.Color;
             CarColorName = details.Color;
             CarColorHex = details.ColorHex;
@@ -444,12 +473,32 @@ namespace NextGen.src.UI.ViewModels
             CarTrimName = details.TrimName;
 
             MonthlyPayment = CarPrice / 36; // 36 месяцев для расчета на сумму
+            Debug.WriteLine($"Loaded Car Details: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
         }
 
-        private void SellCar()
+        private async void ExecuteRunExtendedDialog(int carId)
         {
-            _carService.SellCar(_carId, GetCurrentUserId(), CustomerId, CustomerFirstName, CustomerLastName, CustomerEmail, CustomerPhone);
-            // Обновите статус автомобиля в представлении, если необходимо
+            var view = new SampleDialog
+            {
+                DataContext = new SampleDialogViewModel(carId) // Передаем CarId в SampleDialogViewModel
+            };
+
+            var result = await DialogHost.Show(view, "RootDialogHost");
+            if (result is bool dialogResult && dialogResult)
+            {
+                var dialogViewModel = (SampleDialogViewModel)view.DataContext;
+                CustomerFirstName = dialogViewModel.CustomerFirstName;
+                CustomerLastName = dialogViewModel.CustomerLastName;
+                CustomerEmail = dialogViewModel.CustomerEmail;
+                CustomerPhone = dialogViewModel.CustomerPhone;
+                CustomerId = dialogViewModel.CustomerId;
+                SellCar(carId); // Передаем CarId в метод SellCar
+            }
+        }
+
+        private void SellCar(int carId)
+        {
+            _saleService.RecordSale(carId, GetCurrentUserId(), CustomerId, CarPrice);
         }
 
         private int GetCurrentUserId()

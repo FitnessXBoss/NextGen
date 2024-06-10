@@ -39,12 +39,21 @@ namespace NextGen.src.Services
             throw new Exception("Не удалось подключиться к базе данных после нескольких попыток.");
         }
 
+        private async Task EnsureConnectionOpenAsync(NpgsqlConnection connection)
+        {
+            if (connection.State == System.Data.ConnectionState.Closed || connection.State == System.Data.ConnectionState.Broken)
+            {
+                await connection.OpenAsync();
+            }
+        }
+
         public async Task<NpgsqlDataReader> ExecuteReaderWithRetryAsync(NpgsqlCommand cmd)
         {
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
                 try
                 {
+                    await EnsureConnectionOpenAsync(cmd.Connection);
                     return await cmd.ExecuteReaderAsync();
                 }
                 catch (NpgsqlException ex) when (ex.InnerException is IOException || ex.InnerException is SocketException)
@@ -66,6 +75,7 @@ namespace NextGen.src.Services
             {
                 try
                 {
+                    await EnsureConnectionOpenAsync(cmd.Connection);
                     return await cmd.ExecuteScalarAsync();
                 }
                 catch (NpgsqlException ex) when (ex.InnerException is IOException || ex.InnerException is SocketException)

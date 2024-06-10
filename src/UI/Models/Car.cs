@@ -9,6 +9,9 @@
         public string? Status { get; set; }
         public int Year { get; set; }
         public string? Color { get; set; }
+        public string? CarBodyType { get; set; } // Новое поле
+        public string? VIN { get; set; } // Новое поле
+        public string? City { get; set; } // Новое поле
     }
 
     public class Brand
@@ -93,7 +96,7 @@
         public string? MaxSpeed { get; set; }
         public string? Acceleration { get; set; }
         public string? CarBodyType { get; set; }
-
+        public string? VIN { get; set; }
         public string? BrandName { get; set; }
         public string? ModelName { get; set; }
         public string? TrimName { get; set; }

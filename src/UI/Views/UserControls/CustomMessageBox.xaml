@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="NextGen.src.UI.Views.UserControls.CustomMessageBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NextGen.src.UI.Views.UserControls"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             FontFamily="Noto"
+             
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16">
+            <materialDesign:PackIcon x:Name="Icon" Width="30" Height="30" Margin="0,0,10,0"/>
+            <TextBlock x:Name="TitleTextBlock"
+                       Text="Заголовок"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+        </StackPanel>
+
+        <TextBlock x:Name="MessageTextBlock"
+                   Text="Это настраиваемое сообщение"
+                   Margin="16"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Grid.Row="1"
+                   Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="16"
+                    Grid.Row="2">
+            <Button x:Name="PrimaryButton"
+                    Content="ОК"
+                    Margin="8"
+                    Padding="10,5"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    CommandParameter="True"/>
+            <Button x:Name="SecondaryButton"
+                    Content="Отмена"
+                    Margin="8"
+                    Padding="10,5"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    CommandParameter="False"
+                    Visibility="Collapsed"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
