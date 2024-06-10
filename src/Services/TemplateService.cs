@@ -1,11 +1,6 @@
 ﻿using Npgsql;
 using System;
 using System.Configuration;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using Xceed.Words.NET;
 
 namespace NextGen.src.Services
 {
@@ -40,6 +35,12 @@ namespace NextGen.src.Services
 
         public void SaveTemplate(string templateName, byte[] templateContent)
         {
+            var duplicateReason = CheckTemplateDuplicate(templateName, templateContent);
+            if (!string.IsNullOrEmpty(duplicateReason))
+            {
+                throw new Exception(duplicateReason);
+            }
+
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
@@ -48,6 +49,58 @@ namespace NextGen.src.Services
                 cmd.Parameters.AddWithValue("@templateContent", templateContent);
                 cmd.ExecuteNonQuery();
             }
+        }
+
+        private string CheckTemplateDuplicate(string templateName, byte[] templateContent)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Check by name
+                var cmd = new NpgsqlCommand("SELECT COUNT(*) FROM document_templates WHERE template_name = @templateName", connection);
+                cmd.Parameters.AddWithValue("@templateName", templateName);
+                var count = (long)cmd.ExecuteScalar();
+
+                if (count > 0)
+                {
+                    return $"Шаблон с именем '{templateName}' уже существует.";
+                }
+
+                // Check by content
+                cmd = new NpgsqlCommand("SELECT template_content FROM document_templates", connection);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var existingTemplateContent = reader["template_content"] as byte[];
+                        if (existingTemplateContent != null && AreArraysEqual(existingTemplateContent, templateContent))
+                        {
+                            return "Шаблон с идентичным содержимым уже существует.";
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private bool AreArraysEqual(byte[] array1, byte[] array2)
+        {
+            if (array1.Length != array2.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array1.Length; i++)
+            {
+                if (array1[i] != array2[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

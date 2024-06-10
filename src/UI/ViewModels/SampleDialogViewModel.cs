@@ -17,8 +17,8 @@ namespace NextGen.src.UI.ViewModels
 {
     public class SampleDialogViewModel : BaseViewModel
     {
-        private readonly CarService _carService;  // Добавляем CarService
-        private readonly int _carId; // Добавляем поле для хранения CarId
+        private readonly CarService _carService;
+        private readonly int _carId;
         private string _customerFirstName;
         private string _customerLastName;
         private string _customerEmail;
@@ -90,10 +90,8 @@ namespace NextGen.src.UI.ViewModels
                     CustomerEmail = _selectedCustomer.Email;
                     CustomerPhone = _selectedCustomer.Phone;
 
-                    // Сохранение выбранного клиента в TempDataStore
                     TempDataStore.SelectedCustomer = _selectedCustomer;
 
-                    // Добавьте отладочную информацию
                     Debug.WriteLine($"SelectedCustomer set with CarId: {_selectedCustomer.CarId}");
                 }
             }
@@ -144,12 +142,12 @@ namespace NextGen.src.UI.ViewModels
         public ICommand ConfirmSellCommand { get; }
         public ICommand AddCustomerCommand { get; }
         public ICommand CloseDialogCommand { get; }
-        public ICommand OpenSalesContractCommand { get; } // Добавляем команду
+        public ICommand OpenSalesContractCommand { get; }
 
-        public SampleDialogViewModel(int carId) // Обновляем конструктор для принятия CarId
+        public SampleDialogViewModel(int carId)
         {
-            _carId = carId; // Сохраняем CarId
-            _carService = new CarService(); // Инициализируем CarService
+            _carId = carId;
+            _carService = new CarService();
             ConfirmSellCommand = new RelayCommand(ConfirmSell, () => IsFormValid);
             AddCustomerCommand = new RelayCommand(async () => await ExecuteAddCustomerDialogAsync());
             CloseDialogCommand = new RelayCommand(CloseDialog);
@@ -174,10 +172,8 @@ namespace NextGen.src.UI.ViewModels
             Customers.Add(newCustomer);
             SelectedCustomer = newCustomer;
 
-            // Добавьте отладочную информацию здесь
             Debug.WriteLine($"New Customer Added: {newCustomer.FirstName} {newCustomer.LastName}, CarId: {newCustomer.CarId}");
 
-            // Обновление свойств, чтобы ComboBox отобразил правильные значения
             CustomerFirstName = newCustomer.FirstName;
             CustomerLastName = newCustomer.LastName;
             CustomerEmail = newCustomer.Email;
@@ -226,22 +222,21 @@ namespace NextGen.src.UI.ViewModels
                           && !string.IsNullOrWhiteSpace(CustomerPhone);
         }
 
-        private void ConfirmSell()
+        private async void ConfirmSell()
         {
             if (SelectedCustomer != null)
             {
                 TempDataStore.SelectedCustomer = SelectedCustomer;
-                TempDataStore.CarDetails = GetCarDetails();  // Получаем объект CarDetails
+                TempDataStore.CarDetails = GetCarDetails();
 
                 Debug.WriteLine($"SelectedCustomer: {SelectedCustomer.FullName}, PassportNumber: {SelectedCustomer.PassportNumber}, PassportIssueDate: {SelectedCustomer.PassportIssueDate}, PassportIssuer: {SelectedCustomer.PassportIssuer}, Address: {SelectedCustomer.Address}, CustomerPhone: {SelectedCustomer.Phone}");
                 OpenSalesContractDialog();
             }
             else
             {
-                MessageBox.Show("Пожалуйста, выберите клиента перед продажей.");
+                await ShowCustomMessageBox("Пожалуйста, выберите клиента перед продажей.", "Ошибка", CustomMessageBox.MessageKind.Error, false, "ОК");
             }
         }
-
 
         private CarDetails GetCarDetails()
         {
@@ -250,12 +245,12 @@ namespace NextGen.src.UI.ViewModels
 
         private void OpenSalesContractDialog()
         {
-            var carId = _carId; // Используем сохраненный carId
+            var carId = _carId;
             Debug.WriteLine($"CarId from SelectedCustomer: {carId}");
 
             var view = new SalesContractDialog
             {
-                DataContext = new SalesContractViewModel(carId) // Передаем carId
+                DataContext = new SalesContractViewModel(carId)
             };
 
             var dashboardViewModel = Application.Current.Windows.OfType<DashboardWindow>().FirstOrDefault()?.DataContext as DashboardViewModel;
@@ -263,6 +258,13 @@ namespace NextGen.src.UI.ViewModels
             {
                 dashboardViewModel.OpenSalesContractControl(view, SelectedCustomer.FirstName, SelectedCustomer.LastName, SelectedCustomer.Id, carId);
             }
+        }
+
+        private async Task<bool> ShowCustomMessageBox(string message, string title = "Уведомление", CustomMessageBox.MessageKind kind = CustomMessageBox.MessageKind.Notification, bool showSecondaryButton = false, string primaryButtonText = "ОК", string secondaryButtonText = "Отмена")
+        {
+            var view = new CustomMessageBox(message, title, kind, showSecondaryButton, primaryButtonText, secondaryButtonText);
+            var result = await DialogHost.Show(view, "RootDialogHost");
+            return result is bool boolean && boolean;
         }
     }
 }

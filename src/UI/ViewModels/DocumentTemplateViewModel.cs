@@ -1,10 +1,12 @@
 ﻿using Microsoft.Win32;
 using NextGen.src.Services;
 using NextGen.src.UI.Helpers;
+using NextGen.src.UI.Views.UserControls;
 using System;
 using System.IO;
-using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using MaterialDesignThemes.Wpf;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -59,23 +61,30 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private void UploadTemplate()
+        private async void UploadTemplate()
         {
             try
             {
                 byte[] fileContent = File.ReadAllBytes(SelectedFilePath);
                 _templateService.SaveTemplate(TemplateName, fileContent);
-                MessageBox.Show("Шаблон успешно загружен.");
+                await ShowCustomMessageBox("Шаблон успешно загружен.", "Успех", CustomMessageBox.MessageKind.Success);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Произошла ошибка при загрузке шаблона: {ex.Message}");
+                await ShowCustomMessageBox($"Произошла ошибка при загрузке шаблона: {ex.Message}", "Ошибка", CustomMessageBox.MessageKind.Error);
             }
         }
 
         private bool CanUploadTemplate()
         {
             return !string.IsNullOrEmpty(SelectedFilePath) && !string.IsNullOrEmpty(TemplateName);
+        }
+
+        private async Task<bool> ShowCustomMessageBox(string message, string title = "Уведомление", CustomMessageBox.MessageKind kind = CustomMessageBox.MessageKind.Notification, bool showSecondaryButton = false, string primaryButtonText = "ОК", string secondaryButtonText = "Отмена")
+        {
+            var view = new CustomMessageBox(message, title, kind, showSecondaryButton, primaryButtonText, secondaryButtonText);
+            var result = await DialogHost.Show(view, "RootDialogHost");
+            return result is bool boolean && boolean;
         }
     }
 }
