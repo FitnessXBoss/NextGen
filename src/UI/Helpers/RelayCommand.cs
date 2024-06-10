@@ -24,7 +24,7 @@ namespace NextGen.src.UI.Helpers
         public bool CanExecute(object? parameter)
         {
             bool result = _canExecute == null || (parameter is T t && _canExecute(t));
-            Debug.WriteLine($"CanExecute called with parameter: {parameter}, result: {result}");
+
             return result;
         }
 
@@ -32,7 +32,7 @@ namespace NextGen.src.UI.Helpers
         {
             if (parameter is T t)
             {
-                Debug.WriteLine($"Execute called with parameter: {parameter}");
+
                 _execute(t);
             }
             else
@@ -67,13 +67,12 @@ namespace NextGen.src.UI.Helpers
         public bool CanExecute(object? parameter)
         {
             bool result = _canExecute == null || _canExecute();
-            Debug.WriteLine($"CanExecute called with result: {result}");
+
             return result;
         }
 
         public void Execute(object? parameter)
         {
-            Debug.WriteLine($"Execute called");
             _execute();
         }
 

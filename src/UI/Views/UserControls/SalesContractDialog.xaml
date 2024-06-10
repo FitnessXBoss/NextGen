@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mc="http://schemas.microsoft.com/markup-compatibility/2006">
-    
+
     <ScrollViewer>
         <StackPanel Margin="20">
             <TextBlock Text="Договор купли-продажи автомобиля, мотоцикла, транспортного средства" FontSize="20" FontWeight="Bold" Margin="0,10,0,20"/>
@@ -20,7 +20,7 @@
                     Style="{StaticResource MaterialDesignOutlinedDatePicker}"
                     materialDesign:HintAssist.Hint="Дата составления"
                     IsTodayHighlighted="True"/>
-                    
+
                     <TextBox Margin="0,5,0,10"
                              Text="{Binding PlaceOfIssue}"
                              Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -52,7 +52,7 @@
                              materialDesign:HintAssist.Hint="ФИО директора"/>
                 </StackPanel>
             </GroupBox>
-            
+
             <GroupBox Header="Покупатель транспортного средства" Margin="0,0,0,10">
                 <StackPanel Margin="10">
                     <TextBox Margin="0,5,0,10"
@@ -192,6 +192,14 @@
                              materialDesign:HintAssist.Hint="Стоимость ТС"/>
                 </StackPanel>
             </GroupBox>
+
+            <ListBox ItemsSource="{Binding MissingFields}" Margin="0,10,0,10">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" Foreground="Red"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
 
             <Button Content="Оформить договор" 
                     Command="{Binding SaveContractCommand}" 

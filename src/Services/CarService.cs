@@ -23,14 +23,15 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
+                Debug.WriteLine($"Executing SQL queries for carId: {carId}");
 
                 // Получение основных данных о машине
                 var carCmd = new NpgsqlCommand($@"
-        SELECT c.car_id, c.image_url, c.trim_id, c.status, c.color, c.additional_features, c.year, cc.color_name, cc.color_hex, t.trim_name
-        FROM cars c
-        LEFT JOIN car_colors cc ON c.color_id = cc.color_id
-        LEFT JOIN trims t ON c.trim_id = t.trim_id
-        WHERE c.car_id = @carId", connection);
+            SELECT c.car_id, c.image_url, c.trim_id, c.status, c.color, c.additional_features, c.year, c.vin, cc.color_name, cc.color_hex, t.trim_name
+            FROM cars c
+            LEFT JOIN car_colors cc ON c.color_id = cc.color_id
+            LEFT JOIN trims t ON c.trim_id = t.trim_id
+            WHERE c.car_id = @carId", connection);
                 carCmd.Parameters.AddWithValue("@carId", carId);
 
                 using (var reader = carCmd.ExecuteReader())
@@ -43,10 +44,18 @@ namespace NextGen.src.Services
                         details.Status = reader.IsDBNull(reader.GetOrdinal("status")) ? null : reader.GetString(reader.GetOrdinal("status"));
                         details.Color = reader.IsDBNull(reader.GetOrdinal("color")) ? null : reader.GetString(reader.GetOrdinal("color"));
                         details.AdditionalFeatures = reader.IsDBNull(reader.GetOrdinal("additional_features")) ? null : reader.GetString(reader.GetOrdinal("additional_features"));
+                        details.VIN = reader.GetString(reader.GetOrdinal("vin"));
                         details.Year = reader.GetInt32(reader.GetOrdinal("year"));
                         details.ColorHex = reader.IsDBNull(reader.GetOrdinal("color_hex")) ? null : reader.GetString(reader.GetOrdinal("color_hex"));
                         details.ColorName = reader.IsDBNull(reader.GetOrdinal("color_name")) ? null : reader.GetString(reader.GetOrdinal("color_name"));
                         details.TrimName = reader.IsDBNull(reader.GetOrdinal("trim_name")) ? null : reader.GetString(reader.GetOrdinal("trim_name"));
+
+                        Debug.WriteLine($"Loaded Car Details in GetCarDetails: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
+
+                    }
+                    else
+                    {
+                        Debug.WriteLine("No car details found for given carId.");
                     }
                 }
 
@@ -124,6 +133,7 @@ namespace NextGen.src.Services
                     }
                 }
             }
+            Debug.WriteLine($"Car Details Loaded: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
 
             return details;
         }
