@@ -13,7 +13,7 @@ using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
-using NextGen.src.UI.Models;    
+using NextGen.src.UI.Models;
 using NextGen.src.UI.Views;
 using NextGen.src.UI.Views.UserControls;
 using System.Windows.Media.Imaging;
@@ -24,13 +24,12 @@ using System.Text;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.ComponentModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace NextGen.src.UI.ViewModels
 {
-    public class SalesContractViewModel : INotifyPropertyChanged
+    public partial class SalesContractViewModel : ObservableObject
     {
         private readonly OrganizationService _organizationService;
         private readonly CarService _carService;
@@ -40,7 +39,6 @@ namespace NextGen.src.UI.ViewModels
         private readonly PaymentProcessor _paymentProcessor;
         private readonly string destinationFolder;
         private decimal _tonToRubRate;
-
 
         public SalesContractViewModel(
             OrganizationService organizationService,
@@ -58,9 +56,9 @@ namespace NextGen.src.UI.ViewModels
             _paymentProcessor = paymentProcessor;
 
             SelectedCustomer = TempDataStore.SelectedCustomer;
-            SaveContractCommand = new RelayCommand(SaveContract);
-            CloseCommand = new RelayCommand(CloseWindow);
-            PayCommand = new RelayCommand(async () => await Pay());
+            SaveContractCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(SaveContract);
+            CloseCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(CloseWindow);
+            PayCommand = new CommunityToolkit.Mvvm.Input.AsyncRelayCommand(async () => await Pay());
             MissingFields = new ObservableCollection<string>();
 
             // Определяем путь до папки загрузок текущего пользователя
@@ -101,72 +99,23 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
+        [ObservableProperty]
         private string _paymentStatus;
+
+        [ObservableProperty]
         private string _walletAddress;
+
+        [ObservableProperty]
         private BitmapImage _qrCodeImage;
-        private string _errorMessage;
+
+        [ObservableProperty]
         private bool _isQrCodeVisible;
-        private bool _isPayButtonVisible;
 
-        public string PaymentStatus
-        {
-            get => _paymentStatus;
-            set
-            {
-                _paymentStatus = value;
-                OnPropertyChanged(nameof(PaymentStatus));
-            }
-        }
+        [ObservableProperty]
+        private string _errorMessage;
 
-        public string WalletAddress
-        {
-            get => _walletAddress;
-            set
-            {
-                _walletAddress = value;
-                OnPropertyChanged(nameof(WalletAddress));
-            }
-        }
-
-        public BitmapImage QrCodeImage
-        {
-            get => _qrCodeImage;
-            set
-            {
-                _qrCodeImage = value;
-                OnPropertyChanged(nameof(QrCodeImage));
-            }
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                _errorMessage = value;
-                OnPropertyChanged(nameof(ErrorMessage));
-            }
-        }
-
-        public bool IsQrCodeVisible
-        {
-            get => _isQrCodeVisible;
-            set
-            {
-                _isQrCodeVisible = value;
-                OnPropertyChanged(nameof(IsQrCodeVisible));
-            }
-        }
-
-        public bool IsPayButtonVisible
-        {
-            get => _isPayButtonVisible;
-            set
-            {
-                _isPayButtonVisible = value;
-                OnPropertyChanged(nameof(IsPayButtonVisible));
-            }
-        }
+        [ObservableProperty]
+        private bool _isPayButtonVisible = true;
 
         public string CustomerFullName => SelectedCustomer != null ? $"{SelectedCustomer.FirstName} {SelectedCustomer.LastName}" : string.Empty;
         public string CustomerEmail => SelectedCustomer?.Email ?? string.Empty;
@@ -189,9 +138,9 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public ICommand SaveContractCommand { get; }
-        public ICommand CloseCommand { get; }
-        public ICommand PayCommand { get; }
+        public IRelayCommand PayCommand { get; }
+        public IRelayCommand SaveContractCommand { get; }
+        public IRelayCommand CloseCommand { get; }
 
         private async Task Pay()
         {
@@ -243,8 +192,6 @@ namespace NextGen.src.UI.ViewModels
                 throw; // Пробросьте исключение, чтобы его могли поймать на уровне сервиса
             }
         }
-
-
 
         private async Task<(string tonLink, string uniqueId, string address)> GeneratePaymentInfo(decimal amount)
         {
@@ -334,6 +281,7 @@ namespace NextGen.src.UI.ViewModels
             public string Amount { get; set; }
             public string Sender { get; set; }
         }
+
         private void LoadCarDetails(int carId)
         {
             var carDetails = _carService.GetCarDetails(carId);
@@ -660,13 +608,5 @@ namespace NextGen.src.UI.ViewModels
                 dashboardViewModel.CurrentContent = null;
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
     }
 }

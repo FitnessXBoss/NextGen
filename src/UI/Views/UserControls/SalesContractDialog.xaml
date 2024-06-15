@@ -4,12 +4,11 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
              mc:Ignorable="d"
+             xmlns:local="clr-namespace:NextGen.src.UI.ViewModels"
              d:DesignHeight="1000"
              d:DesignWidth="1200">
-
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
@@ -31,7 +30,6 @@
                         Style="{StaticResource MaterialDesignRaisedButton}" 
                         Margin="0,20,0,0"/>
 
-                <!-- Элементы для отображения статуса платежа и QR-кода -->
                 <TextBlock x:Name="PaymentStatusTextBlock" Text="{Binding PaymentStatus}" Margin="0,20,0,0" />
                 <TextBlock x:Name="WalletAddressText" Text="{Binding WalletAddress}" Margin="0,20,0,0" />
                 <Image x:Name="QrCodeImageControl" Source="{Binding QrCodeImage}" Width="200" Height="200" Stretch="Uniform" StretchDirection="Both" Margin="0,20,0,0" Visibility="{Binding IsQrCodeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />

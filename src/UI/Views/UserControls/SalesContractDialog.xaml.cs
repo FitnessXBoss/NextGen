@@ -1,7 +1,5 @@
 ﻿using System.Windows.Controls;
-using NextGen.src.Services;
-using NextGen.src.Services.Api;
-using NextGen.src.Services.Document;
+using Microsoft.Extensions.DependencyInjection;
 using NextGen.src.UI.ViewModels;
 
 namespace NextGen.src.UI.Views.UserControls
@@ -10,15 +8,8 @@ namespace NextGen.src.UI.Views.UserControls
     {
         public SalesContractDialog()
         {
-            InitializeComponent(); 
-            DataContext = new SalesContractViewModel(
-                new OrganizationService(),
-                new CarService(),
-                new DocumentGenerator(),
-                new TemplateService(),
-                UserSessionService.Instance,
-                PaymentProcessor.Instance
-            );
+            InitializeComponent();
+            DataContext = App.AppHost.Services.GetService<SalesContractViewModel>();
         }
     }
 }

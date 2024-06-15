@@ -8,10 +8,10 @@ import axios from 'axios';
 const app = express();
 const port = 3001;
 
-// Глобальные переменные для хранения адреса и комментария
 let generatedAddress: string = '';
 let generatedComment: string = '';
 let expectedReturnAmount: bigint = BigInt(0);
+let paymentReceived: boolean = false;
 
 const API_KEY = '6b347998e2359bc8039728754ac176830c60cde01bcad1170e1f058239bd4a33';
 
@@ -23,14 +23,12 @@ app.post('/generate-payment', async (req, res) => {
     const mnemonic = "coral about client mandate inside shine inhale tumble royal garden crouch cook answer flight grape poverty inhale west spoil million stable exit shell elephant";
     const key = await mnemonicToWalletKey(mnemonic.split(" "));
     const wallet = WalletContractV4.create({ publicKey: key.publicKey, workchain: 0 });
-    expectedReturnAmount = toNano(parseFloat(amount)); // Преобразование суммы к числу
+    expectedReturnAmount = toNano(parseFloat(amount));
     const tonLink = generateTonLink(wallet.address.toString(), expectedReturnAmount, uniqueId);
 
-    // Сохраняем адрес и комментарий для последующей проверки
     generatedAddress = wallet.address.toString();
     generatedComment = uniqueId;
 
-    // Выводим комментарий и сумму
     console.log(`Expected comment: ${generatedComment}`);
     console.log(`Expected amount: ${fromNano(expectedReturnAmount)} TON`);
 
@@ -41,8 +39,11 @@ app.post('/generate-payment', async (req, res) => {
         tonLink
     });
 
-    // Запускаем процесс проверки транзакций
     checkForTransactions();
+});
+
+app.get('/checkStatus', (req, res) => {
+    res.json({ paymentReceived });
 });
 
 async function checkForTransactions() {
@@ -58,11 +59,11 @@ async function checkForTransactions() {
 
                 if (transactionAmount >= expectedReturnAmount && comment === generatedComment) {
                     received = true;
+                    paymentReceived = true;
                     console.log(`Received amount: ${fromNano(transactionAmount)} TON, comment: ${comment}`);
                     console.log("Comment matches unique ID and amount is correct: TRUE");
                     console.log("Payment verified successfully");
 
-                    // Дополнительные действия, например, уведомление C# приложения
                     await notifyCSharpApp(transaction);
 
                     break;
@@ -70,7 +71,7 @@ async function checkForTransactions() {
             }
 
             if (!received) {
-                await dynamicSleep(2000); // Проверяем каждые 2 секунды
+                await dynamicSleep(2000);
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -78,7 +79,7 @@ async function checkForTransactions() {
             } else {
                 console.error('Unexpected error:', error);
             }
-            await dynamicSleep(2000); // Проверяем каждые 2 секунды
+            await dynamicSleep(2000);
         }
     }
 }
@@ -94,7 +95,7 @@ function generateTonLink(address: string, amount: bigint, comment: string): stri
 
 async function getTransactions(walletAddress: string) {
     const apiEndpoint = 'https://testnet.toncenter.com/api/v2/getTransactions';
-    const url = `${apiEndpoint}?address=${walletAddress}&limit=5`;  // Проверка нескольких последних транзакций
+    const url = `${apiEndpoint}?address=${walletAddress}&limit=5`;
 
     try {
         const response = await axios.get(url, {
@@ -132,13 +133,12 @@ async function notifyCSharpApp(transaction: any) {
             Comment: transaction.comment,
             Amount: transaction.value,
             Sender: transaction.sender,
-            CarId: 1 // Замените на реальное значение CarId
         }, {
-            timeout: 10000 // Увеличиваем таймаут до 10 секунд
+            timeout: 10000
         });
         console.log('C# application notified successfully');
         console.log(`Response status: ${response.status}`);
-    } catch (error: any) {  // Утверждение типа 'error' как 'any'
+    } catch (error: any) {
         console.error('Error notifying C# app:', (error as Error).message);
         if (axios.isAxiosError(error)) {
             console.error('Axios error details:');
@@ -156,10 +156,6 @@ async function notifyCSharpApp(transaction: any) {
         }
     }
 }
-
-
-
-
 
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
