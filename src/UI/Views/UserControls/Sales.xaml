@@ -5,11 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NextGen.src.UI.Views.UserControls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             FontFamily="Noto"
+             Height="600" Width="500">
     <Grid>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Name="AmountText" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Margin="5"/>
-            <Image x:Name="QrCodeImage" Width="300" Height="300" Visibility="Visible"/>
+            <Image x:Name="QrCodeImage" Width="400" Height="400" Visibility="Visible"/>
             <TextBlock Name="PaymentStatusText" HorizontalAlignment="Center" VerticalAlignment="Center" Text="" Margin="5"/>
             <TextBlock Name="WalletAddressText" HorizontalAlignment="Center" VerticalAlignment="Center" Text="" Margin="5"/>
             <Button Name="PaymentButton" Content="Оплатить" Click="Payment" Margin="5"/>

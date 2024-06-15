@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:NextGen"
              xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
-             StartupUri="src\UI\Views\UserControls\Sales.xaml">
+             StartupUri="src\UI\Views\AuthorizationWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

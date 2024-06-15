@@ -40,6 +40,8 @@ namespace NextGen.src.UI.ViewModels
         private readonly string destinationFolder;
         private decimal _tonToRubRate;
 
+        public IRelayCommand OpenPaymentDialogCommand { get; }
+
         public SalesContractViewModel(
             OrganizationService organizationService,
             CarService carService,
@@ -57,6 +59,7 @@ namespace NextGen.src.UI.ViewModels
             SaveContractCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(SaveContract);
             CloseCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(CloseWindow);
             MissingFields = new ObservableCollection<string>();
+            OpenPaymentDialogCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(OpenPaymentDialog);
 
             // Определяем путь до папки загрузок текущего пользователя
             string downloadsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
@@ -69,7 +72,12 @@ namespace NextGen.src.UI.ViewModels
             }
 
         }
-
+        private async void OpenPaymentDialog()
+        {
+            var view = new Sales();
+            var result = await DialogHost.Show(view, "RootDialogHost");
+            // Обработка результата, если нужно
+        }
         public void Initialize(int carId)
         {
             CarId = carId;

@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using QRCoder;
 using System.Diagnostics;
+using MaterialDesignThemes.Wpf;
 
 namespace NextGen.src.UI.Views.UserControls
 {
@@ -209,6 +210,9 @@ namespace NextGen.src.UI.Views.UserControls
             WalletAddressText.Text = "";
             ReceiptPanel.Visibility = Visibility.Collapsed;
             PaymentButton.IsEnabled = true;
+
+            // Закрытие DialogHost
+            DialogHost.CloseDialogCommand.Execute(null, this);
         }
     }
 
