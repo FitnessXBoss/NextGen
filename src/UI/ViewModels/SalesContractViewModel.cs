@@ -45,20 +45,17 @@ namespace NextGen.src.UI.ViewModels
             CarService carService,
             DocumentGenerator documentGenerator,
             TemplateService templateService,
-            UserSessionService userSessionService,
-            PaymentProcessor paymentProcessor)
+            UserSessionService userSessionService)
         {
             _organizationService = organizationService;
             _carService = carService;
             _documentGenerator = documentGenerator;
             _templateService = templateService;
             _userSessionService = userSessionService;
-            _paymentProcessor = paymentProcessor;
 
             SelectedCustomer = TempDataStore.SelectedCustomer;
             SaveContractCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(SaveContract);
             CloseCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(CloseWindow);
-            PayCommand = new CommunityToolkit.Mvvm.Input.AsyncRelayCommand(async () => await Pay());
             MissingFields = new ObservableCollection<string>();
 
             // Определяем путь до папки загрузок текущего пользователя
@@ -71,8 +68,6 @@ namespace NextGen.src.UI.ViewModels
                 Directory.CreateDirectory(destinationFolder);
             }
 
-            _tonToRubRate = _paymentProcessor.GetTonToRubRate();
-            IsPayButtonVisible = true;
         }
 
         public void Initialize(int carId)
@@ -99,23 +94,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        [ObservableProperty]
-        private string _paymentStatus;
-
-        [ObservableProperty]
-        private string _walletAddress;
-
-        [ObservableProperty]
-        private BitmapImage _qrCodeImage;
-
-        [ObservableProperty]
-        private bool _isQrCodeVisible;
-
-        [ObservableProperty]
-        private string _errorMessage;
-
-        [ObservableProperty]
-        private bool _isPayButtonVisible = true;
+        
 
         public string CustomerFullName => SelectedCustomer != null ? $"{SelectedCustomer.FirstName} {SelectedCustomer.LastName}" : string.Empty;
         public string CustomerEmail => SelectedCustomer?.Email ?? string.Empty;
@@ -138,149 +117,11 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        public IRelayCommand PayCommand { get; }
+
         public IRelayCommand SaveContractCommand { get; }
         public IRelayCommand CloseCommand { get; }
 
-        private async Task Pay()
-        {
-            Debug.WriteLine("Начало выполнения Pay()");
-            IsQrCodeVisible = false;
-            ErrorMessage = string.Empty;
-            PaymentStatus = "Идет генерация информации о платеже...";
-
-            decimal amountToPay = 0.5m; // Пример суммы для оплаты в TON
-            var paymentInfo = await GeneratePaymentInfo(amountToPay);
-
-            if (!string.IsNullOrEmpty(paymentInfo.tonLink))
-            {
-                Debug.WriteLine("Генерация и отображение QR-кода");
-                GenerateAndDisplayQRCode(paymentInfo.tonLink);
-                PaymentStatus = $"Expected Comment: {paymentInfo.uniqueId}\nExpected Amount: {amountToPay} TON (~{amountToPay * _tonToRubRate} рублей)";
-                WalletAddress = $"Wallet Address: {paymentInfo.address}";
-            }
-            else
-            {
-                Debug.WriteLine("Ошибка: Не удалось сгенерировать информацию о платеже");
-                ErrorMessage = "Failed to generate payment info.";
-                PaymentStatus = string.Empty;
-            }
-        }
-
-        public void UpdatePaymentStatus(PaymentNotification notification)
-        {
-            try
-            {
-                Debug.WriteLine("Начало выполнения UpdatePaymentStatus()");
-                var amountInTON = Convert.ToDecimal(notification.Amount) / 1_000_000_000;
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    Debug.WriteLine("Обновление UI после успешной оплаты");
-                    QrCodeImage = null;
-                    IsQrCodeVisible = false;
-
-                    PaymentStatus = $"Payment was successful!\n" +
-                                    $"Comment: {notification.Comment}\n" +
-                                    $"Amount: {amountInTON} TON (~{amountInTON * _tonToRubRate} рублей)\n" +
-                                    $"Sender: {notification.Sender}";
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in UpdatePaymentStatus: {ex.Message}");
-                throw; // Пробросьте исключение, чтобы его могли поймать на уровне сервиса
-            }
-        }
-
-        private async Task<(string tonLink, string uniqueId, string address)> GeneratePaymentInfo(decimal amount)
-        {
-            Debug.WriteLine("Начало выполнения GeneratePaymentInfo()");
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    var content = new StringContent(JsonSerializer.Serialize(new { amount }), Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync("http://localhost:3001/generate-payment", content);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"Error: Server responded with status code: {response.StatusCode}");
-                        ErrorMessage = "Server error. Please try again later.";
-                        return (null, null, null);
-                    }
-
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Received payment info: {responseBody}");
-                    var paymentInfo = JsonSerializer.Deserialize<PaymentInfoResponse>(responseBody);
-
-                    if (paymentInfo != null)
-                    {
-                        Debug.WriteLine($"Deserialized payment info: Address={paymentInfo.address}, UniqueId={paymentInfo.uniqueId}, Amount={paymentInfo.amount}, TonLink={paymentInfo.tonLink}");
-                        return (paymentInfo.tonLink, paymentInfo.uniqueId, paymentInfo.address);
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Deserialization returned null.");
-                        ErrorMessage = "Failed to get payment data.";
-                        return (null, null, null);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error generating payment info: {ex.Message}");
-                    ErrorMessage = $"Error: {ex.Message}";
-                    return (null, null, null);
-                }
-            }
-        }
-
-        private void GenerateAndDisplayQRCode(string tonLink)
-        {
-            Debug.WriteLine("Начало выполнения GenerateAndDisplayQRCode()");
-            try
-            {
-                QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(tonLink, QRCodeGenerator.ECCLevel.Q);
-                QRCode qrCode = new QRCode(qrCodeData);
-                QrCodeImage = ConvertToBitmapImage(qrCode.GetGraphic(20));
-                IsQrCodeVisible = true;
-                Debug.WriteLine("QR-код успешно сгенерирован и отображен");
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Error displaying QR code: {ex.Message}";
-            }
-        }
-
-        private BitmapImage ConvertToBitmapImage(System.Drawing.Bitmap bitmap)
-        {
-            using (MemoryStream memory = new MemoryStream())
-            {
-                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
-                memory.Position = 0;
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                return bitmapImage;
-            }
-        }
-
-        public class PaymentInfoResponse
-        {
-            public string address { get; set; }
-            public string uniqueId { get; set; }
-            public string amount { get; set; }
-            public string tonLink { get; set; }
-        }
-
-        public class PaymentNotification
-        {
-            public string Comment { get; set; }
-            public string Amount { get; set; }
-            public string Sender { get; set; }
-        }
+       
 
         private void LoadCarDetails(int carId)
         {

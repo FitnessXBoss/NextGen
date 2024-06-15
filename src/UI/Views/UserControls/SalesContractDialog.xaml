@@ -30,10 +30,7 @@
                         Style="{StaticResource MaterialDesignRaisedButton}" 
                         Margin="0,20,0,0"/>
 
-                <TextBlock x:Name="PaymentStatusTextBlock" Text="{Binding PaymentStatus}" Margin="0,20,0,0" />
-                <TextBlock x:Name="WalletAddressText" Text="{Binding WalletAddress}" Margin="0,20,0,0" />
-                <Image x:Name="QrCodeImageControl" Source="{Binding QrCodeImage}" Width="200" Height="200" Stretch="Uniform" StretchDirection="Both" Margin="0,20,0,0" Visibility="{Binding IsQrCodeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <TextBlock x:Name="ErrorMessageTextBlock" Text="{Binding ErrorMessage}" Margin="0,20,0,0" Foreground="Red" />
+               
             </StackPanel>
         </ScrollViewer>
     </materialDesign:DialogHost>
