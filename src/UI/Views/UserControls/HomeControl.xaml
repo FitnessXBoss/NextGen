@@ -6,7 +6,6 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
-    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
     FontFamily="Nont"
     mc:Ignorable="d">
 
@@ -143,11 +142,6 @@
                         FontSize="24"
                         FontWeight="Bold"
                         Text="{Binding TotalSales}" />
-                    <lvc:CartesianChart Height="200" Width="auto">
-                        <lvc:CartesianChart.Series>
-                            <lvc:ColumnSeries Title="Продажи" Values="{Binding SalesData}" />
-                        </lvc:CartesianChart.Series>
-                    </lvc:CartesianChart>
                 </StackPanel>
             </materialDesign:Card>
             <materialDesign:Card

@@ -3,19 +3,27 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
+using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
-using NextGen.src.UI.Models;
+using NextGen.src.UI.Models;    
 using NextGen.src.UI.Views;
 using NextGen.src.UI.Views.UserControls;
+using System.Windows.Media.Imaging;
+using QRCoder;
+using static NextGen.src.Services.Api.PaymentProcessor;
+using System.Net.Http;
+using System.Text;
+using System.Net.Http.Headers;
+using System.Text.Json;
+
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -26,7 +34,50 @@ namespace NextGen.src.UI.ViewModels
         private readonly DocumentGenerator _documentGenerator;
         private readonly TemplateService _templateService;
         private readonly UserSessionService _userSessionService;
+        private readonly PaymentProcessor _paymentProcessor;
         private readonly string destinationFolder;
+        private decimal _tonToRubRate;
+
+        public SalesContractViewModel(
+            OrganizationService organizationService,
+            CarService carService,
+            DocumentGenerator documentGenerator,
+            TemplateService templateService,
+            UserSessionService userSessionService,
+            PaymentProcessor paymentProcessor)
+        {
+            _organizationService = organizationService;
+            _carService = carService;
+            _documentGenerator = documentGenerator;
+            _templateService = templateService;
+            _userSessionService = userSessionService;
+            _paymentProcessor = paymentProcessor;
+
+            SelectedCustomer = TempDataStore.SelectedCustomer;
+            SaveContractCommand = new RelayCommand(SaveContract);
+            CloseCommand = new RelayCommand(CloseWindow);
+            PayCommand = new RelayCommand(async () => await Pay());
+            MissingFields = new ObservableCollection<string>();
+
+            // Определяем путь до папки загрузок текущего пользователя
+            string downloadsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+            destinationFolder = Path.Combine(downloadsFolder, "NextGen Group");
+
+            // Создаем папку "NextGen Group" если ее нет
+            if (!Directory.Exists(destinationFolder))
+            {
+                Directory.CreateDirectory(destinationFolder);
+            }
+
+            _tonToRubRate = _paymentProcessor.GetTonToRubRate();
+            IsPayButtonVisible = true;
+        }
+
+        public void Initialize(int carId)
+        {
+            CarId = carId;
+            LoadCarDetails(carId);
+        }
 
         public Customer SelectedCustomer { get; }
         public CarDetails Car { get; private set; }
@@ -43,6 +94,73 @@ namespace NextGen.src.UI.ViewModels
                     OnPropertyChanged();
                     LoadCarDetails(_carId);
                 }
+            }
+        }
+
+        private string _paymentStatus;
+        private string _walletAddress;
+        private BitmapImage _qrCodeImage;
+        private string _errorMessage;
+        private bool _isQrCodeVisible;
+        private bool _isPayButtonVisible;
+
+        public string PaymentStatus
+        {
+            get => _paymentStatus;
+            set
+            {
+                _paymentStatus = value;
+                OnPropertyChanged(nameof(PaymentStatus));
+            }
+        }
+
+        public string WalletAddress
+        {
+            get => _walletAddress;
+            set
+            {
+                _walletAddress = value;
+                OnPropertyChanged(nameof(WalletAddress));
+            }
+        }
+
+        public BitmapImage QrCodeImage
+        {
+            get => _qrCodeImage;
+            set
+            {
+                _qrCodeImage = value;
+                OnPropertyChanged(nameof(QrCodeImage));
+            }
+        }
+
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged(nameof(ErrorMessage));
+            }
+        }
+
+        public bool IsQrCodeVisible
+        {
+            get => _isQrCodeVisible;
+            set
+            {
+                _isQrCodeVisible = value;
+                OnPropertyChanged(nameof(IsQrCodeVisible));
+            }
+        }
+
+        public bool IsPayButtonVisible
+        {
+            get => _isPayButtonVisible;
+            set
+            {
+                _isPayButtonVisible = value;
+                OnPropertyChanged(nameof(IsPayButtonVisible));
             }
         }
 
@@ -69,33 +187,150 @@ namespace NextGen.src.UI.ViewModels
 
         public ICommand SaveContractCommand { get; }
         public ICommand CloseCommand { get; }
+        public ICommand PayCommand { get; }
 
-        public SalesContractViewModel(int carId)
+        private async Task Pay()
         {
-            _carService = new CarService();
-            _organizationService = new OrganizationService();
-            _documentGenerator = new DocumentGenerator();
-            _templateService = new TemplateService();
-            _userSessionService = UserSessionService.Instance;
+            Debug.WriteLine("Начало выполнения Pay()");
+            IsQrCodeVisible = false;
+            ErrorMessage = string.Empty;
+            PaymentStatus = "Идет генерация информации о платеже...";
 
-            SelectedCustomer = TempDataStore.SelectedCustomer;
-            SaveContractCommand = new RelayCommand(SaveContract);
-            CloseCommand = new RelayCommand(CloseWindow);
-            MissingFields = new ObservableCollection<string>();
+            decimal amountToPay = 0.5m; // Пример суммы для оплаты в TON
+            var paymentInfo = await GeneratePaymentInfo(amountToPay);
 
-            CarId = carId;  // Установите CarId и загрузите данные автомобиля
-
-            // Определяем путь до папки загрузок текущего пользователя
-            string downloadsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-            destinationFolder = Path.Combine(downloadsFolder, "NextGen Group");
-
-            // Создаем папку "NextGen Group" если ее нет
-            if (!Directory.Exists(destinationFolder))
+            if (!string.IsNullOrEmpty(paymentInfo.tonLink))
             {
-                Directory.CreateDirectory(destinationFolder);
+                Debug.WriteLine("Генерация и отображение QR-кода");
+                GenerateAndDisplayQRCode(paymentInfo.tonLink);
+                PaymentStatus = $"Expected Comment: {paymentInfo.uniqueId}\nExpected Amount: {amountToPay} TON (~{amountToPay * _tonToRubRate} рублей)";
+                WalletAddress = $"Wallet Address: {paymentInfo.address}";
+            }
+            else
+            {
+                Debug.WriteLine("Ошибка: Не удалось сгенерировать информацию о платеже");
+                ErrorMessage = "Failed to generate payment info.";
+                PaymentStatus = string.Empty;
             }
         }
 
+        public void UpdatePaymentStatus(PaymentNotification notification)
+        {
+            try
+            {
+                Debug.WriteLine("Начало выполнения UpdatePaymentStatus()");
+                var amountInTON = Convert.ToDecimal(notification.Amount) / 1_000_000_000;
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Debug.WriteLine("Обновление UI после успешной оплаты");
+                    QrCodeImage = null;
+                    IsQrCodeVisible = false;
+                    IsPayButtonVisible = false; // Скрываем кнопку оплаты
+
+                    PaymentStatus = $"Payment was successful!\n" +
+                                    $"Comment: {notification.Comment}\n" +
+                                    $"Amount: {amountInTON} TON (~{amountInTON * _tonToRubRate} рублей)\n" +
+                                    $"Sender: {notification.Sender}";
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in UpdatePaymentStatus: {ex.Message}");
+                throw; // Пробросьте исключение, чтобы его могли поймать на уровне сервиса
+            }
+        }
+
+
+
+        private async Task<(string tonLink, string uniqueId, string address)> GeneratePaymentInfo(decimal amount)
+        {
+            Debug.WriteLine("Начало выполнения GeneratePaymentInfo()");
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    var content = new StringContent(JsonSerializer.Serialize(new { amount }), Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync("http://localhost:3001/generate-payment", content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Debug.WriteLine($"Error: Server responded with status code: {response.StatusCode}");
+                        ErrorMessage = "Server error. Please try again later.";
+                        return (null, null, null);
+                    }
+
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"Received payment info: {responseBody}");
+                    var paymentInfo = JsonSerializer.Deserialize<PaymentInfoResponse>(responseBody);
+
+                    if (paymentInfo != null)
+                    {
+                        Debug.WriteLine($"Deserialized payment info: Address={paymentInfo.address}, UniqueId={paymentInfo.uniqueId}, Amount={paymentInfo.amount}, TonLink={paymentInfo.tonLink}");
+                        return (paymentInfo.tonLink, paymentInfo.uniqueId, paymentInfo.address);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Deserialization returned null.");
+                        ErrorMessage = "Failed to get payment data.";
+                        return (null, null, null);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error generating payment info: {ex.Message}");
+                    ErrorMessage = $"Error: {ex.Message}";
+                    return (null, null, null);
+                }
+            }
+        }
+
+        private void GenerateAndDisplayQRCode(string tonLink)
+        {
+            Debug.WriteLine("Начало выполнения GenerateAndDisplayQRCode()");
+            try
+            {
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(tonLink, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                QrCodeImage = ConvertToBitmapImage(qrCode.GetGraphic(20));
+                IsQrCodeVisible = true;
+                Debug.WriteLine("QR-код успешно сгенерирован и отображен");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Error displaying QR code: {ex.Message}";
+            }
+        }
+
+        private BitmapImage ConvertToBitmapImage(System.Drawing.Bitmap bitmap)
+        {
+            using (MemoryStream memory = new MemoryStream())
+            {
+                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
+                memory.Position = 0;
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = memory;
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.EndInit();
+                return bitmapImage;
+            }
+        }
+
+        public class PaymentInfoResponse
+        {
+            public string address { get; set; }
+            public string uniqueId { get; set; }
+            public string amount { get; set; }
+            public string tonLink { get; set; }
+        }
+
+        public class PaymentNotification
+        {
+            public string Comment { get; set; }
+            public string Amount { get; set; }
+            public string Sender { get; set; }
+        }
         private void LoadCarDetails(int carId)
         {
             var carDetails = _carService.GetCarDetails(carId);
@@ -241,7 +476,19 @@ namespace NextGen.src.UI.ViewModels
                 // Открываем проводник с папкой клиента
                 OpenFolder(customerFolderPath);
 
-                await ShowCustomMessageBox($"Документы для клиента {customerFullName} сохранены.", "Успех", CustomMessageBox.MessageKind.Success);
+                var changedFiles = new List<string>();
+                if (renamedContractPath != null) changedFiles.Add("Предварительный договор купли-продажи");
+                if (renamedActPath != null) changedFiles.Add("Акт приема-передачи");
+                if (renamedSaleContractPath != null) changedFiles.Add("Договор купли-продажи");
+
+                if (changedFiles.Count > 0)
+                {
+                    await ShowCustomMessageBox($"Документы для клиента {customerFullName} сохранены.\nИзмененные файлы: {string.Join(", ", changedFiles)}", "Успех", CustomMessageBox.MessageKind.Success);
+                }
+                else
+                {
+                    await ShowCustomMessageBox($"Документы для клиента {customerFullName} сохранены.", "Успех", CustomMessageBox.MessageKind.Success);
+                }
             }
             catch (Exception ex)
             {
@@ -358,7 +605,7 @@ namespace NextGen.src.UI.ViewModels
                 var result = await ShowCustomMessageBox(message, "Предупреждение", CustomMessageBox.MessageKind.Warning, true, "Заменить", "Отмена");
                 if (!result)
                 {
-                    return newFilePath; // Возвращаем путь к существующему файлу без замены
+                    return null; // Возвращаем null, если файл не был заменен
                 }
 
                 File.Delete(newFilePath);
@@ -385,7 +632,6 @@ namespace NextGen.src.UI.ViewModels
             var result = await DialogHost.Show(view, "RootDialogHost");
             return result is bool boolean && boolean;
         }
-
 
         private void DeleteTemporaryFile(string filePath)
         {
