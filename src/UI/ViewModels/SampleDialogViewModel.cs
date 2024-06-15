@@ -1,4 +1,5 @@
 ﻿using MaterialDesignThemes.Wpf;
+using Microsoft.Extensions.DependencyInjection;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
 using NextGen.src.UI.Helpers;
@@ -248,9 +249,12 @@ namespace NextGen.src.UI.ViewModels
             var carId = _carId;
             Debug.WriteLine($"CarId from SelectedCustomer: {carId}");
 
+            var viewModelFactory = NextGen.src.Services.ServiceProvider.Current.GetRequiredService<Func<int, SalesContractViewModel>>();
+            var viewModel = viewModelFactory(carId);
+
             var view = new SalesContractDialog
             {
-                DataContext = new SalesContractViewModel(carId)
+                DataContext = viewModel
             };
 
             var dashboardViewModel = Application.Current.Windows.OfType<DashboardWindow>().FirstOrDefault()?.DataContext as DashboardViewModel;
@@ -259,6 +263,11 @@ namespace NextGen.src.UI.ViewModels
                 dashboardViewModel.OpenSalesContractControl(view, SelectedCustomer.FirstName, SelectedCustomer.LastName, SelectedCustomer.Id, carId);
             }
         }
+
+
+
+
+
 
         private async Task<bool> ShowCustomMessageBox(string message, string title = "Уведомление", CustomMessageBox.MessageKind kind = CustomMessageBox.MessageKind.Notification, bool showSecondaryButton = false, string primaryButtonText = "ОК", string secondaryButtonText = "Отмена")
         {
