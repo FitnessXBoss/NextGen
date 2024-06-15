@@ -17,7 +17,7 @@ namespace NextGen.src.Services.Api
         }
 
         [HttpPost("paymentSuccessful")]
-        public IActionResult PaymentSuccessful([FromBody] PaymentNotification notification)
+        public async Task<IActionResult> PaymentSuccessful([FromBody] PaymentNotification notification)
         {
             try
             {
@@ -26,7 +26,7 @@ namespace NextGen.src.Services.Api
                 Debug.WriteLine($"Amount: {notification.Amount}");
                 Debug.WriteLine($"Sender: {notification.Sender}");
 
-                _paymentStatusService.UpdatePaymentStatus(notification);
+                await _paymentStatusService.UpdatePaymentStatusAsync(notification);
 
                 return Ok(new { message = "Payment received successfully", notification });
             }
@@ -36,5 +36,7 @@ namespace NextGen.src.Services.Api
                 return StatusCode(500, new { message = "Internal server error", error = ex.Message });
             }
         }
+
+
     }
 }

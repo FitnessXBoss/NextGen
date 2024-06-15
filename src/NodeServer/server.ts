@@ -132,6 +132,7 @@ async function notifyCSharpApp(transaction: any) {
             Comment: transaction.comment,
             Amount: transaction.value,
             Sender: transaction.sender,
+            CarId: 1 // Замените на реальное значение CarId
         }, {
             timeout: 10000 // Увеличиваем таймаут до 10 секунд
         });

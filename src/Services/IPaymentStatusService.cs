@@ -1,9 +1,10 @@
 ﻿using NextGen.src.Models;
+using System.Threading.Tasks;
 
 namespace NextGen.src.Services
 {
     public interface IPaymentStatusService
     {
-        void UpdatePaymentStatus(PaymentNotification notification);
+        Task UpdatePaymentStatusAsync(PaymentNotification notification);
     }
 }

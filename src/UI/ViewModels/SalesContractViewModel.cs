@@ -23,11 +23,14 @@ using System.Net.Http;
 using System.Text;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.ComponentModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 
 namespace NextGen.src.UI.ViewModels
 {
-    public class SalesContractViewModel : BaseViewModel
+    public class SalesContractViewModel : INotifyPropertyChanged
     {
         private readonly OrganizationService _organizationService;
         private readonly CarService _carService;
@@ -37,6 +40,7 @@ namespace NextGen.src.UI.ViewModels
         private readonly PaymentProcessor _paymentProcessor;
         private readonly string destinationFolder;
         private decimal _tonToRubRate;
+
 
         public SalesContractViewModel(
             OrganizationService organizationService,
@@ -226,7 +230,6 @@ namespace NextGen.src.UI.ViewModels
                     Debug.WriteLine("Обновление UI после успешной оплаты");
                     QrCodeImage = null;
                     IsQrCodeVisible = false;
-                    IsPayButtonVisible = false; // Скрываем кнопку оплаты
 
                     PaymentStatus = $"Payment was successful!\n" +
                                     $"Comment: {notification.Comment}\n" +
@@ -657,5 +660,13 @@ namespace NextGen.src.UI.ViewModels
                 dashboardViewModel.CurrentContent = null;
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
     }
 }

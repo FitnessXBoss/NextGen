@@ -1,28 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
+using NextGen.src.Services;
+using NextGen.src.Services.Api;
+using NextGen.src.Services.Document;
+using NextGen.src.UI.ViewModels;
 
 namespace NextGen.src.UI.Views.UserControls
 {
-    /// <summary>
-    /// Логика взаимодействия для SalesContractDialog.xaml
-    /// </summary>
     public partial class SalesContractDialog : UserControl
     {
         public SalesContractDialog()
         {
-            InitializeComponent();
+            InitializeComponent(); 
+            DataContext = new SalesContractViewModel(
+                new OrganizationService(),
+                new CarService(),
+                new DocumentGenerator(),
+                new TemplateService(),
+                UserSessionService.Instance,
+                PaymentProcessor.Instance
+            );
         }
     }
 }
