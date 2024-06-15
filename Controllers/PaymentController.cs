@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NextGen.src.Services;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace NextGen.src.Controllers
@@ -11,6 +12,7 @@ namespace NextGen.src.Controllers
     {
         private readonly ILogger<PaymentController> _logger;
         private readonly IPaymentStatusService _paymentStatusService;
+        private static readonly ConcurrentDictionary<string, PaymentNotification> _paymentNotifications = new();
 
         public PaymentController(ILogger<PaymentController> logger, IPaymentStatusService paymentStatusService)
         {
@@ -24,6 +26,8 @@ namespace NextGen.src.Controllers
             _logger.LogInformation("Received payment notification: {Comment}, {Amount}, {Sender}",
                 notification.Comment, notification.Amount, notification.Sender);
 
+            _paymentNotifications[notification.Comment] = notification;
+
             await _paymentStatusService.NotifyPaymentStatusAsync(notification);
 
             return Ok(new { message = "Payment received successfully" });
@@ -32,13 +36,18 @@ namespace NextGen.src.Controllers
         [HttpGet("checkStatus")]
         public IActionResult CheckStatus([FromQuery] string uniqueId)
         {
-            // Здесь должна быть логика проверки статуса платежа по uniqueId
-            // Возвращаем mock статус для примера
-            var isPaymentSuccessful = true; // Здесь нужно вставить реальную проверку
+            if (_paymentNotifications.TryGetValue(uniqueId, out var notification))
+            {
+                return Ok(new
+                {
+                    paymentReceived = true,
+                    notification.Comment,
+                    notification.Amount,
+                    notification.Sender
+                });
+            }
 
-            return Ok(new { IsPaymentSuccessful = isPaymentSuccessful });
+            return Ok(new { paymentReceived = false });
         }
-
-
     }
 }

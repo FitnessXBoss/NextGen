@@ -8,14 +8,19 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using QRCoder;
+using System.Diagnostics;
 
 namespace NextGen.src.UI.Views.UserControls
 {
     public partial class Sales : UserControl
     {
+        private const string CoinGeckoApiKey = "CG-yYqDknPmdtmAjMbuKhnP6y13";
+        private decimal _tonToRubRate = 0m;
+
         public Sales()
         {
             InitializeComponent();
+            LoadTonToRubRate();
         }
 
         private async void Payment(object sender, RoutedEventArgs e)
@@ -31,7 +36,7 @@ namespace NextGen.src.UI.Views.UserControls
                 PaymentStatusText.Text = $"Ожидаемый комментарий: {paymentInfo.uniqueId}\nОжидаемая сумма: {amountToPay} TON";
                 WalletAddressText.Text = $"Адрес кошелька: {paymentInfo.address}";
                 ErrorMessageText.Text = "";
-                await ListenForPaymentSuccess(paymentInfo.uniqueId);
+                await ListenForPaymentSuccess(paymentInfo.uniqueId, paymentInfo.address, amountToPay);
             }
             else
             {
@@ -103,7 +108,7 @@ namespace NextGen.src.UI.Views.UserControls
             }
         }
 
-        private async Task ListenForPaymentSuccess(string uniqueId)
+        private async Task ListenForPaymentSuccess(string uniqueId, string walletAddress, decimal amountToPay)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -111,25 +116,33 @@ namespace NextGen.src.UI.Views.UserControls
                 {
                     try
                     {
-                        var response = await client.GetAsync($"http://localhost:3001/checkStatus?uniqueId={uniqueId}");
+                        var response = await client.GetAsync($"http://localhost:5220/api/payment/checkStatus?uniqueId={uniqueId}");
                         if (response.IsSuccessStatusCode)
                         {
                             var responseBody = await response.Content.ReadAsStringAsync();
+                            Debug.WriteLine($"Response from server: {responseBody}");
                             var paymentStatus = JsonSerializer.Deserialize<PaymentStatusResponse>(responseBody);
 
-                            if (paymentStatus != null && paymentStatus.paymentReceived)
+                            if (paymentStatus != null)
                             {
-                                Application.Current.Dispatcher.Invoke(() =>
+                                Debug.WriteLine($"Parsed PaymentStatus: paymentReceived={paymentStatus.paymentReceived}, sender={paymentStatus.sender}");
+
+                                if (paymentStatus.paymentReceived)
                                 {
-                                    PaymentStatusText.Text = "Оплата прошла успешно!";
-                                    QrCodeImage.Visibility = Visibility.Collapsed;
-                                    PaymentButton.Visibility = Visibility.Collapsed;
-                                    ReceiptPanel.Visibility = Visibility.Visible;
-                                    ReceiptCommentText.Text = $"Комментарий: {paymentStatus.comment}";
-                                    ReceiptAmountText.Text = $"Сумма: {paymentStatus.amount} TON";
-                                    ReceiptSenderText.Text = $"Отправитель: {paymentStatus.sender}";
-                                });
-                                break;
+                                    var amountInRub = amountToPay * _tonToRubRate;
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        PaymentStatusText.Text = "Оплата прошла успешно!";
+                                        QrCodeImage.Visibility = Visibility.Collapsed;
+                                        PaymentButton.Visibility = Visibility.Collapsed;
+                                        ReceiptPanel.Visibility = Visibility.Visible;
+                                        ReceiptAddressText.Text = $"Адрес: {walletAddress}";
+                                        ReceiptSenderText.Text = $"Отправитель: {paymentStatus.sender}";
+                                        ReceiptAmountText.Text = $"Сумма: {amountToPay} TON";
+                                        ReceiptAmountRubText.Text = $"Сумма в рублях: {amountInRub} рублей";
+                                    });
+                                    break;
+                                }
                             }
                         }
                     }
@@ -139,6 +152,52 @@ namespace NextGen.src.UI.Views.UserControls
                     }
 
                     await Task.Delay(2000);
+                }
+            }
+        }
+
+
+
+
+        private async void LoadTonToRubRate()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=rub"),
+                    Headers =
+                    {
+                        { "accept", "application/json" },
+                        { "x-cg-demo-api-key", CoinGeckoApiKey },
+                    },
+                };
+                try
+                {
+                    using (var response = await client.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var body = await response.Content.ReadAsStringAsync();
+                        using (JsonDocument doc = JsonDocument.Parse(body))
+                        {
+                            if (doc.RootElement.TryGetProperty("the-open-network", out JsonElement tonElement) &&
+                                tonElement.TryGetProperty("rub", out JsonElement rubElement) &&
+                                rubElement.TryGetDecimal(out decimal rubValue))
+                            {
+                                _tonToRubRate = rubValue;
+                                AmountText.Text = $"Сумма: 1 TON (~{_tonToRubRate} рублей)";
+                            }
+                            else
+                            {
+                                throw new Exception("Invalid rate info received.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ErrorMessageText.Text = $"Ошибка загрузки курса TON к RUB: {ex.Message}";
                 }
             }
         }
@@ -168,4 +227,5 @@ namespace NextGen.src.UI.Views.UserControls
         public string amount { get; set; }
         public string sender { get; set; }
     }
+
 }

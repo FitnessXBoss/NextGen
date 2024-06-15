@@ -16,9 +16,10 @@
             <TextBlock Name="ErrorMessageText" HorizontalAlignment="Center" VerticalAlignment="Center" Text="" Margin="5" Foreground="Red"/>
             <StackPanel Name="ReceiptPanel" Visibility="Collapsed" Margin="10">
                 <TextBlock Text="Оплата прошла успешно!" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="10"/>
-                <TextBlock Name="ReceiptCommentText" HorizontalAlignment="Center" Margin="5"/>
-                <TextBlock Name="ReceiptAmountText" HorizontalAlignment="Center" Margin="5"/>
+                <TextBlock Name="ReceiptAddressText" HorizontalAlignment="Center" Margin="5"/>
                 <TextBlock Name="ReceiptSenderText" HorizontalAlignment="Center" Margin="5"/>
+                <TextBlock Name="ReceiptAmountText" HorizontalAlignment="Center" Margin="5"/>
+                <TextBlock Name="ReceiptAmountRubText" HorizontalAlignment="Center" Margin="5"/>
                 <Button Name="OkButton" Content="ОК" Click="OkButton_Click" Margin="5" HorizontalAlignment="Center"/>
             </StackPanel>
         </StackPanel>

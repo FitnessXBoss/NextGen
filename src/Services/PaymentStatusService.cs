@@ -12,11 +12,7 @@ namespace NextGen.src.Services
     {
         public Task NotifyPaymentStatusAsync(PaymentNotification notification)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                MessageBox.Show($"Payment received successfully!\nComment: {notification.Comment}\nAmount: {notification.Amount}\nSender: {notification.Sender}", "Payment Successful", MessageBoxButton.OK, MessageBoxImage.Information);
-            });
-
+            // Уведомление об успешной оплате
             return Task.CompletedTask;
         }
     }
