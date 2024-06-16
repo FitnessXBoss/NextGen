@@ -20,6 +20,7 @@ namespace NextGen.src.UI.Views.UserControls
         private decimal _amountToPay;
         private decimal _tonToRubRate;
         private int okButtonClickCount = 0;
+        private bool _paymentSuccessful = false;
 
         public Sales(decimal amountToPay, decimal tonToRubRate)
         {
@@ -147,20 +148,9 @@ namespace NextGen.src.UI.Views.UserControls
                                         ReceiptSenderText.Text = $"Отправитель: {paymentStatus.sender}";
                                         ReceiptAmountText.Text = $"Сумма: {amountToPay:F2} TON";
                                         ReceiptAmountRubText.Text = $"Сумма в рублях: {amountInRub:F2} рублей";
+                                        OkButton.Content = "Закрыть"; // Изменение текста кнопки
+                                        _paymentSuccessful = true; // Установка флага успешной оплаты
                                     });
-
-
-                                    // Returning payment result
-                                    var paymentResult = new PaymentResult
-                                    {
-                                        Amount = amountToPay,
-                                        AmountInRub = amountInRub / 10000,
-                                        Sender = paymentStatus.sender,
-                                        TonToRubRate = _tonToRubRate
-                                    };
-
-                                    DialogHost.CloseDialogCommand.Execute(paymentResult, this);
-
                                     break;
                                 }
                             }
@@ -223,14 +213,13 @@ namespace NextGen.src.UI.Views.UserControls
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            okButtonClickCount++;
-            if (okButtonClickCount == 2)
+            if (_paymentSuccessful)
             {
                 var paymentResult = new PaymentResult
                 {
                     Sender = ReceiptSenderText.Text,
                     Amount = _amountToPay,
-                    AmountInRub = _amountToPay * _tonToRubRate / 10000,
+                    AmountInRub = _amountToPay * _tonToRubRate,
                     TonToRubRate = _tonToRubRate
                 };
 
@@ -238,7 +227,11 @@ namespace NextGen.src.UI.Views.UserControls
             }
             else
             {
-                PaymentStatusText.Text = "Пожалуйста, нажмите кнопку еще раз для подтверждения.";
+                okButtonClickCount++;
+                if (okButtonClickCount == 2)
+                {
+                    PaymentStatusText.Text = "Пожалуйста, нажмите кнопку еще раз для подтверждения.";
+                }
             }
         }
 
