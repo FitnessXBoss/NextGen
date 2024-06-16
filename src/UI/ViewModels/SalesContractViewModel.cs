@@ -39,6 +39,9 @@ namespace NextGen.src.UI.ViewModels
         private readonly PaymentProcessor _paymentProcessor;
         private readonly string destinationFolder;
         private decimal _tonToRubRate;
+        private decimal _paymentAmount;
+        private decimal _paymentAmountInRub;
+        private string _paymentSender;
 
         public IRelayCommand OpenPaymentDialogCommand { get; }
 
@@ -58,8 +61,8 @@ namespace NextGen.src.UI.ViewModels
             SelectedCustomer = TempDataStore.SelectedCustomer;
             SaveContractCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(SaveContract);
             CloseCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(CloseWindow);
-            MissingFields = new ObservableCollection<string>();
             OpenPaymentDialogCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(OpenPaymentDialog);
+            MissingFields = new ObservableCollection<string>();
 
             // Определяем путь до папки загрузок текущего пользователя
             string downloadsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
@@ -70,14 +73,27 @@ namespace NextGen.src.UI.ViewModels
             {
                 Directory.CreateDirectory(destinationFolder);
             }
-
         }
+
         private async void OpenPaymentDialog()
         {
             var view = new Sales();
             var result = await DialogHost.Show(view, "RootDialogHost");
-            // Обработка результата, если нужно
+
+            if (result is PaymentResult paymentResult)
+            {
+                // Обработка результата оплаты
+                _paymentSender = paymentResult.Sender;
+                _paymentAmount = paymentResult.Amount;
+                _paymentAmountInRub = paymentResult.AmountInRub;
+                _tonToRubRate = paymentResult.TonToRubRate;
+
+                // Можно добавить логику здесь, если необходимо обновить UI или что-то ещё
+                Debug.WriteLine($"Payment Received: Sender={_paymentSender}, Amount={_paymentAmount}, Amount in RUB={_paymentAmountInRub}, Rate={_tonToRubRate}");
+            }
         }
+
+
         public void Initialize(int carId)
         {
             CarId = carId;
@@ -102,8 +118,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        
-
         public string CustomerFullName => SelectedCustomer != null ? $"{SelectedCustomer.FirstName} {SelectedCustomer.LastName}" : string.Empty;
         public string CustomerEmail => SelectedCustomer?.Email ?? string.Empty;
         public string CustomerPhone => SelectedCustomer?.Phone ?? string.Empty;
@@ -125,11 +139,8 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-
         public IRelayCommand SaveContractCommand { get; }
         public IRelayCommand CloseCommand { get; }
-
-       
 
         private void LoadCarDetails(int carId)
         {
@@ -182,52 +193,52 @@ namespace NextGen.src.UI.ViewModels
             string customerNameInInitials = ConvertToInitials(customerFullName);
 
             var placeholders = new Dictionary<string, string>
-            {
-                { "{{Название компании}}", organization.Name ?? string.Empty },
-                { "{{Адрес компании}}", organization.Address ?? string.Empty },
-                { "{{Телефон компании}}", organization.Phone ?? string.Empty },
-                { "{{Email компании}}", organization.Email ?? string.Empty },
-                { "{{Сайт компании}}", organization.Website ?? string.Empty },
-                { "{{Регистрационный номер компании}}", organization.RegistrationNumber ?? string.Empty },
-                { "{{ИНН компании}}", organization.INN ?? string.Empty },
-                { "{{КПП компании}}", organization.KPP ?? string.Empty },
-                { "{{ОКПО компании}}", organization.OKPO ?? string.Empty },
-                { "{{Рассчетный счет компании}}", organization.BankAccount ?? string.Empty },
-                { "{{Корреспондентский счет компании}}", organization.CorrespondentAccount ?? string.Empty },
-                { "{{Банк компании}}", organization.BankName ?? string.Empty },
-                { "{{БИК компании}}", organization.BIK ?? string.Empty },
+        {
+            { "{{Название компании}}", organization.Name ?? string.Empty },
+            { "{{Адрес компании}}", organization.Address ?? string.Empty },
+            { "{{Телефон компании}}", organization.Phone ?? string.Empty },
+            { "{{Email компании}}", organization.Email ?? string.Empty },
+            { "{{Сайт компании}}", organization.Website ?? string.Empty },
+            { "{{Регистрационный номер компании}}", organization.RegistrationNumber ?? string.Empty },
+            { "{{ИНН компании}}", organization.INN ?? string.Empty },
+            { "{{КПП компании}}", organization.KPP ?? string.Empty },
+            { "{{ОКПО компании}}", organization.OKPO ?? string.Empty },
+            { "{{Рассчетный счет компании}}", organization.BankAccount ?? string.Empty },
+            { "{{Корреспондентский счет компании}}", organization.CorrespondentAccount ?? string.Empty },
+            { "{{Банк компании}}", organization.BankName ?? string.Empty },
+            { "{{БИК компании}}", organization.BIK ?? string.Empty },
 
-                { "{{ФИО директора}}", organization.DirectorFullName ?? string.Empty },
-                { "{{Должность директора}}", organization.DirectorTitle ?? string.Empty },
-                { "{{Доверенность}}", organization.PowerOfAttorney ?? string.Empty },
-                { "{{Город}}", organization.City ?? string.Empty },
+            { "{{ФИО директора}}", organization.DirectorFullName ?? string.Empty },
+            { "{{Должность директора}}", organization.DirectorTitle ?? string.Empty },
+            { "{{Доверенность}}", organization.PowerOfAttorney ?? string.Empty },
+            { "{{Город}}", organization.City ?? string.Empty },
 
-                { "{{ФИО сотрудника}}", employeeFullName ?? string.Empty },
-                { "{{Должность сотрудника}}", "Старший менеджер отдела продаж" },
-                { "{{ФИО сотрудника в инициалах}}", employeeNameInInitials ?? string.Empty },
+            { "{{ФИО сотрудника}}", employeeFullName ?? string.Empty },
+            { "{{Должность сотрудника}}", "Старший менеджер отдела продаж" },
+            { "{{ФИО сотрудника в инициалах}}", employeeNameInInitials ?? string.Empty },
 
-                { "{{ФИО покупателя}}", customerFullName ?? string.Empty },
-                { "{{ФИО покупателя в инициалах}}", customerNameInInitials ?? string.Empty },
-                { "{{Номер паспорта покупателя}}", SelectedCustomer?.PassportNumber ?? string.Empty },
-                { "{{Дата выдачи паспорта}}", SelectedCustomer?.PassportIssueDate.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "{{Кем выдан паспорт}}", SelectedCustomer?.PassportIssuer ?? string.Empty },
-                { "{{Адрес покупателя}}", SelectedCustomer?.Address ?? string.Empty },
-                { "{{Телефон покупателя}}", CustomerPhone ?? string.Empty },
+            { "{{ФИО покупателя}}", customerFullName ?? string.Empty },
+            { "{{ФИО покупателя в инициалах}}", customerNameInInitials ?? string.Empty },
+            { "{{Номер паспорта покупателя}}", SelectedCustomer?.PassportNumber ?? string.Empty },
+            { "{{Дата выдачи паспорта}}", SelectedCustomer?.PassportIssueDate.ToString("dd.MM.yyyy") ?? string.Empty },
+            { "{{Кем выдан паспорт}}", SelectedCustomer?.PassportIssuer ?? string.Empty },
+            { "{{Адрес покупателя}}", SelectedCustomer?.Address ?? string.Empty },
+            { "{{Телефон покупателя}}", CustomerPhone ?? string.Empty },
 
-                { "{{Тип ТС}}", Car.CarBodyType ?? string.Empty },
-                { "{{Код модели}}", Car.TrimName ?? string.Empty },
-                { "{{Модель ТС}}", Car.ModelName ?? string.Empty },
-                { "{{Год выпуска ТС}}", Car.Year.ToString() ?? string.Empty },
-                { "{{Цвет ТС}}", Car.Color ?? string.Empty },
-                { "{{Мощность двигателя}}", Car.HorsePower ?? string.Empty },
-                { "{{VIN}}", Car.VIN ?? string.Empty },
-                { "{{Цена}}", Car.Price.ToString("C") ?? string.Empty },
-                { "{{Цена прописью}}", priceInWords },
+            { "{{Тип ТС}}", Car.CarBodyType ?? string.Empty },
+            { "{{Код модели}}", Car.TrimName ?? string.Empty },
+            { "{{Модель ТС}}", Car.ModelName ?? string.Empty },
+            { "{{Год выпуска ТС}}", Car.Year.ToString() ?? string.Empty },
+            { "{{Цвет ТС}}", Car.Color ?? string.Empty },
+            { "{{Мощность двигателя}}", Car.HorsePower ?? string.Empty },
+            { "{{VIN}}", Car.VIN ?? string.Empty },
+            { "{{Цена}}", Car.Price.ToString("C") ?? string.Empty },
+            { "{{Цена прописью}}", priceInWords },
 
-                { "{{Дата составления}}", ContractDate.ToString("dd.MM.yyyy") ?? string.Empty },
-                { "{{Номер договора}}", ContractNumber ?? string.Empty },
-                { "{{Дата договора}}", DateTime.Now.ToString("dd.MM.yyyy") ?? string.Empty }
-            };
+            { "{{Дата составления}}", ContractDate.ToString("dd.MM.yyyy") ?? string.Empty },
+            { "{{Номер договора}}", ContractNumber ?? string.Empty },
+            { "{{Дата договора}}", DateTime.Now.ToString("dd.MM.yyyy") ?? string.Empty }
+        };
 
             try
             {
@@ -458,4 +469,5 @@ namespace NextGen.src.UI.ViewModels
             }
         }
     }
+
 }
