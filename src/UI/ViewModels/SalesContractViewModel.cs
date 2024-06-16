@@ -26,6 +26,7 @@ using System.Text.Json;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Configuration;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -77,22 +78,73 @@ namespace NextGen.src.UI.ViewModels
 
         private async void OpenPaymentDialog()
         {
-            var view = new Sales();
+            // Получаем текущий курс TON к RUB
+            await LoadTonToRubRate();
+
+            // Расчитываем стоимость машины в TON
+            decimal carPrice = Car.Price; // Цена в рублях
+            decimal amountToPayInRubles = carPrice / 10000; // Уменьшаем сумму в 10000 раз (4700000 -> 470)
+            decimal amountToPayInTon = amountToPayInRubles / _tonToRubRate;
+
+            var view = new Sales(amountToPayInTon, _tonToRubRate);
             var result = await DialogHost.Show(view, "RootDialogHost");
 
-            if (result is PaymentResult paymentResult)
+            if (result is NextGen.src.UI.Views.UserControls.PaymentResult paymentResult)
             {
                 // Обработка результата оплаты
                 _paymentSender = paymentResult.Sender;
                 _paymentAmount = paymentResult.Amount;
-                _paymentAmountInRub = paymentResult.AmountInRub;
+                _paymentAmountInRub = paymentResult.AmountInRub * 10000; // Конвертируем обратно в изначальную сумму (470 -> 4700000)
                 _tonToRubRate = paymentResult.TonToRubRate;
 
-                // Можно добавить логику здесь, если необходимо обновить UI или что-то ещё
+                // Логика после успешного платежа
                 Debug.WriteLine($"Payment Received: Sender={_paymentSender}, Amount={_paymentAmount}, Amount in RUB={_paymentAmountInRub}, Rate={_tonToRubRate}");
             }
         }
 
+        private async Task LoadTonToRubRate()
+        {
+            var coinGeckoApiKey = ConfigurationManager.AppSettings["CoinGeckoApiKey"];
+
+            using (HttpClient client = new HttpClient())
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=rub"),
+                    Headers =
+                    {
+                        { "accept", "application/json" },
+                        { "x-cg-demo-api-key", coinGeckoApiKey },
+                    },
+                };
+                try
+                {
+                    using (var response = await client.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var body = await response.Content.ReadAsStringAsync();
+                        using (JsonDocument doc = JsonDocument.Parse(body))
+                        {
+                            if (doc.RootElement.TryGetProperty("the-open-network", out JsonElement tonElement) &&
+                                tonElement.TryGetProperty("rub", out JsonElement rubElement) &&
+                                rubElement.TryGetDecimal(out decimal rubValue))
+                            {
+                                _tonToRubRate = rubValue;
+                            }
+                            else
+                            {
+                                throw new Exception("Invalid rate info received.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Ошибка загрузки курса TON к RUB: {ex.Message}");
+                }
+            }
+        }
 
         public void Initialize(int carId)
         {

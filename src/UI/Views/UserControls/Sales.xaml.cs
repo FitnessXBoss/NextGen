@@ -11,19 +11,24 @@ using QRCoder;
 using System.Diagnostics;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.UI.Models;
+using System.Configuration;
 
 namespace NextGen.src.UI.Views.UserControls
 {
     public partial class Sales : UserControl
     {
-        private const string CoinGeckoApiKey = "CG-yYqDknPmdtmAjMbuKhnP6y13";
-        private decimal _tonToRubRate = 0m;
-        private decimal _amountToPay = 0.5m;
+        private decimal _amountToPay;
+        private decimal _tonToRubRate;
+        private int okButtonClickCount = 0;
 
-        public Sales()
+        public Sales(decimal amountToPay, decimal tonToRubRate)
         {
             InitializeComponent();
-            LoadTonToRubRate();
+            _amountToPay = amountToPay;
+            _tonToRubRate = tonToRubRate;
+            AmountText.Text = $"Сумма: {_amountToPay:F2} TON (~{(_amountToPay * _tonToRubRate):F2} рублей)";
+
+
         }
 
         private async void Payment(object sender, RoutedEventArgs e)
@@ -140,15 +145,16 @@ namespace NextGen.src.UI.Views.UserControls
                                         ReceiptPanel.Visibility = Visibility.Visible;
                                         ReceiptAddressText.Text = $"Адрес: {walletAddress}";
                                         ReceiptSenderText.Text = $"Отправитель: {paymentStatus.sender}";
-                                        ReceiptAmountText.Text = $"Сумма: {amountToPay} TON";
-                                        ReceiptAmountRubText.Text = $"Сумма в рублях: {amountInRub} рублей";
+                                        ReceiptAmountText.Text = $"Сумма: {amountToPay:F2} TON";
+                                        ReceiptAmountRubText.Text = $"Сумма в рублях: {amountInRub:F2} рублей";
                                     });
+
 
                                     // Returning payment result
                                     var paymentResult = new PaymentResult
                                     {
                                         Amount = amountToPay,
-                                        AmountInRub = amountInRub,
+                                        AmountInRub = amountInRub / 10000,
                                         Sender = paymentStatus.sender,
                                         TonToRubRate = _tonToRubRate
                                     };
@@ -172,6 +178,8 @@ namespace NextGen.src.UI.Views.UserControls
 
         private async void LoadTonToRubRate()
         {
+            var coinGeckoApiKey = ConfigurationManager.AppSettings["CoinGeckoApiKey"];
+
             using (HttpClient client = new HttpClient())
             {
                 var request = new HttpRequestMessage
@@ -179,10 +187,10 @@ namespace NextGen.src.UI.Views.UserControls
                     Method = HttpMethod.Get,
                     RequestUri = new Uri("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=rub"),
                     Headers =
-                    {
-                        { "accept", "application/json" },
-                        { "x-cg-demo-api-key", CoinGeckoApiKey },
-                    },
+            {
+                { "accept", "application/json" },
+                { "x-cg-demo-api-key", coinGeckoApiKey },
+            },
                 };
                 try
                 {
@@ -197,7 +205,7 @@ namespace NextGen.src.UI.Views.UserControls
                                 rubElement.TryGetDecimal(out decimal rubValue))
                             {
                                 _tonToRubRate = rubValue;
-                                AmountText.Text = $"Сумма: 1 TON (~{_tonToRubRate} рублей)";
+                                AmountText.Text = $"Сумма: 1 TON (~{_tonToRubRate:F2} рублей)";
                             }
                             else
                             {
@@ -215,16 +223,23 @@ namespace NextGen.src.UI.Views.UserControls
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            var paymentResult = new PaymentResult
+            okButtonClickCount++;
+            if (okButtonClickCount == 2)
             {
-                Sender = ReceiptSenderText.Text,
-                Amount = Convert.ToDecimal(ReceiptAmountText.Text.Replace(" TON", "")),
-                AmountInRub = Convert.ToDecimal(ReceiptAmountRubText.Text.Replace(" рублей", "")),
-                TonToRubRate = _tonToRubRate
-            };
+                var paymentResult = new PaymentResult
+                {
+                    Sender = ReceiptSenderText.Text,
+                    Amount = _amountToPay,
+                    AmountInRub = _amountToPay * _tonToRubRate / 10000,
+                    TonToRubRate = _tonToRubRate
+                };
 
-            // Закрытие DialogHost с результатом
-            DialogHost.CloseDialogCommand.Execute(paymentResult, this);
+                DialogHost.CloseDialogCommand.Execute(paymentResult, this);
+            }
+            else
+            {
+                PaymentStatusText.Text = "Пожалуйста, нажмите кнопку еще раз для подтверждения.";
+            }
         }
 
     }
@@ -243,5 +258,13 @@ namespace NextGen.src.UI.Views.UserControls
         public string comment { get; set; }
         public string amount { get; set; }
         public string sender { get; set; }
+    }
+
+    public class PaymentResult
+    {
+        public decimal Amount { get; set; }
+        public decimal AmountInRub { get; set; }
+        public string Sender { get; set; }
+        public decimal TonToRubRate { get; set; }
     }
 }
