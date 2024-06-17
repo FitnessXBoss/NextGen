@@ -39,6 +39,12 @@ namespace NextGen.src.Services
 
         public void RecordPayment(int carId, string sender, decimal amount)
         {
+            // Убираем префикс "Отправитель: " если он присутствует
+            if (sender.StartsWith("Отправитель: "))
+            {
+                sender = sender.Substring("Отправитель: ".Length);
+            }
+
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
@@ -52,6 +58,7 @@ namespace NextGen.src.Services
                 cmd.ExecuteNonQuery();
             }
         }
+
 
         public IEnumerable<Sale> GetSalesByCustomerId(int customerId)
         {

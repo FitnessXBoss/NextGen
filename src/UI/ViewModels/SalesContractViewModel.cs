@@ -183,7 +183,8 @@ namespace NextGen.src.UI.ViewModels
                     new XRect(0, 0, page.Width, 50),
                     XStringFormats.TopCenter);
 
-                gfx.DrawString($"Отправитель: {_paymentSender}", font, XBrushes.Black,
+                string maskedSender = MaskString(_paymentSender.Replace("Отправитель: ", ""));
+                gfx.DrawString($"Отправитель: {maskedSender}", font, XBrushes.Black,
                     new XRect(20, 50, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
 
@@ -195,11 +196,91 @@ namespace NextGen.src.UI.ViewModels
                     new XRect(20, 90, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
 
+                gfx.DrawString($"ID Клиента: {SelectedCustomer.Id}", font, XBrushes.Black,
+                    new XRect(20, 110, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Автомобиль: {Car.ModelName} {Car.TrimName} ({Car.Year})", font, XBrushes.Black,
+                    new XRect(20, 130, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"VIN: {MaskString(Car.VIN)}", font, XBrushes.Black,
+                    new XRect(20, 150, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Цвет: {Car.Color}", font, XBrushes.Black,
+                    new XRect(20, 170, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Мощность двигателя: {Car.HorsePower} л.с.", font, XBrushes.Black,
+                    new XRect(20, 190, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                decimal priceWithoutVat = Car.Price / 1.2m; // Цена без НДС
+                decimal vatAmount = Car.Price - priceWithoutVat; // Сумма НДС
+
+                gfx.DrawString($"Цена без НДС: {priceWithoutVat:C}", font, XBrushes.Black,
+                    new XRect(20, 210, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Сумма НДС (20%): {vatAmount:C}", font, XBrushes.Black,
+                    new XRect(20, 230, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Итоговая цена: {Car.Price:C}", font, XBrushes.Black,
+                    new XRect(20, 250, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Продавец: {_userSessionService.CurrentUser.FullName}", font, XBrushes.Black,
+                    new XRect(20, 270, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Компания: {_organizationService.GetOrganization().Name}", font, XBrushes.Black,
+                    new XRect(20, 290, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                gfx.DrawString($"Уникальный номер: {Guid.NewGuid()}", font, XBrushes.Black,
+                    new XRect(20, 310, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
                 document.Save(receiptPath);
             }
 
             return receiptPath;
         }
+
+        private string MaskString(string input)
+        {
+            if (string.IsNullOrEmpty(input) || input.Length <= 4)
+                return input;
+
+            char[] maskedArray = input.ToCharArray();
+            Random random = new Random();
+
+            // Определяем количество символов, которые нужно заменить на звездочки
+            int maskLength = (int)(maskedArray.Length * 0.6); // Например, 60% символов будут заменены
+
+            // Создаем список индексов, которые нужно заменить
+            HashSet<int> indicesToMask = new HashSet<int>();
+            while (indicesToMask.Count < maskLength)
+            {
+                int randomIndex = random.Next(1, maskedArray.Length - 1); // Пропускаем первый и последний символ
+                indicesToMask.Add(randomIndex);
+            }
+
+            // Заменяем выбранные индексы на звездочки
+            foreach (int index in indicesToMask)
+            {
+                maskedArray[index] = '*';
+            }
+
+            return new string(maskedArray);
+        }
+
+
+
+
+
 
         private void GenerateRemainingDocuments(string customerFolderPath)
         {
