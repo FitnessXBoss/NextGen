@@ -11,6 +11,7 @@ using NextGen.src.Services;
 using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.UI.ViewModels;
+using System.Text; // Добавьте этот using
 
 namespace NextGen
 {
@@ -24,6 +25,9 @@ namespace NextGen
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Регистрация провайдера кодировок
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             base.OnStartup(e);
 
             CultureInfo culture = new CultureInfo("ru-RU");
@@ -57,6 +61,7 @@ namespace NextGen
                     });
 
                     services.AddScoped<IPaymentStatusService, PaymentStatusService>();
+                    services.AddScoped<SaleService>(); // Регистрация SaleService
                 })
                 .Build();
 

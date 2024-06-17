@@ -12,6 +12,7 @@ namespace NextGen.src
         {
             services.AddControllers();
             services.AddScoped<IPaymentStatusService, PaymentStatusService>();
+            services.AddScoped<SaleService>(); // Регистрация SaleService
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

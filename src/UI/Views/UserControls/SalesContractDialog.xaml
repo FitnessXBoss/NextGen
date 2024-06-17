@@ -15,15 +15,16 @@
     <materialDesign:DialogHost x:Name="RootDialogHost" Identifier="RootDialogHost">
         <ScrollViewer>
             <StackPanel>
-                <Button x:Name="PayButton" Content="Оплатить" 
-                        Command="{Binding OpenPaymentDialogCommand}" 
-                        Style="{StaticResource MaterialDesignRaisedButton}" 
-                        Margin="0,20,0,0"/>
-
-                <Button Content="Оформить договор" 
+                <Button x:Name="GeneratePreliminaryContractButton" Content="Предварительный договор купли-продажи" 
                         Command="{Binding SaveContractCommand}" 
                         Style="{StaticResource MaterialDesignRaisedButton}" 
                         Margin="0,20,0,0"/>
+
+                <Button x:Name="PayButton" Content="Оплатить" 
+                        Command="{Binding OpenPaymentDialogCommand}" 
+                        Style="{StaticResource MaterialDesignRaisedButton}" 
+                        Margin="0,20,0,0"
+                        IsEnabled="{Binding IsPreliminaryContractGenerated}"/>
 
                 <Button Content="Закрыть" 
                         Command="{Binding CloseCommand}" 
