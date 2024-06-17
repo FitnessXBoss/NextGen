@@ -171,76 +171,134 @@ namespace NextGen.src.UI.ViewModels
 
         private string GeneratePdfReceipt(string customerFolderPath)
         {
+            var organization = _organizationService.GetOrganization();
+
             string receiptPath = Path.Combine(customerFolderPath, $"Чек_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
             using (PdfDocument document = new PdfDocument())
             {
                 PdfPage page = document.AddPage();
                 XGraphics gfx = XGraphics.FromPdfPage(page);
-                XFont font = new XFont("Verdana", 12, XFontStyle.Regular);
+                XFont font = new XFont("Verdana", 10, XFontStyle.Regular);
+                XFont boldFont = new XFont("Verdana", 10, XFontStyle.Bold);
 
-                gfx.DrawString("Чек об оплате", font, XBrushes.Black,
-                    new XRect(0, 0, page.Width, 50),
+                double yPoint = 0;
+
+                // Заголовок
+                gfx.DrawString("Товарный чек", boldFont, XBrushes.Black,
+                    new XRect(0, yPoint, page.Width, 20),
                     XStringFormats.TopCenter);
+                yPoint += 20;
 
-                string maskedSender = MaskString(_paymentSender.Replace("Отправитель: ", ""));
-                gfx.DrawString($"Отправитель: {maskedSender}", font, XBrushes.Black,
-                    new XRect(20, 50, page.Width - 40, page.Height),
+                // Информация о компании
+                gfx.DrawString(organization.Name, font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
-                gfx.DrawString($"Сумма: {_paymentAmountInRub:F2} рублей", font, XBrushes.Black,
-                    new XRect(20, 70, page.Width - 40, page.Height),
+                gfx.DrawString($"ИНН: {organization.INN}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
-                gfx.DrawString($"Дата: {DateTime.Now:dd.MM.yyyy HH:mm:ss}", font, XBrushes.Black,
-                    new XRect(20, 90, page.Width - 40, page.Height),
+                gfx.DrawString(organization.Website, font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
-                gfx.DrawString($"ID Клиента: {SelectedCustomer.Id}", font, XBrushes.Black,
-                    new XRect(20, 110, page.Width - 40, page.Height),
+                // Дата
+                gfx.DrawString($"Дата: {DateTime.Now:dd.MM.yyyy / HH:mm}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Автомобиль
                 gfx.DrawString($"Автомобиль: {Car.ModelName} {Car.TrimName} ({Car.Year})", font, XBrushes.Black,
-                    new XRect(20, 130, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // VIN
                 gfx.DrawString($"VIN: {MaskString(Car.VIN)}", font, XBrushes.Black,
-                    new XRect(20, 150, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Цвет
                 gfx.DrawString($"Цвет: {Car.Color}", font, XBrushes.Black,
-                    new XRect(20, 170, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Мощность двигателя
                 gfx.DrawString($"Мощность двигателя: {Car.HorsePower} л.с.", font, XBrushes.Black,
-                    new XRect(20, 190, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Расчет стоимости с НДС
                 decimal priceWithoutVat = Car.Price / 1.2m; // Цена без НДС
                 decimal vatAmount = Car.Price - priceWithoutVat; // Сумма НДС
 
                 gfx.DrawString($"Цена без НДС: {priceWithoutVat:C}", font, XBrushes.Black,
-                    new XRect(20, 210, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
                 gfx.DrawString($"Сумма НДС (20%): {vatAmount:C}", font, XBrushes.Black,
-                    new XRect(20, 230, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
-                gfx.DrawString($"Итоговая цена: {Car.Price:C}", font, XBrushes.Black,
-                    new XRect(20, 250, page.Width - 40, page.Height),
+                gfx.DrawString($"Итоговая цена: {Car.Price:C}", boldFont, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Информация о клиенте
+                gfx.DrawString($"ID Клиента: {SelectedCustomer.Id}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Продавец и компания
                 gfx.DrawString($"Продавец: {_userSessionService.CurrentUser.FullName}", font, XBrushes.Black,
-                    new XRect(20, 270, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
-                gfx.DrawString($"Компания: {_organizationService.GetOrganization().Name}", font, XBrushes.Black,
-                    new XRect(20, 290, page.Width - 40, page.Height),
+                gfx.DrawString($"Компания: {organization.Name}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
+                yPoint += 20;
 
+                // Уникальный номер
                 gfx.DrawString($"Уникальный номер: {Guid.NewGuid()}", font, XBrushes.Black,
-                    new XRect(20, 310, page.Width - 40, page.Height),
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
                     XStringFormats.TopLeft);
 
                 document.Save(receiptPath);
@@ -254,28 +312,20 @@ namespace NextGen.src.UI.ViewModels
             if (string.IsNullOrEmpty(input) || input.Length <= 4)
                 return input;
 
-            char[] maskedArray = input.ToCharArray();
+            int length = input.Length;
             Random random = new Random();
+            char[] masked = input.ToCharArray();
 
-            // Определяем количество символов, которые нужно заменить на звездочки
-            int maskLength = (int)(maskedArray.Length * 0.6); // Например, 60% символов будут заменены
-
-            // Создаем список индексов, которые нужно заменить
-            HashSet<int> indicesToMask = new HashSet<int>();
-            while (indicesToMask.Count < maskLength)
+            for (int i = 2; i < length - 2; i++)
             {
-                int randomIndex = random.Next(1, maskedArray.Length - 1); // Пропускаем первый и последний символ
-                indicesToMask.Add(randomIndex);
+                if (random.Next(0, 2) == 0)
+                    masked[i] = '*';
             }
 
-            // Заменяем выбранные индексы на звездочки
-            foreach (int index in indicesToMask)
-            {
-                maskedArray[index] = '*';
-            }
-
-            return new string(maskedArray);
+            return new string(masked);
         }
+
+
 
 
 
