@@ -6,6 +6,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:NextGen.src.UI.ViewModels"
+     xmlns:oxy="http://oxyplot.org/wpf"
     FontFamily="Nont"
     mc:Ignorable="d">
 
@@ -191,15 +192,9 @@
                 <StackPanel>
                     <TextBlock
                         FontSize="16"
-                        FontWeight="Bold"
-                        Text="Отзывы клиентов" />
-                    <ListView ItemsSource="{Binding CustomerFeedbacks}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding FeedbackText}" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+                        FontWeight="Bold" Margin="0,0,0,5"
+                        Text="График продаж за день" />
+                    <oxy:PlotView Model="{Binding SalesPlotModel}" Height="200"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>

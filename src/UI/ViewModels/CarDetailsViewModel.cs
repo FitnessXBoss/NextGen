@@ -51,6 +51,38 @@ namespace NextGen.src.UI.ViewModels
         private string _carAcceleration;
         private string _carBodyType;
 
+        private CarDetails _carDetails;
+        public CarDetails CarDetails
+        {
+            get => _carDetails;
+            set
+            {
+                _carDetails = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(AvailabilityText));
+                OnPropertyChanged(nameof(CarFullName));
+                OnPropertyChanged(nameof(CarPrice));
+                OnPropertyChanged(nameof(IsAvailableForOrder));
+            }
+        }
+
+        public bool IsAvailableForOrder => _carDetails != null && !string.IsNullOrEmpty(_carDetails.Status) && !_carDetails.Status.Equals("sold", StringComparison.OrdinalIgnoreCase);
+
+        public string AvailabilityText
+        {
+            get
+            {
+                Debug.WriteLine($"Checking AvailabilityText: CarDetails.Status={_carDetails?.Status}");
+
+                if (_carDetails == null || string.IsNullOrEmpty(_carDetails.Status) || !_carDetails.Status.Equals("sold", StringComparison.OrdinalIgnoreCase))
+                {
+                    string currentDate = DateTime.Now.ToString("dd.MM.yyyy");
+                    return $"Доступен к заказу • {currentDate}";
+                }
+                return "Не доступен к заказу";
+            }
+        }
+
         public int CarId
         {
             get => _carId;
@@ -473,8 +505,13 @@ namespace NextGen.src.UI.ViewModels
             CarTrimName = details.TrimName;
 
             MonthlyPayment = CarPrice / 36; // 36 месяцев для расчета на сумму
+
+            // Устанавливаем CarDetails
+            CarDetails = details;
+
             Debug.WriteLine($"Loaded Car Details: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
         }
+
 
         private async void ExecuteRunExtendedDialog(int carId)
         {

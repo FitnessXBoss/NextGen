@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using NextGen.src.UI.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +25,7 @@ namespace NextGen.src.UI.Views.UserControls
         public MoneyControl()
         {
             InitializeComponent();
+            DataContext = new MoneyViewModel();
         }
     }
 }
