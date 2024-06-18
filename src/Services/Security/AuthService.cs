@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using OtpNet; // Добавьте пакет Otp.Net для работы с TOTP
 
 namespace NextGen.src.Services.Security
 {
@@ -37,6 +38,7 @@ namespace NextGen.src.Services.Security
                                         Username = reader.GetString(1),
                                         EmployeeId = reader.GetInt32(4)
                                     };
+
                                     UserSessionService.Instance.SetCurrentUser(user); // Устанавливаем текущего пользователя
                                     return (user, null);
                                 }
@@ -47,15 +49,79 @@ namespace NextGen.src.Services.Security
             }
             catch (NpgsqlException ex)
             {
-                Console.WriteLine($"Database connection error: {ex.Message}");
+                Debug.WriteLine($"Database connection error: {ex.Message}");
                 return (null, "Ошибка подключения к базе данных!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Authentication error: {ex.Message}");
+                Debug.WriteLine($"Authentication error: {ex.Message}");
             }
             return (null, "Неверное имя пользователя или пароль!");
         }
+
+
+        public async Task SaveSecretKeyAsync(string username, string secretKey)
+        {
+            try
+            {
+                using (var conn = await GetConnectionAsync())
+                {
+                    var cmd = new NpgsqlCommand("UPDATE users SET totp_secret = @secretKey, two_factor_enabled = true WHERE username = @username", conn);
+                    cmd.Parameters.AddWithValue("@secretKey", secretKey);
+                    cmd.Parameters.AddWithValue("@username", username);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error saving secret key: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool, string?)> ValidateTwoFactorCodeAsync(int userId, string code)
+        {
+            try
+            {
+                using (var conn = await GetConnectionAsync())
+                {
+                    using (var cmd = new NpgsqlCommand("SELECT totp_secret FROM users WHERE user_id = @userId", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@userId", userId);
+                        using (var reader = await ExecuteReaderWithRetryAsync(cmd))
+                        {
+                            if (reader.Read())
+                            {
+                                var totpSecret = reader.GetString(0);
+                                var totp = new Totp(Base32Encoding.ToBytes(totpSecret));
+                                if (totp.VerifyTotp(code, out long _))
+                                {
+                                    return (true, null);
+                                }
+                                else
+                                {
+                                    return (false, "Неверный код двухфакторной аутентификации.");
+                                }
+                            }
+                            else
+                            {
+                                return (false, "Пользователь не найден.");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (NpgsqlException ex)
+            {
+                Debug.WriteLine($"Database connection error: {ex.Message}");
+                return (false, "Ошибка подключения к базе данных!");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Authentication error: {ex.Message}");
+                return (false, "Ошибка при проверке кода.");
+            }
+        }
+
 
         public async Task<bool> RegisterUserAsync(string username, string password)
         {
@@ -63,14 +129,18 @@ namespace NextGen.src.Services.Security
             {
                 using (var conn = await GetConnectionAsync())
                 {
-                    var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt) VALUES (@username, @hash, @salt)", conn);
+                    var cmd = new NpgsqlCommand("INSERT INTO users (username, password_hash, salt, totp_secret, two_factor_enabled) VALUES (@username, @hash, @salt, @totpSecret, @twoFactorEnabled)", conn);
                     var salt = GenerateSalt();
                     var hash = HashPassword(password, salt);
                     var saltBase64 = Convert.ToBase64String(salt);
+                    var totpSecret = KeyGeneration.GenerateRandomKey(20); // Генерация случайного секретного ключа для TOTP
+                    var totpSecretBase32 = Base32Encoding.ToString(totpSecret);
 
                     cmd.Parameters.AddWithValue("@username", username);
                     cmd.Parameters.AddWithValue("@hash", hash);
                     cmd.Parameters.AddWithValue("@salt", saltBase64);
+                    cmd.Parameters.AddWithValue("@totpSecret", totpSecretBase32);
+                    cmd.Parameters.AddWithValue("@twoFactorEnabled", true);
 
                     int result = await cmd.ExecuteNonQueryAsync();
                     return result > 0;
@@ -79,7 +149,7 @@ namespace NextGen.src.Services.Security
             catch (Exception ex)
             {
                 // Логирование ошибок базы данных или других исключений
-                Console.WriteLine($"Registration error: {ex.Message}");
+                Debug.WriteLine($"Registration error: {ex.Message}");
                 return false;
             }
         }
@@ -107,7 +177,7 @@ namespace NextGen.src.Services.Security
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating user credentials: {ex.Message}");
+                Debug.WriteLine($"Error updating user credentials: {ex.Message}");
                 return false;
             }
         }

@@ -34,11 +34,11 @@ public class UserSessionService
             using (var conn = await _databaseService.GetConnectionAsync())
             {
                 using (var cmd = new NpgsqlCommand(@"
-            SELECT u.user_id, u.username, u.last_login, e.employee_id, e.first_name, e.middle_name, e.last_name, e.role_id, e.email, e.phone, e.address, e.photo_url, r.role_name, r.permissions 
-            FROM employees e 
-            JOIN users u ON e.employee_id = u.employee_id 
-            JOIN roles r ON e.role_id = r.role_id 
-            WHERE u.employee_id = @employeeId", conn))
+        SELECT u.user_id, u.username, u.last_login, e.employee_id, e.first_name, e.middle_name, e.last_name, e.role_id, e.email, e.phone, e.address, e.photo_url, r.role_name, r.permissions 
+        FROM employees e 
+        JOIN users u ON e.employee_id = u.employee_id 
+        JOIN roles r ON e.role_id = r.role_id 
+        WHERE u.employee_id = @employeeId", conn))
                 {
                     cmd.Parameters.AddWithValue("@employeeId", CurrentUser.EmployeeId);
                     using (var reader = await cmd.ExecuteReaderAsync())
@@ -53,6 +53,7 @@ public class UserSessionService
                             CurrentUser.RoleName = reader.GetString(12);     // role_name
                             CurrentUser.Permissions = reader.GetString(13);  // permissions JSON
                             CurrentUser.PhotoUrl = reader.IsDBNull(11) ? null : reader.GetString(11); // photo_url
+                            CurrentUser.Email = reader.GetString(8); // email
                             return true; // Данные успешно загружены
                         }
                     }

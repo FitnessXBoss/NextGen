@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace NextGen.src.Services.Api
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
+                Debug.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
                 return new List<string>();
             }
         }
@@ -70,7 +71,7 @@ namespace NextGen.src.Services.Api
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
+                Debug.WriteLine($"Ошибка при получении подсказок: {ex.Message}");
                 return new List<string>();
             }
         }

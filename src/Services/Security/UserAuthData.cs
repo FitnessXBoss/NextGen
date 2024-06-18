@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Diagnostics;
 
 
 namespace NextGen.src.Services.Security
@@ -15,6 +16,7 @@ namespace NextGen.src.Services.Security
         public string? PhotoUrl { get; set; }
         public string? RoleName { get; set; }
         public string? Permissions { get; set; }
+        public string? Email { get; set; }
 
         public bool HasPermission(string permission)
         {
@@ -33,7 +35,7 @@ namespace NextGen.src.Services.Security
             }
             catch (JsonException ex)
             {
-                Console.WriteLine("Error parsing JSON: " + ex.Message);  // Логирование ошибки десериализации
+                Debug.WriteLine("Error parsing JSON: " + ex.Message);  // Логирование ошибки десериализации
             }
             return false;
         }

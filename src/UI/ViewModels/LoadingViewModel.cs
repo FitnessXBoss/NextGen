@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using NextGen.src.Services;
@@ -93,7 +94,7 @@ namespace NextGen.src.UI.ViewModels
             }
             else
             {
-                Console.WriteLine("CurrentUser is null after LoadAdditionalUserData");
+                Debug.WriteLine("CurrentUser is null after LoadAdditionalUserData");
             }
         }
 
