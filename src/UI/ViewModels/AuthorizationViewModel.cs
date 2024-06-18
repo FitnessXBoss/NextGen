@@ -5,9 +5,9 @@ using NextGen.src.Services;
 using NextGen.src.Services.Security;
 using NextGen.src.UI.Helpers;
 using MaterialDesignThemes.Wpf;
+using System.Threading.Tasks;
 using NextGen.src.UI.Views;
 using System.Windows.Controls;
-using System.Threading.Tasks;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -31,6 +31,8 @@ namespace NextGen.src.UI.ViewModels
 
         public ICommand LoginCommand { get; private set; }
         public ICommand ToggleThemeCommand { get; private set; }
+        public ICommand ResetPasswordCommand { get; private set; }
+        public ICommand ExitCommand { get; private set; }
 
         public static UserAuthData? CurrentUser { get; private set; }
 
@@ -38,6 +40,8 @@ namespace NextGen.src.UI.ViewModels
         {
             LoginCommand = new RelayCommand(async () => await LoginAsync());
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
+            ResetPasswordCommand = new RelayCommand(ShowResetPasswordDialog);
+            ExitCommand = new RelayCommand(ExitApplication);
         }
 
         private void ToggleTheme()
@@ -79,6 +83,19 @@ namespace NextGen.src.UI.ViewModels
                     Padding = new Thickness(20)
                 }, "RootDialog");
             });
+        }
+
+        private void ShowResetPasswordDialog()
+        {
+            Application.Current.Dispatcher.Invoke(async () =>
+            {
+                await DialogHost.Show(new Views.UserControls.PasswordResetDialog(), "RootDialog");
+            });
+        }
+
+        private void ExitApplication()
+        {
+            Application.Current.Shutdown();
         }
     }
 }

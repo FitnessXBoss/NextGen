@@ -37,6 +37,29 @@ namespace NextGen.src.Services
             }
         }
 
+        public void RecordPayment(int carId, string sender, decimal amount)
+        {
+            // Убираем префикс "Отправитель: " если он присутствует
+            if (sender.StartsWith("Отправитель: "))
+            {
+                sender = sender.Substring("Отправитель: ".Length);
+            }
+
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                // Вставка данных об оплате
+                var cmd = new NpgsqlCommand("INSERT INTO payments (car_id, sender, amount, payment_date) VALUES (@car_id, @sender, @amount, @payment_date)", connection);
+                cmd.Parameters.AddWithValue("car_id", carId);
+                cmd.Parameters.AddWithValue("sender", sender);
+                cmd.Parameters.AddWithValue("amount", amount);
+                cmd.Parameters.AddWithValue("payment_date", DateTime.Now);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
         public IEnumerable<Sale> GetSalesByCustomerId(int customerId)
         {
             var sales = new List<Sale>();

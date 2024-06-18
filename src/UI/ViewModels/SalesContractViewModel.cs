@@ -3,31 +3,30 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
 using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.Services.Security;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Configuration;
+using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 using NextGen.src.UI.Helpers;
-using NextGen.src.UI.Models;    
-using NextGen.src.UI.Views;
+using NextGen.src.UI.Models;
 using NextGen.src.UI.Views.UserControls;
-using System.Windows.Media.Imaging;
-using QRCoder;
-using static NextGen.src.Services.Api.PaymentProcessor;
-using System.Net.Http;
-using System.Text;
-using System.Net.Http.Headers;
-using System.Text.Json;
-
+using NextGen.src.UI.Views;
 
 namespace NextGen.src.UI.ViewModels
 {
-    public class SalesContractViewModel : BaseViewModel
+    public partial class SalesContractViewModel : ObservableObject
     {
         private readonly OrganizationService _organizationService;
         private readonly CarService _carService;
@@ -35,8 +34,17 @@ namespace NextGen.src.UI.ViewModels
         private readonly TemplateService _templateService;
         private readonly UserSessionService _userSessionService;
         private readonly PaymentProcessor _paymentProcessor;
+        private readonly SaleService _saleService;
         private readonly string destinationFolder;
         private decimal _tonToRubRate;
+        private decimal _paymentAmountInRub;
+        private string _paymentSender;
+        private bool _isPreliminaryContractGenerated;
+
+        public IRelayCommand OpenPaymentDialogCommand { get; }
+        public IRelayCommand SaveContractCommand { get; }
+        public IRelayCommand CloseCommand { get; }
+        public ObservableCollection<string> MissingFields { get; }
 
         public SalesContractViewModel(
             OrganizationService organizationService,
@@ -44,19 +52,19 @@ namespace NextGen.src.UI.ViewModels
             DocumentGenerator documentGenerator,
             TemplateService templateService,
             UserSessionService userSessionService,
-            PaymentProcessor paymentProcessor)
+            SaleService saleService)
         {
             _organizationService = organizationService;
             _carService = carService;
             _documentGenerator = documentGenerator;
             _templateService = templateService;
             _userSessionService = userSessionService;
-            _paymentProcessor = paymentProcessor;
+            _saleService = saleService;
 
             SelectedCustomer = TempDataStore.SelectedCustomer;
-            SaveContractCommand = new RelayCommand(SaveContract);
-            CloseCommand = new RelayCommand(CloseWindow);
-            PayCommand = new RelayCommand(async () => await Pay());
+            SaveContractCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(async () => await SaveContract());
+            CloseCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(CloseWindow);
+            OpenPaymentDialogCommand = new CommunityToolkit.Mvvm.Input.RelayCommand(async () => await OpenPaymentDialog(), () => _isPreliminaryContractGenerated);
             MissingFields = new ObservableCollection<string>();
 
             // Определяем путь до папки загрузок текущего пользователя
@@ -68,9 +76,343 @@ namespace NextGen.src.UI.ViewModels
             {
                 Directory.CreateDirectory(destinationFolder);
             }
+        }
 
-            _tonToRubRate = _paymentProcessor.GetTonToRubRate();
-            IsPayButtonVisible = true;
+        private async Task OpenPaymentDialog()
+        {
+            // Получаем текущий курс TON к RUB
+            await LoadTonToRubRate();
+
+            // Расчитываем стоимость машины в TON
+            decimal carPrice = Car.Price; // Цена в рублях
+            decimal amountToPayInRubles = carPrice / 10000; // Уменьшаем сумму в 10000 раз (4700000 -> 470)
+            decimal amountToPayInTon = amountToPayInRubles / _tonToRubRate;
+
+            var view = new Sales(amountToPayInTon, _tonToRubRate);
+            var result = await DialogHost.Show(view, "RootDialogHost");
+
+            if (result is NextGen.src.UI.Views.UserControls.PaymentResult paymentResult)
+            {
+                // Обработка результата оплаты
+                _paymentSender = paymentResult.Sender;
+                _paymentAmountInRub = paymentResult.AmountInRub * 10000; // Конвертируем обратно в изначальную сумму (470 -> 4700000)
+                _tonToRubRate = paymentResult.TonToRubRate;
+
+                // Логика после успешного платежа
+                Debug.WriteLine($"Payment Received: Sender={_paymentSender}, Amount in RUB={_paymentAmountInRub}, Rate={_tonToRubRate}");
+
+                // Сохраняем данные об оплате в базу данных
+                _saleService.RecordPayment(Car.CarId, _paymentSender, _paymentAmountInRub);
+
+                // Создаем папку для клиента
+                string customerFolderName = $"{SelectedCustomer.Id}_{SelectedCustomer.LastName}_{SelectedCustomer.FirstName}_{SelectedCustomer.MiddleName}";
+                string customerFolderPath = Path.Combine(destinationFolder, customerFolderName);
+                Directory.CreateDirectory(customerFolderPath);
+
+                // Создаем и сохраняем PDF чек в папку клиента
+                string receiptPath = GeneratePdfReceipt(customerFolderPath);
+
+                // Обновляем статус машины и записываем продажу в базу данных
+                _saleService.RecordSale(Car.CarId, _userSessionService.CurrentUser.UserId, SelectedCustomer.CustomerId, _paymentAmountInRub);
+
+                // Открываем папку с чеком и другими документами
+                OpenFolder(customerFolderPath);
+
+                // Генерируем оставшиеся документы
+                GenerateRemainingDocuments(customerFolderPath);
+
+                await ShowCustomMessageBox($"Оплата успешно завершена. Документы сохранены в папке {Path.GetDirectoryName(receiptPath)}", "Успех", CustomMessageBox.MessageKind.Success);
+            }
+        }
+
+        private async Task LoadTonToRubRate()
+        {
+            var coinGeckoApiKey = ConfigurationManager.AppSettings["CoinGeckoApiKey"];
+
+            using (HttpClient client = new HttpClient())
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=rub"),
+                    Headers =
+                    {
+                        { "accept", "application/json" },
+                        { "x-cg-demo-api-key", coinGeckoApiKey },
+                    },
+                };
+                try
+                {
+                    using (var response = await client.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        var body = await response.Content.ReadAsStringAsync();
+                        using (JsonDocument doc = JsonDocument.Parse(body))
+                        {
+                            if (doc.RootElement.TryGetProperty("the-open-network", out JsonElement tonElement) &&
+                                tonElement.TryGetProperty("rub", out JsonElement rubElement) &&
+                                rubElement.TryGetDecimal(out decimal rubValue))
+                            {
+                                _tonToRubRate = rubValue;
+                            }
+                            else
+                            {
+                                throw new Exception("Invalid rate info received.");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Ошибка загрузки курса TON к RUB: {ex.Message}");
+                }
+            }
+        }
+
+        private string GeneratePdfReceipt(string customerFolderPath)
+        {
+            var organization = _organizationService.GetOrganization();
+
+            string receiptPath = Path.Combine(customerFolderPath, $"Чек_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+
+            using (PdfDocument document = new PdfDocument())
+            {
+                PdfPage page = document.AddPage();
+                XGraphics gfx = XGraphics.FromPdfPage(page);
+                XFont font = new XFont("Verdana", 10, XFontStyle.Regular);
+                XFont boldFont = new XFont("Verdana", 10, XFontStyle.Bold);
+
+                double yPoint = 0;
+
+                // Заголовок
+                gfx.DrawString("Товарный чек", boldFont, XBrushes.Black,
+                    new XRect(0, yPoint, page.Width, 20),
+                    XStringFormats.TopCenter);
+                yPoint += 20;
+
+                // Информация о компании
+                gfx.DrawString(organization.Name, font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                gfx.DrawString($"ИНН: {organization.INN}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                gfx.DrawString(organization.Website, font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Дата
+                gfx.DrawString($"Дата: {DateTime.Now:dd.MM.yyyy / HH:mm}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Автомобиль
+                gfx.DrawString($"Автомобиль: {Car.ModelName} {Car.TrimName} ({Car.Year})", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // VIN
+                gfx.DrawString($"VIN: {MaskString(Car.VIN)}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Цвет
+                gfx.DrawString($"Цвет: {Car.Color}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Мощность двигателя
+                gfx.DrawString($"Мощность двигателя: {Car.HorsePower} л.с.", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Расчет стоимости с НДС
+                decimal priceWithoutVat = Car.Price / 1.2m; // Цена без НДС
+                decimal vatAmount = Car.Price - priceWithoutVat; // Сумма НДС
+
+                gfx.DrawString($"Цена без НДС: {priceWithoutVat:C}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                gfx.DrawString($"Сумма НДС (20%): {vatAmount:C}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                gfx.DrawString($"Итоговая цена: {Car.Price:C}", boldFont, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Информация о клиенте
+                gfx.DrawString($"ID Клиента: {SelectedCustomer.Id}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Разделитель
+                gfx.DrawString("--------------------------------------------------------------", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Продавец и компания
+                gfx.DrawString($"Продавец: {_userSessionService.CurrentUser.FullName}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                gfx.DrawString($"Компания: {organization.Name}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+                yPoint += 20;
+
+                // Уникальный номер
+                gfx.DrawString($"Уникальный номер: {Guid.NewGuid()}", font, XBrushes.Black,
+                    new XRect(20, yPoint, page.Width - 40, page.Height),
+                    XStringFormats.TopLeft);
+
+                document.Save(receiptPath);
+            }
+
+            return receiptPath;
+        }
+
+        private string MaskString(string input)
+        {
+            if (string.IsNullOrEmpty(input) || input.Length <= 4)
+                return input;
+
+            int length = input.Length;
+            Random random = new Random();
+            char[] masked = input.ToCharArray();
+
+            for (int i = 2; i < length - 2; i++)
+            {
+                if (random.Next(0, 2) == 0)
+                    masked[i] = '*';
+            }
+
+            return new string(masked);
+        }
+
+
+
+
+
+
+
+
+        private void GenerateRemainingDocuments(string customerFolderPath)
+        {
+            string tempFolder = Path.GetTempPath();
+            string tempActPath = Path.Combine(tempFolder, "Акт приема-передачи_temp.docx");
+            string tempSaleContractPath = Path.Combine(tempFolder, "Договор купли-продажи_temp.docx");
+
+            SaveTemplateToFile("Акт приема-передачи", tempActPath);
+            SaveTemplateToFile("Договор купли-продажи", tempSaleContractPath);
+
+            WaitForFileAvailability(tempActPath);
+            WaitForFileAvailability(tempSaleContractPath);
+
+            var placeholders = GetPlaceholders();
+
+            GenerateAndValidateDocument("Акт приема-передачи", tempActPath, placeholders);
+            GenerateAndValidateDocument("Договор купли-продажи", tempSaleContractPath, placeholders);
+
+            MoveAndRenameDocument(tempActPath, customerFolderPath, "Акт приема-передачи");
+            MoveAndRenameDocument(tempSaleContractPath, customerFolderPath, "Договор купли-продажи");
+
+            DeleteTemporaryFile(tempActPath);
+            DeleteTemporaryFile(tempSaleContractPath);
+        }
+
+        private Dictionary<string, string> GetPlaceholders()
+        {
+            var organization = _organizationService.GetOrganization();
+            var currentUser = _userSessionService.CurrentUser;
+            string priceInWords = NumberToWordsConverter.Convert(Car.Price);
+            string employeeFullName = currentUser.FullName;
+            string employeeNameInInitials = ConvertToInitials(employeeFullName);
+            string customerFullName = SelectedCustomer.FullName;
+            string customerNameInInitials = ConvertToInitials(customerFullName);
+
+            return new Dictionary<string, string>
+            {
+                { "{{Название компании}}", organization.Name ?? string.Empty },
+                { "{{Адрес компании}}", organization.Address ?? string.Empty },
+                { "{{Телефон компании}}", organization.Phone ?? string.Empty },
+                { "{{Email компании}}", organization.Email ?? string.Empty },
+                { "{{Сайт компании}}", organization.Website ?? string.Empty },
+                { "{{Регистрационный номер компании}}", organization.RegistrationNumber ?? string.Empty },
+                { "{{ИНН компании}}", organization.INN ?? string.Empty },
+                { "{{КПП компании}}", organization.KPP ?? string.Empty },
+                { "{{ОКПО компании}}", organization.OKPO ?? string.Empty },
+                { "{{Рассчетный счет компании}}", organization.BankAccount ?? string.Empty },
+                { "{{Корреспондентский счет компании}}", organization.CorrespondentAccount ?? string.Empty },
+                { "{{Банк компании}}", organization.BankName ?? string.Empty },
+                { "{{БИК компании}}", organization.BIK ?? string.Empty },
+
+                { "{{ФИО директора}}", organization.DirectorFullName ?? string.Empty },
+                { "{{Должность директора}}", organization.DirectorTitle ?? string.Empty },
+                { "{{Доверенность}}", organization.PowerOfAttorney ?? string.Empty },
+                { "{{Город}}", organization.City ?? string.Empty },
+
+                { "{{ФИО сотрудника}}", employeeFullName ?? string.Empty },
+                { "{{Должность сотрудника}}", "Старший менеджер отдела продаж" },
+                { "{{ФИО сотрудника в инициалах}}", employeeNameInInitials ?? string.Empty },
+
+                { "{{ФИО покупателя}}", customerFullName ?? string.Empty },
+                { "{{ФИО покупателя в инициалах}}", customerNameInInitials ?? string.Empty },
+                { "{{Номер паспорта покупателя}}", SelectedCustomer?.PassportNumber ?? string.Empty },
+                { "{{Дата выдачи паспорта}}", SelectedCustomer?.PassportIssueDate.ToString("dd.MM.yyyy") ?? string.Empty },
+                { "{{Кем выдан паспорт}}", SelectedCustomer?.PassportIssuer ?? string.Empty },
+                { "{{Адрес покупателя}}", SelectedCustomer?.Address ?? string.Empty },
+                { "{{Телефон покупателя}}", SelectedCustomer?.Phone ?? string.Empty },
+
+                { "{{Тип ТС}}", Car.CarBodyType ?? string.Empty },
+                { "{{Код модели}}", Car.TrimName ?? string.Empty },
+                { "{{Модель ТС}}", Car.ModelName ?? string.Empty },
+                { "{{Год выпуска ТС}}", Car.Year.ToString() ?? string.Empty },
+                { "{{Цвет ТС}}", Car.Color ?? string.Empty },
+                { "{{Мощность двигателя}}", Car.HorsePower ?? string.Empty },
+                { "{{VIN}}", Car.VIN ?? string.Empty },
+                { "{{Цена}}", Car.Price.ToString("C") ?? string.Empty },
+                { "{{Цена прописью}}", priceInWords },
+
+                { "{{Дата составления}}", ContractDate.ToString("dd.MM.yyyy") ?? string.Empty },
+                { "{{Номер договора}}", ContractNumber ?? string.Empty },
+                { "{{Дата договора}}", DateTime.Now.ToString("dd.MM.yyyy") ?? string.Empty }
+            };
         }
 
         public void Initialize(int carId)
@@ -97,73 +439,6 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private string _paymentStatus;
-        private string _walletAddress;
-        private BitmapImage _qrCodeImage;
-        private string _errorMessage;
-        private bool _isQrCodeVisible;
-        private bool _isPayButtonVisible;
-
-        public string PaymentStatus
-        {
-            get => _paymentStatus;
-            set
-            {
-                _paymentStatus = value;
-                OnPropertyChanged(nameof(PaymentStatus));
-            }
-        }
-
-        public string WalletAddress
-        {
-            get => _walletAddress;
-            set
-            {
-                _walletAddress = value;
-                OnPropertyChanged(nameof(WalletAddress));
-            }
-        }
-
-        public BitmapImage QrCodeImage
-        {
-            get => _qrCodeImage;
-            set
-            {
-                _qrCodeImage = value;
-                OnPropertyChanged(nameof(QrCodeImage));
-            }
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                _errorMessage = value;
-                OnPropertyChanged(nameof(ErrorMessage));
-            }
-        }
-
-        public bool IsQrCodeVisible
-        {
-            get => _isQrCodeVisible;
-            set
-            {
-                _isQrCodeVisible = value;
-                OnPropertyChanged(nameof(IsQrCodeVisible));
-            }
-        }
-
-        public bool IsPayButtonVisible
-        {
-            get => _isPayButtonVisible;
-            set
-            {
-                _isPayButtonVisible = value;
-                OnPropertyChanged(nameof(IsPayButtonVisible));
-            }
-        }
-
         public string CustomerFullName => SelectedCustomer != null ? $"{SelectedCustomer.FirstName} {SelectedCustomer.LastName}" : string.Empty;
         public string CustomerEmail => SelectedCustomer?.Email ?? string.Empty;
         public string CustomerPhone => SelectedCustomer?.Phone ?? string.Empty;
@@ -174,163 +449,6 @@ namespace NextGen.src.UI.ViewModels
         private static int contractNumberCounter = 1;
         public string ContractNumber => $"A{contractNumberCounter++.ToString("D5")}";
 
-        private ObservableCollection<string> _missingFields;
-        public ObservableCollection<string> MissingFields
-        {
-            get => _missingFields;
-            set
-            {
-                _missingFields = value;
-                OnPropertyChanged(nameof(MissingFields));
-            }
-        }
-
-        public ICommand SaveContractCommand { get; }
-        public ICommand CloseCommand { get; }
-        public ICommand PayCommand { get; }
-
-        private async Task Pay()
-        {
-            Debug.WriteLine("Начало выполнения Pay()");
-            IsQrCodeVisible = false;
-            ErrorMessage = string.Empty;
-            PaymentStatus = "Идет генерация информации о платеже...";
-
-            decimal amountToPay = 0.5m; // Пример суммы для оплаты в TON
-            var paymentInfo = await GeneratePaymentInfo(amountToPay);
-
-            if (!string.IsNullOrEmpty(paymentInfo.tonLink))
-            {
-                Debug.WriteLine("Генерация и отображение QR-кода");
-                GenerateAndDisplayQRCode(paymentInfo.tonLink);
-                PaymentStatus = $"Expected Comment: {paymentInfo.uniqueId}\nExpected Amount: {amountToPay} TON (~{amountToPay * _tonToRubRate} рублей)";
-                WalletAddress = $"Wallet Address: {paymentInfo.address}";
-            }
-            else
-            {
-                Debug.WriteLine("Ошибка: Не удалось сгенерировать информацию о платеже");
-                ErrorMessage = "Failed to generate payment info.";
-                PaymentStatus = string.Empty;
-            }
-        }
-
-        public void UpdatePaymentStatus(PaymentNotification notification)
-        {
-            try
-            {
-                Debug.WriteLine("Начало выполнения UpdatePaymentStatus()");
-                var amountInTON = Convert.ToDecimal(notification.Amount) / 1_000_000_000;
-
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    Debug.WriteLine("Обновление UI после успешной оплаты");
-                    QrCodeImage = null;
-                    IsQrCodeVisible = false;
-                    IsPayButtonVisible = false; // Скрываем кнопку оплаты
-
-                    PaymentStatus = $"Payment was successful!\n" +
-                                    $"Comment: {notification.Comment}\n" +
-                                    $"Amount: {amountInTON} TON (~{amountInTON * _tonToRubRate} рублей)\n" +
-                                    $"Sender: {notification.Sender}";
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in UpdatePaymentStatus: {ex.Message}");
-                throw; // Пробросьте исключение, чтобы его могли поймать на уровне сервиса
-            }
-        }
-
-
-
-        private async Task<(string tonLink, string uniqueId, string address)> GeneratePaymentInfo(decimal amount)
-        {
-            Debug.WriteLine("Начало выполнения GeneratePaymentInfo()");
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    var content = new StringContent(JsonSerializer.Serialize(new { amount }), Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync("http://localhost:3001/generate-payment", content);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"Error: Server responded with status code: {response.StatusCode}");
-                        ErrorMessage = "Server error. Please try again later.";
-                        return (null, null, null);
-                    }
-
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Received payment info: {responseBody}");
-                    var paymentInfo = JsonSerializer.Deserialize<PaymentInfoResponse>(responseBody);
-
-                    if (paymentInfo != null)
-                    {
-                        Debug.WriteLine($"Deserialized payment info: Address={paymentInfo.address}, UniqueId={paymentInfo.uniqueId}, Amount={paymentInfo.amount}, TonLink={paymentInfo.tonLink}");
-                        return (paymentInfo.tonLink, paymentInfo.uniqueId, paymentInfo.address);
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Deserialization returned null.");
-                        ErrorMessage = "Failed to get payment data.";
-                        return (null, null, null);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error generating payment info: {ex.Message}");
-                    ErrorMessage = $"Error: {ex.Message}";
-                    return (null, null, null);
-                }
-            }
-        }
-
-        private void GenerateAndDisplayQRCode(string tonLink)
-        {
-            Debug.WriteLine("Начало выполнения GenerateAndDisplayQRCode()");
-            try
-            {
-                QRCodeGenerator qrGenerator = new QRCodeGenerator();
-                QRCodeData qrCodeData = qrGenerator.CreateQrCode(tonLink, QRCodeGenerator.ECCLevel.Q);
-                QRCode qrCode = new QRCode(qrCodeData);
-                QrCodeImage = ConvertToBitmapImage(qrCode.GetGraphic(20));
-                IsQrCodeVisible = true;
-                Debug.WriteLine("QR-код успешно сгенерирован и отображен");
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Error displaying QR code: {ex.Message}";
-            }
-        }
-
-        private BitmapImage ConvertToBitmapImage(System.Drawing.Bitmap bitmap)
-        {
-            using (MemoryStream memory = new MemoryStream())
-            {
-                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
-                memory.Position = 0;
-                BitmapImage bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                return bitmapImage;
-            }
-        }
-
-        public class PaymentInfoResponse
-        {
-            public string address { get; set; }
-            public string uniqueId { get; set; }
-            public string amount { get; set; }
-            public string tonLink { get; set; }
-        }
-
-        public class PaymentNotification
-        {
-            public string Comment { get; set; }
-            public string Amount { get; set; }
-            public string Sender { get; set; }
-        }
         private void LoadCarDetails(int carId)
         {
             var carDetails = _carService.GetCarDetails(carId);
@@ -346,7 +464,7 @@ namespace NextGen.src.UI.ViewModels
             }
         }
 
-        private async void SaveContract()
+        private async Task SaveContract()
         {
             var organization = _organizationService.GetOrganization();
 
@@ -431,59 +549,40 @@ namespace NextGen.src.UI.ViewModels
 
             try
             {
-                // Создаем временные файлы
+                // Создаем временный файл для предварительного договора
                 string tempFolder = Path.GetTempPath();
                 string tempContractPath = Path.Combine(tempFolder, "Предварительный договор купли-продажи_temp.docx");
-                string tempActPath = Path.Combine(tempFolder, "Акт приема-передачи_temp.docx");
-                string tempSaleContractPath = Path.Combine(tempFolder, "Договор купли-продажи_temp.docx");
 
-                // Загружаем и сохраняем шаблоны во временные файлы
+                // Загружаем и сохраняем шаблон во временный файл
                 SaveTemplateToFile("Предварительный договор купли-продажи", tempContractPath);
-                SaveTemplateToFile("Акт приема-передачи", tempActPath);
-                SaveTemplateToFile("Договор купли-продажи", tempSaleContractPath);
 
-                // Проверка существования файлов
-                Debug.WriteLine($"Checking if temporary files exist:");
-                Debug.WriteLine($"Contract path: {tempContractPath}, Exists: {File.Exists(tempContractPath)}");
-                Debug.WriteLine($"Act path: {tempActPath}, Exists: {File.Exists(tempActPath)}");
-                Debug.WriteLine($"Sale contract path: {tempSaleContractPath}, Exists: {File.Exists(tempSaleContractPath)}");
-
-                // Проверка и ожидание готовности файлов
+                // Проверка и ожидание готовности файла
                 WaitForFileAvailability(tempContractPath);
-                WaitForFileAvailability(tempActPath);
-                WaitForFileAvailability(tempSaleContractPath);
 
                 // Создаем папку для клиента
                 string customerFolderName = $"{SelectedCustomer.Id}_{SelectedCustomer.LastName}_{SelectedCustomer.FirstName}_{SelectedCustomer.MiddleName}";
                 string customerFolderPath = Path.Combine(destinationFolder, customerFolderName);
                 Directory.CreateDirectory(customerFolderPath);
 
-                // Теперь генерация документов
+                // Генерация предварительного договора
                 GenerateAndValidateDocument("Предварительный договор купли-продажи", tempContractPath, placeholders);
-                GenerateAndValidateDocument("Акт приема-передачи", tempActPath, placeholders);
-                GenerateAndValidateDocument("Договор купли-продажи", tempSaleContractPath, placeholders);
 
-                // Перемещаем документы в папку клиента и переименовываем их
+                // Перемещаем документ в папку клиента и переименовываем его
                 string renamedContractPath = await MoveAndRenameDocument(tempContractPath, customerFolderPath, "Предварительный договор купли-продажи");
-                string renamedActPath = await MoveAndRenameDocument(tempActPath, customerFolderPath, "Акт приема-передачи");
-                string renamedSaleContractPath = await MoveAndRenameDocument(tempSaleContractPath, customerFolderPath, "Договор купли-продажи");
 
-                // Удаление временных файлов
+                // Удаление временного файла
                 DeleteTemporaryFile(tempContractPath);
-                DeleteTemporaryFile(tempActPath);
-                DeleteTemporaryFile(tempSaleContractPath);
+
+                // Обновляем флаг о генерации предварительного договора
+                _isPreliminaryContractGenerated = true;
+                ((CommunityToolkit.Mvvm.Input.RelayCommand)OpenPaymentDialogCommand).NotifyCanExecuteChanged();
 
                 // Открываем проводник с папкой клиента
                 OpenFolder(customerFolderPath);
 
-                var changedFiles = new List<string>();
-                if (renamedContractPath != null) changedFiles.Add("Предварительный договор купли-продажи");
-                if (renamedActPath != null) changedFiles.Add("Акт приема-передачи");
-                if (renamedSaleContractPath != null) changedFiles.Add("Договор купли-продажи");
-
-                if (changedFiles.Count > 0)
+                if (renamedContractPath != null)
                 {
-                    await ShowCustomMessageBox($"Документы для клиента {customerFullName} сохранены.\nИзмененные файлы: {string.Join(", ", changedFiles)}", "Успех", CustomMessageBox.MessageKind.Success);
+                    await ShowCustomMessageBox($"Предварительный договор купли-продажи для клиента {customerFullName} сохранен.", "Успех", CustomMessageBox.MessageKind.Success);
                 }
                 else
                 {
@@ -517,7 +616,6 @@ namespace NextGen.src.UI.ViewModels
                     throw new Exception($"Template content for '{templateName}' is empty or not found.");
                 }
                 File.WriteAllBytes(filePath, templateContent);
-                Debug.WriteLine($"Template {templateName} saved to {filePath}");
             }
             catch (Exception ex)
             {
@@ -537,7 +635,6 @@ namespace NextGen.src.UI.ViewModels
             }
             catch (IOException ex)
             {
-                // Файл занят, ещё не доступен для использования
                 Debug.WriteLine($"File {filename} is not ready: {ex.Message}");
                 return false;
             }
@@ -546,9 +643,9 @@ namespace NextGen.src.UI.ViewModels
         private void WaitForFileAvailability(string filePath)
         {
             int attempts = 0;
-            while (!IsFileReady(filePath) && attempts < 10) // Проверяем до 10 раз
+            while (!IsFileReady(filePath) && attempts < 10)
             {
-                System.Threading.Thread.Sleep(500); // Подождите 500 мс
+                System.Threading.Thread.Sleep(500);
                 attempts++;
             }
 
@@ -605,7 +702,7 @@ namespace NextGen.src.UI.ViewModels
                 var result = await ShowCustomMessageBox(message, "Предупреждение", CustomMessageBox.MessageKind.Warning, true, "Заменить", "Отмена");
                 if (!result)
                 {
-                    return null; // Возвращаем null, если файл не был заменен
+                    return null;
                 }
 
                 File.Delete(newFilePath);
@@ -628,6 +725,12 @@ namespace NextGen.src.UI.ViewModels
 
         private async Task<bool> ShowCustomMessageBox(string message, string title = "Уведомление", CustomMessageBox.MessageKind kind = CustomMessageBox.MessageKind.Notification, bool showSecondaryButton = false, string primaryButtonText = "ОК", string secondaryButtonText = "Отмена")
         {
+            if (DialogHost.IsDialogOpen("RootDialogHost"))
+            {
+                Debug.WriteLine("Диалоговое окно уже открыто.");
+                return false;
+            }
+
             var view = new CustomMessageBox(message, title, kind, showSecondaryButton, primaryButtonText, secondaryButtonText);
             var result = await DialogHost.Show(view, "RootDialogHost");
             return result is bool boolean && boolean;

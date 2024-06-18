@@ -132,14 +132,14 @@ namespace NextGen.src.UI.ViewModels
 
         public void OpenCarUserControl(UserControl content, string modelName, string brandName, string modelId)
         {
-            Console.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
+            Debug.WriteLine($"Opening Car UserControl with ModelId: {modelId}");  // Для отладки
             string title = $"Автомобили {brandName} {modelName} [{modelId}]";
             ActivateOrOpenNewUserControl(content, title); // Вызываем перегруженный метод без carId
         }
 
         public void OpenCarDetailsControl(UserControl content, string modelName, string brandName, string carId, string trimName)
         {
-            Console.WriteLine($"Opening Car Details UserControl with CarId: {carId}, Trim: {trimName}");
+            Debug.WriteLine($"Opening Car Details UserControl with CarId: {carId}, Trim: {trimName}");
             string title = $"Автомобиль {brandName} {modelName} {trimName} [{carId}]";
             ActivateOrOpenNewUserControl(content, title, int.Parse(carId)); // Передаем carId
         }
@@ -403,7 +403,7 @@ namespace NextGen.src.UI.ViewModels
             }
             else
             {
-                Console.WriteLine("CurrentUser is null after LoadAdditionalUserData");
+                Debug.WriteLine("CurrentUser is null after LoadAdditionalUserData");
             }
         }
     }

@@ -1,42 +1,26 @@
-﻿using NextGen.src.Models;
-using NextGen.src.UI.ViewModels;
-using System;
-using System.Diagnostics;
+﻿using System.Threading.Tasks;
+using System.Windows;
 
 namespace NextGen.src.Services
 {
+    public interface IPaymentStatusService
+    {
+        Task NotifyPaymentStatusAsync(PaymentNotification notification);
+    }
+
     public class PaymentStatusService : IPaymentStatusService
     {
-        private readonly Func<int, SalesContractViewModel> _viewModelFactory;
-
-        public PaymentStatusService(Func<int, SalesContractViewModel> viewModelFactory)
+        public Task NotifyPaymentStatusAsync(PaymentNotification notification)
         {
-            _viewModelFactory = viewModelFactory;
+            // Уведомление об успешной оплате
+            return Task.CompletedTask;
         }
+    }
 
-        public void UpdatePaymentStatus(NextGen.src.Models.PaymentNotification notification)
-        {
-            try
-            {
-                int carId = 1; // Замените на реальный carId
-
-                var viewModel = _viewModelFactory(carId);
-                viewModel.UpdatePaymentStatus(new SalesContractViewModel.PaymentNotification
-                {
-                    Comment = notification.Comment,
-                    Amount = notification.Amount,
-                    Sender = notification.Sender
-                });
-
-                Debug.WriteLine($"Updating payment status for Sender: {notification.Sender}");
-                Debug.WriteLine($"Amount: {notification.Amount}");
-                Debug.WriteLine($"Comment: {notification.Comment}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error updating payment status: {ex.Message}");
-                throw; // Пробросьте исключение, чтобы его могли поймать на уровне контроллера
-            }
-        }
+    public class PaymentNotification
+    {
+        public string Comment { get; set; }
+        public string Amount { get; set; }
+        public string Sender { get; set; }
     }
 }

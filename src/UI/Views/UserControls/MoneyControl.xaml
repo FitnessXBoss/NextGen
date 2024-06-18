@@ -4,91 +4,136 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:NextGen.src.UI.Views.UserControls"
+             xmlns:helpers="clr-namespace:NextGen.src.UI.Helpers"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              FontFamily="Noto"
              d:DesignHeight="1150" d:DesignWidth="1100">
+    <UserControl.Resources>
+        <helpers:BalanceColorConverter x:Key="BalanceColorConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
     <Grid>
         <!-- Top bar with title and search -->
-        <DockPanel  VerticalAlignment="Top" Height="70" Margin="5">
-            <materialDesign:PopupBox VerticalAlignment="Center" Width="60" Height="60" DockPanel.Dock="Left" HorizontalAlignment="Left" StaysOpen="False">
-                <materialDesign:PopupBox.ToggleContent>
-                    <Button Style="{StaticResource MaterialDesignFloatingActionButton}">
-                        <materialDesign:PackIcon Kind="Plus" Width="24" Height="24"/>
-                    </Button>
-                </materialDesign:PopupBox.ToggleContent>
-                <StackPanel>
-                    <ListBox>
-                        <ListBoxItem Content="Приход денежных средств"/>
-                        <ListBoxItem Content="Расход денежных средств"/>
-                    </ListBox>
-                </StackPanel>
-            </materialDesign:PopupBox>
-            
-            
+        <DockPanel VerticalAlignment="Top" Height="70" Margin="5">
             <TextBlock Text="Деньги" VerticalAlignment="Center" FontSize="25" Margin="10,0"/>
-            <TextBox Width="200" Height="30" Margin="10" VerticalAlignment="Center"
-                     materialDesign:HintAssist.Hint="Поиск" DockPanel.Dock="Right"/>
-
-            <materialDesign:PopupBox HorizontalAlignment="Left" VerticalAlignment="Center" DockPanel.Dock="Right" Margin="10,0">
+            <materialDesign:PopupBox HorizontalAlignment="Left" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="10,0">
                 <materialDesign:PopupBox.ToggleContent>
-                    <TextBlock Text="298 891,15 ₽" FontSize="25" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Organization.Name}" FontSize="25" VerticalAlignment="Center"/>
                 </materialDesign:PopupBox.ToggleContent>
                 <StackPanel Margin="10">
                     <TextBlock FontSize="14" Margin="0,5">
-     <Run Text="ООО НЕКСТГЕНАВТО" FontWeight="Bold" />
-     <Run Text="298 891,15 ₽" FontWeight="Bold" />
+                        <Run Text="{Binding Organization.Name}" FontWeight="Bold" />
+                        <Run Text="{Binding TotalBalance, StringFormat={}{0:N2} ₽}" FontWeight="Bold" />
                     </TextBlock>
                     <StackPanel>
                         <TextBlock FontSize="14" Margin="0,5">
-                            <Run Text="Банковский счет: "/>
-                            <Run Text="0 ₽" FontWeight="Bold"/>
+                            <Run Text="Общий баланс в рублях: "/>
+                            <Run Text="{Binding TotalBalance, StringFormat={}{0:N2} ₽}" FontWeight="Bold"/>
                         </TextBlock>
                         <TextBlock FontSize="14" Margin="0,5">
-                            <Run Text="Касса: "/>
-                            <Run Text="0 ₽" FontWeight="Bold"/>
+                            <Run Text="Эквивалент в TON: "/>
+                            <Run Text="{Binding TotalBalanceInTon, StringFormat={}{0:N2} TON, Mode=OneWay}" FontWeight="Bold"/>
                         </TextBlock>
                         <TextBlock FontSize="14" Margin="0,5">
-                            <Run Text="Касса (сервис): "/>
-                            <Run Text="0 ₽" FontWeight="Bold"/>
+                            <Run Text="Доход за месяц: "/>
+                            <Run Text="{Binding MonthlyIncome, StringFormat={}{0:N2} ₽}" FontWeight="Bold"/>
                         </TextBlock>
                         <TextBlock FontSize="14" Margin="0,5">
-                            <Run Text="Сбербанк: "/>
-                            <Run Text="298 891,15 ₽" FontWeight="Bold"/>
+                            <Run Text="Эквивалент за месяц в TON: "/>
+                            <Run Text="{Binding MonthlyIncomeInTon, StringFormat={}{0:N2} TON, Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <TextBlock FontSize="14" Margin="0,5">
+                            <Run Text="Доход за год: "/>
+                            <Run Text="{Binding YearlyIncome, StringFormat={}{0:N2} ₽}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <TextBlock FontSize="14" Margin="0,5">
+                            <Run Text="Эквивалент за год в TON: "/>
+                            <Run Text="{Binding YearlyIncomeInTon, StringFormat={}{0:N2} TON, Mode=OneWay}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <TextBlock FontSize="14" Margin="0,5">
+                            <Run Text="Расход за год: "/>
+                            <Run Text="{Binding YearlyExpense, StringFormat={}{0:N2} ₽}" FontWeight="Bold"/>
+                        </TextBlock>
+                        <TextBlock FontSize="14" Margin="0,5">
+                            <Run Text="Эквивалент расхода за год в TON: "/>
+                            <Run Text="{Binding YearlyExpenseInTon, StringFormat={}{0:N2} TON, Mode=OneWay}" FontWeight="Bold"/>
                         </TextBlock>
                     </StackPanel>
                 </StackPanel>
             </materialDesign:PopupBox>
+            <Button HorizontalAlignment="Right" Command="{Binding RefreshDataCommand}" Style="{StaticResource MaterialDesignFlatButton}">
+                <materialDesign:PackIcon HorizontalAlignment="Right" VerticalAlignment="Center" Width="20"  Kind="Refresh" />
+            </Button>
+            <Button HorizontalAlignment="Right" Command="{Binding AddExpenseCommand}" Style="{StaticResource MaterialDesignFlatButton}">
+                <materialDesign:PackIcon HorizontalAlignment="Right" VerticalAlignment="Center" Width="20" Kind="AddCircleOutline" />
+            </Button>
         </DockPanel>
-
         <Grid Margin="10,70,10,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Filters -->
             <StackPanel Orientation="Horizontal" Grid.Row="0">
-                <DatePicker Width="150" Margin="5" materialDesign:HintAssist.Hint="Дата от"/>
-                <DatePicker Width="150" Margin="5" materialDesign:HintAssist.Hint="Дата до"/>
-                <ComboBox Width="150" Margin="5" materialDesign:HintAssist.Hint="Предприятия"/>
-                <ComboBox Width="150" Margin="5" materialDesign:HintAssist.Hint="Ответственный"/>
+                <DatePicker Width="150" Margin="5" materialDesign:HintAssist.Hint="Дата от" SelectedDate="{Binding StartDate, Mode=TwoWay}"/>
+                <DatePicker Width="150" Margin="5" materialDesign:HintAssist.Hint="Дата до" SelectedDate="{Binding EndDate, Mode=TwoWay}"/>
+                <ComboBox Width="150" Margin="5" materialDesign:HintAssist.Hint="Тип возврата" SelectedItem="{Binding SelectedReturnReason, Mode=TwoWay}">
+                    <ComboBoxItem Content="Возврат по неисправности"/>
+                    <ComboBoxItem Content="Другая причина"/>
+                </ComboBox>
                 <!-- Add more ComboBoxes as needed -->
             </StackPanel>
 
-            <!-- DataGrid for displaying data -->
-            <DataGrid Grid.Row="1" AutoGenerateColumns="False" Margin="0,10,0,0">
+            <!-- DataGrid for displaying payments -->
+            <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredPayments}" AutoGenerateColumns="False" Margin="0,10,0,0" IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="№" Binding="{Binding Number}" Width="50"/>
-                    <DataGridTextColumn Header="Дата" Binding="{Binding Date}" Width="100"/>
-                    <DataGridTextColumn Header="Контрагент" Binding="{Binding Counterparty}" Width="*"/>
-                    <DataGridTextColumn Header="Сумма" Binding="{Binding Amount}" Width="100"/>
-                    <DataGridTextColumn Header="Счет" Binding="{Binding Account}" Width="100"/>
-                    <DataGridTextColumn Header="Статья" Binding="{Binding Article}" Width="150"/>
-                    <DataGridTextColumn Header="Проект" Binding="{Binding Project}" Width="150"/>
-                    <DataGridTextColumn Header="Документ" Binding="{Binding Document}" Width="150"/>
+                    <DataGridTextColumn Header="Дата" Binding="{Binding PaymentDate}" Width="200"/>
+                    <DataGridTextColumn Header="Отправитель" Binding="{Binding Sender}" Width="*"/>
+                    <DataGridTextColumn Header="Сумма" Binding="{Binding Amount}" Width="100">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Green"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <!-- DataGrid for displaying expenses -->
+            <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredExpenses}" AutoGenerateColumns="False" Margin="0,10,0,0" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Дата" Binding="{Binding Date}" Width="100"/>
+                    <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="*"/>
+                    <DataGridTextColumn Header="Сумма" Binding="{Binding Amount}" Width="100">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Red"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- DataGrid for displaying sold cars based on return reason -->
+            <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredExpenses}" AutoGenerateColumns="False" Margin="0,10,0,0" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Описание" Binding="{Binding Description}" Width="200"/>
+                    <DataGridTextColumn Header="Дата" Binding="{Binding Date}" Width="200"/>
+                    <DataGridTextColumn Header="Сумма" Binding="{Binding Amount}" Width="100" Foreground="Red"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Total balance -->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+                <TextBlock Text="Общий баланс: " FontSize="25" Margin="10,0" />
+                <TextBlock Text="{Binding TotalBalance, StringFormat={}{0:N2} ₽}" FontSize="25" Margin="10,0" Foreground="{Binding TotalBalance, Converter={StaticResource BalanceColorConverter}}" />
+                <TextBlock Text="Эквивалент в TON: " FontSize="25" Margin="10,0" />
+                <TextBlock Text="{Binding TotalBalanceInTon, StringFormat={}{0:N2} TON, Mode=OneWay}" FontSize="25" Margin="10,0" Foreground="{Binding TotalBalance, Converter={StaticResource BalanceColorConverter}}" />
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

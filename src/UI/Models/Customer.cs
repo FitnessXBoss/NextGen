@@ -5,6 +5,7 @@
         public string FullName => $"{LastName} {FirstName} {MiddleName}";
 
         public int Id { get; set; }
+        public int CustomerId => Id;  // Добавьте это свойство
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }

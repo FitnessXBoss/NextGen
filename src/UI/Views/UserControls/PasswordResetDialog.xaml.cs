@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using NextGen.src.UI.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,14 +16,13 @@ using System.Windows.Shapes;
 namespace NextGen.src.UI.Views.UserControls
 {
     /// <summary>
-    /// Логика взаимодействия для MoneyControl.xaml
+    /// Логика взаимодействия для PasswordResetDialog.xaml
     /// </summary>
-    public partial class MoneyControl : UserControl
+    public partial class PasswordResetDialog : UserControl
     {
-        public MoneyControl()
+        public PasswordResetDialog()
         {
             InitializeComponent();
-            DataContext = new MoneyViewModel();
         }
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.UI.ViewModels;
-using System.Diagnostics;
+using NextGen.src.Models; // Добавьте этот using для доступа к PaymentSettings
 
 namespace NextGen.src.Services
 {
@@ -15,7 +15,6 @@ namespace NextGen.src.Services
         {
             services.AddControllers();
 
-            // Регистрация зависимостей
             services.AddScoped<OrganizationService>();
             services.AddScoped<CarService>();
             services.AddScoped<DocumentGenerator>();
@@ -23,8 +22,12 @@ namespace NextGen.src.Services
             services.AddSingleton<UserSessionService>(UserSessionService.Instance);
             services.AddSingleton<PaymentProcessor>(PaymentProcessor.Instance);
 
-            // Регистрация ViewModel
             services.AddScoped<SalesContractViewModel>();
+
+            services.AddScoped<IPaymentStatusService, PaymentStatusService>();
+
+            // Регистрация PaymentSettings
+            services.AddSingleton<PaymentSettings>();
 
             // Регистрация фабрики ViewModel
             services.AddScoped<Func<int, SalesContractViewModel>>(serviceProvider => carId =>
@@ -33,9 +36,6 @@ namespace NextGen.src.Services
                 viewModel.Initialize(carId);
                 return viewModel;
             });
-
-            // Регистрация сервиса обновления статуса платежа
-            services.AddScoped<IPaymentStatusService, PaymentStatusService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -46,13 +46,9 @@ namespace NextGen.src.Services
             }
 
             app.UseRouting();
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
-            Debug.WriteLine("Application started and configured.");
+            System.Diagnostics.Debug.WriteLine("Application started and configured.");
         }
     }
 }

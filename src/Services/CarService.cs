@@ -50,8 +50,7 @@ namespace NextGen.src.Services
                         details.ColorName = reader.IsDBNull(reader.GetOrdinal("color_name")) ? null : reader.GetString(reader.GetOrdinal("color_name"));
                         details.TrimName = reader.IsDBNull(reader.GetOrdinal("trim_name")) ? null : reader.GetString(reader.GetOrdinal("trim_name"));
 
-                        Debug.WriteLine($"Loaded Car Details in GetCarDetails: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
-
+                        Debug.WriteLine($"Loaded Car Details in GetCarDetails: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, TrimName={details.TrimName}, Status={details.Status}");
                     }
                     else
                     {
@@ -61,9 +60,9 @@ namespace NextGen.src.Services
 
                 // Получение дополнительных изображений
                 var imagesCmd = new NpgsqlCommand($@"
-        SELECT image_id, image_url, description 
-        FROM car_images 
-        WHERE car_id = @carId", connection);
+            SELECT image_id, image_url, description 
+            FROM car_images 
+            WHERE car_id = @carId", connection);
                 imagesCmd.Parameters.AddWithValue("@carId", carId);
 
                 using (var reader = imagesCmd.ExecuteReader())
@@ -82,12 +81,12 @@ namespace NextGen.src.Services
 
                 // Получение дополнительных характеристик
                 var trimCmd = new NpgsqlCommand($@"
-        SELECT t.transmission, t.drive, t.fuel, t.engine_volume, t.horse_power, t.price, 
-               t.trim_name, t.trim_details, m.model_name, b.brand_name
-        FROM trims t
-        JOIN models m ON t.model_id = m.model_id
-        JOIN brands b ON m.brand_id = b.brand_id
-        WHERE t.trim_id = @trimId", connection);
+            SELECT t.transmission, t.drive, t.fuel, t.engine_volume, t.horse_power, t.price, 
+                   t.trim_name, t.trim_details, m.model_name, b.brand_name
+            FROM trims t
+            JOIN models m ON t.model_id = m.model_id
+            JOIN brands b ON m.brand_id = b.brand_id
+            WHERE t.trim_id = @trimId", connection);
                 trimCmd.Parameters.AddWithValue("@trimId", details.TrimId);
 
                 using (var reader = trimCmd.ExecuteReader())
@@ -109,9 +108,9 @@ namespace NextGen.src.Services
 
                 // Получение характеристик из таблицы car_specs
                 var specsCmd = new NpgsqlCommand($@"
-        SELECT seats, length, width, height, trunk_volume, fuel_tank_volume, mixed_consumption, city_consumption, highway_consumption, max_speed, acceleration, body_type
-        FROM car_specs 
-        WHERE car_id = @carId", connection);
+            SELECT seats, length, width, height, trunk_volume, fuel_tank_volume, mixed_consumption, city_consumption, highway_consumption, max_speed, acceleration, body_type
+            FROM car_specs 
+            WHERE car_id = @carId", connection);
                 specsCmd.Parameters.AddWithValue("@carId", carId);
 
                 using (var reader = specsCmd.ExecuteReader())
@@ -133,7 +132,7 @@ namespace NextGen.src.Services
                     }
                 }
             }
-            Debug.WriteLine($"Car Details Loaded: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}");
+            Debug.WriteLine($"Car Details Loaded: CarId={details.CarId}, VIN={details.VIN}, Year={details.Year}, Color={details.Color}, HorsePower={details.HorsePower}, Price={details.Price}, ModelName={details.ModelName}, TrimName={details.TrimName}, Status={details.Status}");
 
             return details;
         }
