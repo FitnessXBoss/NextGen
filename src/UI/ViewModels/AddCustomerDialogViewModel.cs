@@ -39,6 +39,66 @@ namespace NextGen.src.UI.ViewModels
         private readonly Action<Customer> _addCustomerAction;
         private readonly DadataService _dadataService;
         private ComboBox _emailComboBox;
+        private string _customerMiddleName;
+        private DateTime _customerPassportIssueDate;
+        private string _customerPassportDivisionCode;
+        private string _customerPassportIssuer;
+        private string _customerPlaceOfBirth;
+
+        public string CustomerMiddleName
+        {
+            get => _customerMiddleName;
+            set
+            {
+                _customerMiddleName = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public DateTime CustomerPassportIssueDate
+        {
+            get => _customerPassportIssueDate;
+            set
+            {
+                _customerPassportIssueDate = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public string CustomerPassportDivisionCode
+        {
+            get => _customerPassportDivisionCode;
+            set
+            {
+                _customerPassportDivisionCode = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public string CustomerPassportIssuer
+        {
+            get => _customerPassportIssuer;
+            set
+            {
+                _customerPassportIssuer = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
+
+        public string CustomerPlaceOfBirth
+        {
+            get => _customerPlaceOfBirth;
+            set
+            {
+                _customerPlaceOfBirth = value;
+                OnPropertyChanged();
+                ValidateForm();
+            }
+        }
 
         public AddCustomerDialogViewModel(Action<Customer> addCustomerAction)
         {
@@ -305,8 +365,13 @@ namespace NextGen.src.UI.ViewModels
             {
                 FirstName = CustomerFirstName,
                 LastName = CustomerLastName,
+                MiddleName = CustomerMiddleName,
                 DateOfBirth = CustomerDateOfBirth,
                 PassportNumber = CustomerPassportNumber,
+                PassportIssueDate = CustomerPassportIssueDate,
+                PassportDivisionCode = CustomerPassportDivisionCode,
+                PassportIssuer = CustomerPassportIssuer,
+                PlaceOfBirth = CustomerPlaceOfBirth,
                 Email = CustomerEmail,
                 Phone = CustomerPhone,
                 Address = CustomerAddress
@@ -329,9 +394,13 @@ namespace NextGen.src.UI.ViewModels
                           && !string.IsNullOrWhiteSpace(CustomerLastName)
                           && CustomerDateOfBirth != default
                           && !string.IsNullOrWhiteSpace(CustomerPassportNumber)
-                          && !string.IsNullOrWhiteSpace(EmailInput) // Validate based on EmailInput
+                          && CustomerPassportIssueDate != default
+                          && !string.IsNullOrWhiteSpace(CustomerPassportDivisionCode)
+                          && !string.IsNullOrWhiteSpace(CustomerPassportIssuer)
+                          && !string.IsNullOrWhiteSpace(CustomerPlaceOfBirth)
+                          && !string.IsNullOrWhiteSpace(CustomerEmail)
                           && !string.IsNullOrWhiteSpace(CustomerPhone)
-                          && !string.IsNullOrWhiteSpace(AddressInput); // Validate based on AddressInput
+                          && !string.IsNullOrWhiteSpace(CustomerAddress);
             ((RelayCommand)AddCustomerCommand).RaiseCanExecuteChanged();
         }
 

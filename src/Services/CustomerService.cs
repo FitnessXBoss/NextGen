@@ -51,14 +51,16 @@ namespace NextGen.src.Services
             using (var connection = new NpgsqlConnection(connectionString))
             {
                 connection.Open();
-                var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, middle_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_issuer, email, phone, address, created_by) VALUES (@first_name, @middle_name, @last_name, @date_of_birth, @passport_number, @passport_issue_date, @passport_issuer, @email, @phone, @address, @created_by) RETURNING customer_id", connection);
+                var cmd = new NpgsqlCommand("INSERT INTO customers (first_name, middle_name, last_name, date_of_birth, passport_number, passport_issue_date, passport_division_code, passport_issuer, place_of_birth, email, phone, address, created_by) VALUES (@first_name, @middle_name, @last_name, @date_of_birth, @passport_number, @passport_issue_date, @passport_division_code, @passport_issuer, @place_of_birth, @email, @phone, @address, @created_by) RETURNING customer_id", connection);
                 cmd.Parameters.AddWithValue("first_name", newCustomer.FirstName ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("middle_name", newCustomer.MiddleName ?? (object)DBNull.Value); // Добавлено новое поле
+                cmd.Parameters.AddWithValue("middle_name", newCustomer.MiddleName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("last_name", newCustomer.LastName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("date_of_birth", newCustomer.DateOfBirth);
                 cmd.Parameters.AddWithValue("passport_number", newCustomer.PassportNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("passport_issue_date", newCustomer.PassportIssueDate);
+                cmd.Parameters.AddWithValue("passport_division_code", newCustomer.PassportDivisionCode ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("passport_issuer", newCustomer.PassportIssuer ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("place_of_birth", newCustomer.PlaceOfBirth ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("email", newCustomer.Email ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("phone", newCustomer.Phone ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("address", newCustomer.Address ?? (object)DBNull.Value);

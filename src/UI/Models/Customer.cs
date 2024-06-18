@@ -18,5 +18,7 @@
         public string Address { get; set; }
         public int CreatedBy { get; set; }
         public int CarId { get; set; }
+        public string PassportDivisionCode { get; set; }
+        public string PlaceOfBirth { get; set; }
     }
 }
