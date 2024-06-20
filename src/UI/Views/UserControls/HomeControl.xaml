@@ -124,7 +124,7 @@
                     <TextBlock
                         FontSize="14"
                         FontWeight="Bold"
-                        Text="Продажи за день" />
+                        Text="Средняя цена машин" />
 
                 </StackPanel>
             </materialDesign:Card>

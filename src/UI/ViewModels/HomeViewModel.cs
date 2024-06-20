@@ -9,6 +9,8 @@ using NextGen.src.Services;
 using Npgsql;
 using System.Linq;
 using System.Threading.Tasks;
+using OxyPlot;
+using OxyPlot.Series;
 
 namespace NextGen.src.UI.ViewModels
 {
@@ -21,10 +23,23 @@ namespace NextGen.src.UI.ViewModels
         {
         }
 
+        private decimal _averagePrice;
+        public decimal AveragePrice
+        {
+            get => _averagePrice;
+            set
+            {
+                _averagePrice = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         public HomeViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
             LoadData();
+            GenerateRandomSalesData();
         }
 
         private int _onlineCount;
@@ -37,6 +52,33 @@ namespace NextGen.src.UI.ViewModels
                 OnPropertyChanged();
             }
         }
+
+        private PlotModel _salesPlotModel;
+        public PlotModel SalesPlotModel
+        {
+            get => _salesPlotModel;
+            set
+            {
+                _salesPlotModel = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private void GenerateRandomSalesData()
+        {
+            var model = new PlotModel { Title = "График продаж за день" };
+            var series = new LineSeries { Title = "Продажи", MarkerType = MarkerType.Circle };
+
+            var random = new Random();
+            for (int i = 0; i < 24; i++) // 24 часа
+            {
+                series.Points.Add(new DataPoint(i, random.Next(0, 100))); // Случайные продажи от 0 до 100
+            }
+
+            model.Series.Add(series);
+            SalesPlotModel = model;
+        }
+
 
         private int _totalSales;
         public int TotalSales
