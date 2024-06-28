@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using DotNetEnv;
 using QRCoder;
 
 namespace NextGen.src.Services.Api
@@ -14,7 +15,29 @@ namespace NextGen.src.Services.Api
     {
         private static PaymentProcessor _instance;
         private decimal _tonToRubRate = 0m;
-        private const string CoinGeckoApiKey = "CG-yYqDknPmdtmAjMbuKhnP6y13";
+        private static readonly string CoinGeckoApiKey;
+
+        static PaymentProcessor()
+        {
+            // Определение пути к .env файлу
+            string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".env");
+
+            // Проверка наличия файла и загрузка переменных окружения
+            if (File.Exists(envFilePath))
+            {
+                Console.WriteLine($"Loading .env from: {envFilePath}");
+                Env.Load(envFilePath); // Загрузить переменные из .env файла
+            }
+            else
+            {
+                Console.WriteLine($"File .env not found at: {envFilePath}");
+            }
+
+            // Чтение значения из переменной окружения
+            CoinGeckoApiKey = Environment.GetEnvironmentVariable("COINGECKO_API_KEY");
+            Console.WriteLine($"COINGECKO_API_KEY: {CoinGeckoApiKey}"); // Проверка, что ключ загружен
+        }
+
         public static PaymentProcessor Instance => _instance ??= new PaymentProcessor();
 
         private PaymentProcessor()

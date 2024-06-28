@@ -1,17 +1,19 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
+using DotNetEnv;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NextGen.src.Services;
 using NextGen.src.Services.Api;
 using NextGen.src.Services.Document;
 using NextGen.src.UI.ViewModels;
-using System.Text; // Добавьте этот using
 
 namespace NextGen
 {
@@ -25,6 +27,9 @@ namespace NextGen
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Загрузка переменных окружения из файла .env
+            Env.Load();
+
             // Регистрация провайдера кодировок
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -38,6 +43,19 @@ namespace NextGen
                 typeof(FrameworkElement),
                 new FrameworkPropertyMetadata(
                     XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+
+            // Получить строку подключения из переменных окружения
+            string dbConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+            if (dbConnectionString != null)
+            {
+                UpdateConnectionString("SecurityData", dbConnectionString);
+                Console.WriteLine("Строка подключения успешно обновлена.");
+            }
+            else
+            {
+                Console.WriteLine("Переменная окружения DB_CONNECTION_STRING не найдена.");
+            }
 
             AppHost = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
@@ -203,6 +221,17 @@ namespace NextGen
 
             process.Start();
             process.WaitForExit();
+        }
+
+        private void UpdateConnectionString(string name, string connectionString)
+        {
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var connectionStringsSection = (ConnectionStringsSection)config.GetSection("connectionStrings");
+
+            connectionStringsSection.ConnectionStrings[name].ConnectionString = connectionString;
+            config.Save(ConfigurationSaveMode.Modified);
+
+            ConfigurationManager.RefreshSection("connectionStrings");
         }
 
         protected override void OnExit(ExitEventArgs e)

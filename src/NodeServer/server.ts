@@ -4,6 +4,11 @@ import { WalletContractV4 } from "@ton/ton";
 import { toNano, fromNano } from '@ton/core';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Загрузка переменных окружения из файла .env
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
 const port = 3001;
@@ -13,15 +18,20 @@ let generatedComment: string = '';
 let expectedReturnAmount: bigint = BigInt(0);
 let paymentReceived: boolean = false;
 
-const API_KEY = '6b347998e2359bc8039728754ac176830c60cde01bcad1170e1f058239bd4a33';
+// Используем переменные окружения
+const API_KEY = process.env.TON_API_KEY!;
+const MNEMONIC = process.env.MNEMONIC!;
+
+console.log('Loaded environment variables:');
+console.log(`TON_API_KEY: ${API_KEY}`);
+console.log(`MNEMONIC: ${MNEMONIC}`);
 
 app.use(express.json());
 
 app.post('/generate-payment', async (req, res) => {
     const { amount } = req.body;
     const uniqueId = uuidv4();
-    const mnemonic = "coral about client mandate inside shine inhale tumble royal garden crouch cook answer flight grape poverty inhale west spoil million stable exit shell elephant";
-    const key = await mnemonicToWalletKey(mnemonic.split(" "));
+    const key = await mnemonicToWalletKey(MNEMONIC.split(" "));
     const wallet = WalletContractV4.create({ publicKey: key.publicKey, workchain: 0 });
     expectedReturnAmount = toNano(parseFloat(amount));
     const tonLink = generateTonLink(wallet.address.toString(), expectedReturnAmount, uniqueId);
@@ -117,8 +127,15 @@ async function getTransactions(walletAddress: string) {
             return { value, comment, sender, transaction_id: transactionId, utime };
         });
     } catch (error) {
-        if (error instanceof Error) {
-            console.error('Error fetching transaction details:', error.message);
+        if (axios.isAxiosError(error)) {
+            console.error('Axios error while fetching transactions:', error.message);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+                console.error('Response headers:', error.response.headers);
+            } else if (error.request) {
+                console.error('No response received from TON Center. Request details:', error.request);
+            }
         } else {
             console.error('Unexpected error:', error);
         }

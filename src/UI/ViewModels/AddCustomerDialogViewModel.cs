@@ -1,8 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using DotNetEnv;
 using MaterialDesignThemes.Wpf;
 using NextGen.src.Data.Database.Models;
 using NextGen.src.Services;
@@ -102,8 +104,25 @@ namespace NextGen.src.UI.ViewModels
 
         public AddCustomerDialogViewModel(Action<Customer> addCustomerAction)
         {
+            // Определение пути к .env файлу
+            string envFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".env");
+
+            // Проверка наличия файла и загрузка переменных окружения
+            if (File.Exists(envFilePath))
+            {
+                Debug.WriteLine($"Loading .env from: {envFilePath}");
+                Env.Load(envFilePath); // Загрузить переменные из .env файла
+            }
+            else
+            {
+                Debug.WriteLine($"File .env not found at: {envFilePath}");
+            }
+
             _addCustomerAction = addCustomerAction;
-            _dadataService = new DadataService("45abec0000854b701535bb88095334adfed134b3"); // Ваш API-ключ
+            string apiKey = Environment.GetEnvironmentVariable("DADATA_API_KEY");
+            Debug.WriteLine($"DADATA_API_KEY: {apiKey}"); // Проверка, что ключ загружен
+
+            _dadataService = new DadataService(apiKey);
 
             EmailSuggestions = new ObservableCollection<string>();
             AddressSuggestions = new ObservableCollection<string>();

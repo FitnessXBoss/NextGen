@@ -43,11 +43,11 @@ var core_1 = require("@ton/core");
 var uuid_1 = require("uuid");
 var axios_1 = require("axios");
 var app = (0, express_1.default)();
-var port = 3000;
-// ���������� ���������� ��� �������� ������ � �����������
+var port = 3001;
 var generatedAddress = '';
 var generatedComment = '';
 var expectedReturnAmount = BigInt(0);
+var paymentReceived = false;
 var API_KEY = '6b347998e2359bc8039728754ac176830c60cde01bcad1170e1f058239bd4a33';
 app.use(express_1.default.json());
 app.post('/generate-payment', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -62,12 +62,10 @@ app.post('/generate-payment', function (req, res) { return __awaiter(void 0, voi
             case 1:
                 key = _a.sent();
                 wallet = ton_1.WalletContractV4.create({ publicKey: key.publicKey, workchain: 0 });
-                expectedReturnAmount = (0, core_1.toNano)(parseFloat(amount)); // �������������� ����� � �����
+                expectedReturnAmount = (0, core_1.toNano)(parseFloat(amount));
                 tonLink = generateTonLink(wallet.address.toString(), expectedReturnAmount, uniqueId);
-                // ��������� ����� � ����������� ��� ����������� ��������
                 generatedAddress = wallet.address.toString();
                 generatedComment = uniqueId;
-                // ������� ����������� � �����
                 console.log("Expected comment: ".concat(generatedComment));
                 console.log("Expected amount: ".concat((0, core_1.fromNano)(expectedReturnAmount), " TON"));
                 res.json({
@@ -76,12 +74,14 @@ app.post('/generate-payment', function (req, res) { return __awaiter(void 0, voi
                     amount: expectedReturnAmount.toString(),
                     tonLink: tonLink
                 });
-                // ��������� ������� �������� ����������
                 checkForTransactions();
                 return [2 /*return*/];
         }
     });
 }); });
+app.get('/checkStatus', function (req, res) {
+    res.json({ paymentReceived: paymentReceived });
+});
 function checkForTransactions() {
     return __awaiter(this, void 0, void 0, function () {
         var received, transactions, _i, transactions_1, transaction, transactionAmount, comment, error_1;
@@ -107,13 +107,12 @@ function checkForTransactions() {
                     comment = transaction.comment;
                     if (!(transactionAmount >= expectedReturnAmount && comment === generatedComment)) return [3 /*break*/, 6];
                     received = true;
+                    paymentReceived = true;
                     console.log("Received amount: ".concat((0, core_1.fromNano)(transactionAmount), " TON, comment: ").concat(comment));
                     console.log("Comment matches unique ID and amount is correct: TRUE");
                     console.log("Payment verified successfully");
-                    // �������������� ��������, ��������, ����������� C# ����������
                     return [4 /*yield*/, notifyCSharpApp(transaction)];
                 case 5:
-                    // �������������� ��������, ��������, ����������� C# ����������
                     _a.sent();
                     return [3 /*break*/, 7];
                 case 6:
@@ -123,7 +122,7 @@ function checkForTransactions() {
                     if (!!received) return [3 /*break*/, 9];
                     return [4 /*yield*/, dynamicSleep(2000)];
                 case 8:
-                    _a.sent(); // ��������� ������ 2 �������
+                    _a.sent();
                     _a.label = 9;
                 case 9: return [3 /*break*/, 12];
                 case 10:
@@ -136,7 +135,7 @@ function checkForTransactions() {
                     }
                     return [4 /*yield*/, dynamicSleep(2000)];
                 case 11:
-                    _a.sent(); // ��������� ������ 2 �������
+                    _a.sent();
                     return [3 /*break*/, 12];
                 case 12: return [3 /*break*/, 1];
                 case 13: return [2 /*return*/];
@@ -183,8 +182,16 @@ function getTransactions(walletAddress) {
                         })];
                 case 3:
                     error_2 = _a.sent();
-                    if (error_2 instanceof Error) {
-                        console.error('Error fetching transaction details:', error_2.message);
+                    if (axios_1.default.isAxiosError(error_2)) {
+                        console.error('Axios error while fetching transactions:', error_2.message);
+                        if (error_2.response) {
+                            console.error('Response data:', error_2.response.data);
+                            console.error('Response status:', error_2.response.status);
+                            console.error('Response headers:', error_2.response.headers);
+                        }
+                        else if (error_2.request) {
+                            console.error('No response received from TON Center. Request details:', error_2.request);
+                        }
                     }
                     else {
                         console.error('Unexpected error:', error_2);
@@ -201,32 +208,44 @@ function notifyCSharpApp(transaction) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, axios_1.default.post('http://localhost:5220/api/example/paymentSuccessful', {
-                            Comment: transaction.comment,
-                            Amount: transaction.value, // value � nanoTON
-                            Sender: transaction.sender,
-                        })];
+                    console.log('Notifying C# app with transaction data:', transaction);
+                    _a.label = 1;
                 case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, axios_1.default.post('http://localhost:5220/api/payment/paymentSuccessful', {
+                            Comment: transaction.comment,
+                            Amount: transaction.value,
+                            Sender: transaction.sender,
+                        }, {
+                            timeout: 10000
+                        })];
+                case 2:
                     response = _a.sent();
                     console.log('C# application notified successfully');
                     console.log("Response status: ".concat(response.status));
-                    return [3 /*break*/, 3];
-                case 2:
+                    return [3 /*break*/, 4];
+                case 3:
                     error_3 = _a.sent();
+                    console.error('Error notifying C# app:', error_3.message);
                     if (axios_1.default.isAxiosError(error_3)) {
-                        console.error('Error notifying C# app:', error_3.message);
+                        console.error('Axios error details:');
                         if (error_3.response) {
                             console.error('Response data:', error_3.response.data);
                             console.error('Response status:', error_3.response.status);
                             console.error('Response headers:', error_3.response.headers);
                         }
+                        else if (error_3.request) {
+                            console.error('No response received from C# app. Request details:', error_3.request);
+                        }
+                        else {
+                            console.error('Error setting up request:', error_3.message);
+                        }
                     }
                     else {
                         console.error('Unexpected error:', error_3);
                     }
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });
